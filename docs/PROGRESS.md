@@ -350,10 +350,37 @@ deployment until the smoke tests in `docs/LAUNCH-CHECKLIST.md` run.
   `rate_limit_events`, so no public form submission reached the endpoint, and the site has
   no inquiry recipients configured (the empty inbox was exported six times). The inquiry
   check is redone by the owner with a recipient set and then verified here.
-- Pending (owner): inquiry check on production (recipient configured, public form submitted,
-  delivery verified) and acceptance of the pending invitation; backup routine decision; keep
-  or delete the paused staging project; revocation of the pasted Supabase token; sending
-  domain status confirmed at Resend; pull request for this branch.
+- 2026-09-26 Inquiry delivery on production, investigated after the owner's contact-form test
+  produced no email. Facts: the public form stores inquiries (three from the owner and one
+  labelled scheduler test from the session; receipts LW-55B94BD6, LW-F5C3A848, LW-9FD10DB2,
+  LW-FEAD02A1); the first two carried no recipients because the site had none configured
+  (the site overview's setup checklist flags this), then the owner added one.
+  `/api/jobs/deliver` called with the production `CRON_SECRET` (read through the Vercel API,
+  never printed) worked: 3 claimed, 1 delivered to the owner's address through Resend
+  (provider accepted), 2 failed with "no notification recipients are configured for this
+  site". Vercel Cron, however, had processed nothing since the first deployment, for two
+  reasons. (1) Deployment Protection was Standard (`all_except_custom_domains`), which covers
+  the production deployment's generated `*.vercel.app` URL, the URL Vercel Cron calls; that
+  URL answered 302 (sign-in redirect), and cron jobs neither follow redirects nor log them.
+  Changed to "Only Preview Deployments" (`ssoProtection.deploymentType: preview`); the URL
+  now answers 200. (2) The application's host routing rewrote `/api/jobs/*` on any hostname
+  other than `APP_HOST` to the public site router, which answered 404, so cron invocations on
+  the generated URL could never reach the job handler. Fixed in `src/proxy.ts` (`/api/jobs/`
+  exempt like `/healthz`; the endpoints authenticate with the job secret), browser assertion
+  added to ROUTE-01, and a "Cron target" row added to `pnpm launch:check` that probes the
+  job endpoint on the production deployment URL and fails on a redirect or a 404. Also done:
+  `commandForIgnoringBuildStep` on the production Vercel project skips non-production builds
+  (branch pushes had produced failing preview builds for lack of preview variables), and the
+  retired staging Vercel project was detached from the repository so merges no longer
+  redeploy it against a paused database. PR #5 (this session's documentation and tooling)
+  was merged by the owner at 12:44 UTC and redeployed production (`9341504`); the session
+  branch restarted from `main`. The routing fix reaches production through the next merge;
+  the pending scheduler-test job (LW-FEAD02A1) is the end-to-end proof once the first cron
+  slot after that deployment delivers it.
+- Pending (owner): merge the routing fix into `main` (a pull request from this branch), then
+  the cron delivers the pending test inquiry by itself; acceptance of the pending invitation;
+  backup routine decision; keep or delete the paused staging project; revocation of the
+  pasted Supabase token; sending domain status confirmed at Resend.
 
 ## Feature ledger
 

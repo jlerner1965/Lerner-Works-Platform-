@@ -70,6 +70,7 @@ async function main(): Promise<void> {
   await notifyChecks(cfg);
   jobChecks(cfg);
   await domainProviderChecks(cfg);
+  await cronTargetChecks(cfg);
 
   const width = Math.max(...rows.map((r) => r.item.length));
   let failed = false;
@@ -352,6 +353,36 @@ async function domainProviderChecks(cfg: { VERCEL_API_TOKEN?: string; VERCEL_PRO
     add("OK", "Domain provider", `Vercel project ${body.name ?? project} reachable`);
   } catch (err) {
     add("FAIL", "Domain provider", `Vercel unreachable: ${err instanceof Error ? err.message : String(err)}`);
+  }
+}
+
+// Vercel Cron calls the job endpoints on the production deployment's generated hostname, not
+// on APP_HOST. They must answer there with 401 (secret required): a redirect means Deployment
+// Protection covers the production deployment URL, a 404 means host routing swallowed the path.
+// Either way the scheduler would run and deliver nothing, without an error anywhere.
+async function cronTargetChecks(cfg: { VERCEL_API_TOKEN?: string; VERCEL_PROJECT_ID?: string; VERCEL_TEAM_ID?: string } | null): Promise<void> {
+  const token = cfg?.VERCEL_API_TOKEN ?? process.env.VERCEL_API_TOKEN;
+  const project = cfg?.VERCEL_PROJECT_ID ?? process.env.VERCEL_PROJECT_ID;
+  const team = cfg?.VERCEL_TEAM_ID ?? process.env.VERCEL_TEAM_ID;
+  if (!token || !project) return;
+  try {
+    const u = new URL(`https://api.vercel.com/v9/projects/${encodeURIComponent(project)}`);
+    if (team) u.searchParams.set("teamId", team);
+    const res = await fetch(u, { headers: { Authorization: `Bearer ${token}` } });
+    if (!res.ok) return;
+    const body = (await res.json()) as { targets?: { production?: { url?: string } } };
+    const host = body.targets?.production?.url;
+    if (!host) {
+      add("WARN", "Cron target", "no production deployment yet; re-run after the first deployment");
+      return;
+    }
+    const probe = await fetch(`https://${host}/api/jobs/deliver`, { redirect: "manual" });
+    if (probe.status === 401) add("OK", "Cron target", `${host}/api/jobs/deliver answers 401 without the secret: reachable for Vercel Cron`);
+    else if (probe.status >= 300 && probe.status < 400) add("FAIL", "Cron target", `${host}/api/jobs/deliver redirects (${probe.status}): Deployment Protection covers the production deployment URL; set it to "Only Preview Deployments"`);
+    else if (probe.status === 404) add("FAIL", "Cron target", `${host}/api/jobs/deliver answers 404: host routing swallows the job endpoints on this hostname`);
+    else add("WARN", "Cron target", `${host}/api/jobs/deliver answered ${probe.status}`);
+  } catch (err) {
+    add("WARN", "Cron target", `not checked: ${err instanceof Error ? err.message : String(err)}`);
   }
 }
 

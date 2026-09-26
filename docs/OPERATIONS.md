@@ -101,7 +101,11 @@ counters older than a day, inquiries older than 90 days) require `Authorization:
 `vercel.json` (every 5 minutes / daily). Plan limits decide the effective cadence: on plans
 that run crons only daily, call the delivery endpoint from another scheduler. Without a
 secret the endpoints answer 503 so a missing scheduler is visible, and `pnpm launch:check`
-reports it.
+reports it. Vercel Cron calls the endpoints on the deployment's generated `*.vercel.app`
+hostname, so they are exempt from host routing and the project's Deployment Protection must
+not cover production deployment URLs; a pending `delivery_jobs` row that is never attempted
+means the scheduler is not reaching the endpoint (check the Cron Jobs page of the Vercel
+project and its runtime logs), not that the worker failed.
 
 ### Domains and going live
 
