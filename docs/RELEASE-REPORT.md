@@ -73,7 +73,14 @@ Field Core Web Vitals cannot be claimed from these runs.
   content="noindex, nofollow">`; `/assets/<hash>-w480.webp` → `public, max-age=31536000,
   immutable`; unknown `Host` → 404; `X-Content-Type-Options`, `Referrer-Policy` and
   `X-Frame-Options` on every response.
-- **Fresh install**: <!-- FILL:OPS01 -->
+- **Fresh install** (OPS-01, 2026-09-26): commit `ba96873` cloned into an empty directory;
+  `pnpm install --frozen-lockfile` (397 packages from the lockfile, reused from the local
+  store), `.env` with the local database values, `pnpm setup:check` (all OK: Node 22.22.2,
+  pnpm 10.33.0, PostgreSQL 16.13, 7 migrations, 2 sites), `pnpm db:migrate` (nothing
+  pending), `pnpm seed:demo` (idempotent: 5 accounts, 39 items unchanged, 0 new images or
+  releases; `docs/local-accounts.md` written and git-ignored), `pnpm typecheck`, `pnpm lint`,
+  28 unit and 35 integration tests: every step exit 0. On a machine without the database,
+  `pnpm db:start` creates it first, as the README says.
 
 ## 5. Not verified here (hosted readiness)
 
