@@ -45,9 +45,11 @@ export default async function SiteOverviewPage({ params, searchParams }: { param
         (select r.created_at from public.releases r where r.id = ${site.activeReleaseId}) as latest_release_at`;
     const kindRows = await db<{ kind: ContentKind; n: number }[]>`select kind, count(*)::int as n from public.content_items where site_id = ${site.id} and archived_at is null group by kind`;
     const config = await getCurrentSiteConfig(db, site.id);
-    const [home] = await db<{ id: string; payload: { sections?: Array<{ type: string; imageAssetId?: string | null }> } }[]>`
-      select i.id, r.payload from public.content_items i join public.content_revisions r on r.id = i.current_revision_id
-      where i.site_id = ${site.id} and i.kind = 'page' and r.slug = 'home' and i.archived_at is null limit 1`;
+    const starterPages = await db<{ id: string; slug: string; payload: { sections?: Array<{ type: string; imageAssetId?: string | null; body?: unknown[] }> } }[]>`
+      select i.id, r.slug, r.payload from public.content_items i join public.content_revisions r on r.id = i.current_revision_id
+      where i.site_id = ${site.id} and i.kind = 'page' and r.slug in ('home', 'about') and i.archived_at is null`;
+    const home = starterPages.find((p) => p.slug === "home");
+    const about = starterPages.find((p) => p.slug === "about");
     const [domains] = await db<{ n: number }[]>`select count(*)::int as n from public.domains where site_id = ${site.id}`;
     let preview: CandidatePreview | null = null;
     if (cap.canPublish && config) {
@@ -57,7 +59,7 @@ export default async function SiteOverviewPage({ params, searchParams }: { param
         preview = null;
       }
     }
-    return { stats: stats!, counts: new Map(kindRows.map((r) => [r.kind, r.n])), config: config?.config ?? null, home: home ?? null, domains: domains?.n ?? 0, preview };
+    return { stats: stats!, counts: new Map(kindRows.map((r) => [r.kind, r.n])), config: config?.config ?? null, home: home ?? null, about: about ?? null, domains: domains?.n ?? 0, preview };
   });
 
   const base = `/app/sites/${site.id}`;
@@ -67,6 +69,10 @@ export default async function SiteOverviewPage({ params, searchParams }: { param
   const typography = config ? typographyPresets[config.branding.typography]?.label : null;
   const hero = data.home?.payload.sections?.[0];
   const heroHasImage = hero?.type === "image_hero" && Boolean(hero.imageAssetId);
+  // A text slot is "written" once some rich text section on the page has a body; pages without text slots count as written.
+  const textWritten = (sections: Array<{ type: string; body?: unknown[] }> | undefined) => !sections?.some((s) => s.type === "rich_text") || sections.some((s) => s.type === "rich_text" && Array.isArray(s.body) && s.body.length > 0);
+  const homeIntroWritten = textWritten(data.home?.payload.sections);
+  const aboutWritten = textWritten(data.about?.payload.sections);
   const preview = data.preview;
   const s = preview?.summary;
   const changes = s ? s.added.length + s.changed.length + s.removed.length + s.configFields.length + s.mediaAdded.length + (s.mediaChanged?.length ?? 0) + s.mediaRemoved.length + (s.navigationChanged ? 1 : 0) : 0;
@@ -156,7 +162,8 @@ export default async function SiteOverviewPage({ params, searchParams }: { param
             site={{ contactEmail: site.contactEmail, recipients: site.inquiryRecipients.length, release: stats.latestReleaseVersion, domains: data.domains, mode: site.mode }}
             kinds={kinds}
             counts={data.counts}
-            home={data.home ? { id: data.home.id, heroHasImage } : null}
+            home={data.home ? { id: data.home.id, heroHasImage, introWritten: homeIntroWritten } : null}
+            about={data.about ? { id: data.about.id, written: aboutWritten } : null}
             isOwner={cap.isOwner}
           />
           {hasFixture ? (
@@ -185,13 +192,14 @@ export default async function SiteOverviewPage({ params, searchParams }: { param
   );
 }
 
-function SetupChecklist({ base, config, site, kinds, counts, home, isOwner }: {
+function SetupChecklist({ base, config, site, kinds, counts, home, about, isOwner }: {
   base: string;
   config: SiteConfig | null;
   site: { contactEmail: string | null; recipients: number; release: number | null; domains: number; mode: "demo" | "live" };
   kinds: ContentKind[];
   counts: Map<ContentKind, number>;
-  home: { id: string; heroHasImage: boolean } | null;
+  home: { id: string; heroHasImage: boolean; introWritten: boolean } | null;
+  about: { id: string; written: boolean } | null;
   isOwner: boolean;
 }) {
   const tasks: Array<{ done: boolean; label: string; href: string }> = [];
@@ -202,6 +210,8 @@ function SetupChecklist({ base, config, site, kinds, counts, home, isOwner }: {
   tasks.push({ done: Boolean(site.contactEmail), label: "Set the contact email", href: `${base}/settings#site-details` });
   if (!config || config.modules.inquiries) tasks.push({ done: site.recipients > 0, label: "Add inquiry notification recipients", href: `${base}/settings#site-details` });
   if (home) tasks.push({ done: home.heroHasImage, label: "Give the home page its hero image", href: `${base}/content/${home.id}` });
+  if (home) tasks.push({ done: home.introWritten, label: "Write the home page introduction", href: `${base}/content/${home.id}` });
+  if (about) tasks.push({ done: about.written, label: "Write the About page", href: `${base}/content/${about.id}` });
   for (const kind of kinds) {
     if (kind === "page") continue;
     if (config && kind in config.modules && !config.modules[kind as keyof SiteConfig["modules"]]) continue;

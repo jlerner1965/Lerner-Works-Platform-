@@ -47,7 +47,7 @@ describe("CSV import (PORT-01, PORT-02)", () => {
       const dry = await dryRun(db, site, "store", parsed, mapping);
       return applyImport(db, site, "store", owner, dry);
     });
-    expect(first).toMatchObject({ created: 2, updated: 0 });
+    expect(first).toMatchObject({ created: 2, updated: 0, approved: false });
     const second = await withUser(owner, async (db) => {
       const site = (await loadSiteContext(db, sites.rangeAthletics))!.site;
       const dry = await dryRun(db, site, "store", parsed, mapping);
@@ -55,27 +55,55 @@ describe("CSV import (PORT-01, PORT-02)", () => {
       return applyImport(db, site, "store", owner, dry);
     });
     expect(second).toMatchObject({ created: 0, updated: 0 });
-    const rows = await withUser(owner, (db) => db<{ externalId: string; slug: string; state: string | null }[]>`
+    const reviewStates = () => withUser(owner, (db) => db<{ externalId: string; slug: string; state: string | null }[]>`
       select i.external_id, r.slug, (select rv.state::text from public.reviews rv where rv.revision_id = r.id order by rv.created_at desc limit 1) as state
       from public.content_items i join public.content_revisions r on r.id = i.current_revision_id where i.site_id = ${sites.rangeAthletics} and i.external_id like 'CSV-%' order by 1`);
+    const rows = await reviewStates();
     expect(rows.map((r) => r.externalId)).toEqual(["CSV-1", "CSV-2"]);
-    expect(rows.every((r) => r.state === null)).toBe(true); // drafts, unreviewed
-    // An update in the file becomes a new revision, still without duplicates.
+    expect(rows.every((r) => r.state === null)).toBe(true); // drafts, unreviewed (no approval asked for)
+    // An update in the file becomes a new revision, still without duplicates; asked to approve
+    // (the site's review policy for someone who may publish, B2-5), the new revision is approved on save.
     const changed = storesCsv.replace("Compact store near the lake", "Compact store by the lake");
     const third = await withUser(owner, async (db) => {
       const site = (await loadSiteContext(db, sites.rangeAthletics))!.site;
       const p = parseCsv(changed);
       const dry = await dryRun(db, site, "store", p, autoMap("store", p.headers));
       expect(dry.counts).toMatchObject({ create: 0, update: 1, skip: 1 });
-      return applyImport(db, site, "store", owner, dry);
+      return applyImport(db, site, "store", owner, dry, { approve: true });
     });
-    expect(third).toMatchObject({ updated: 1 });
+    expect(third).toMatchObject({ updated: 1, approved: true });
+    const after = await reviewStates();
+    expect(after.find((r) => r.externalId === "CSV-1")?.state).toBe("approved");
+    expect(after.find((r) => r.externalId === "CSV-2")?.state).toBeNull();
     expect(parseCsv(templateCsv("event")).rows.length).toBe(1);
   });
 
   it("rejects oversized inputs", () => {
     const big = "external_id,title\n" + Array.from({ length: 501 }, (_, i) => `X-${i},Title ${i}`).join("\n");
     expect(() => parseCsv(big)).toThrow(/501 rows/);
+  });
+
+  it("keeps the stored column mapping usable after the round trip through the database (B2: the client camel-cases json keys)", async () => {
+    const parsed = parseCsv(storesCsv);
+    const mapping = autoMap("store", parsed.headers);
+    const { snakeCaseKeys } = await import("@/lib/snake-keys");
+    const readBack = await withUser(owner, async (db) => {
+      const site = (await loadSiteContext(db, sites.rangeAthletics))!.site;
+      const [job] = await db<{ id: string }[]>`insert into public.import_jobs (organization_id, site_id, package_type, kind, filename, file_sha256, row_count, mapping, dry_run_result, created_by)
+        values (${site.organizationId}, ${site.id}, 'csv', 'store', 'stores.csv', ${parsed.sha256}, ${parsed.rows.length}, ${db.json(mapping)}, ${db.json({ counts: {}, rows: [] })}, ${owner}) returning id`;
+      const [stored] = await db<{ mapping: Record<string, string> }[]>`select mapping from public.import_jobs where id = ${job!.id}`;
+      await db`update public.import_jobs set state = 'cancelled' where id = ${job!.id}`;
+      return { site, mapping: stored!.mapping };
+    });
+    // As read, the keys are camel-cased and the dry run would find no required column; restored, it finds the rows.
+    expect(Object.keys(readBack.mapping)).toContain("externalId");
+    const broken = await withUser(owner, (db) => dryRun(db, readBack.site, "store", parsed, readBack.mapping));
+    expect(broken.rows[0]?.errors[0]).toMatch(/required column "external_id" is not mapped/);
+    const restored = await withUser(owner, (db) => dryRun(db, readBack.site, "store", parsed, snakeCaseKeys(readBack.mapping)));
+    // The two valid rows are evaluated again (imported above, one of them since changed); the two bad rows keep their row-level errors.
+    expect(restored.rows.some((r) => r.errors.some((e) => e.includes("not mapped")))).toBe(false);
+    expect(restored.counts.create + restored.counts.update + restored.counts.skip).toBe(2);
+    expect(restored.counts.error).toBe(2);
   });
 });
 
@@ -101,9 +129,10 @@ describe("portable site package (PORT-03)", () => {
       const dry = await dryRunPackage(db, site, zip);
       expect(dry.errors).toEqual([]);
       expect(dry.summary.adoptablePages).toBe(expectedAdopted);
-      return applyPackage(db, site, owner, dry);
+      return applyPackage(db, site, owner, dry, { approve: true });
     });
     expect(applied.items).toBe(manifest.counts.items);
+    expect(applied.approved).toBe(true);
     expect(applied.media).toBe(manifest.counts.media);
     expect(applied.adoptedPages).toBe(expectedAdopted);
 
@@ -130,10 +159,11 @@ describe("portable site package (PORT-03)", () => {
       // Site C has no domains, members or inquiries from the package.
       const [extra] = await admin<{ domains: number; inquiries: number }[]>`select (select count(*)::int from public.domains where site_id = ${siteC}) as domains, (select count(*)::int from public.inquiries where site_id = ${siteC}) as inquiries`;
       expect(extra).toEqual({ domains: 0, inquiries: 0 });
-      // Imported content is unreviewed draft: the only reviews in site C are the approvals on save of its three
-      // starter pages (B1), and none sits on the revision the import wrote for an adopted page.
-      const [reviews] = await admin<{ total: number; onCurrent: number }[]>`select (select count(*)::int from public.reviews where site_id = ${siteC}) as total, (select count(*)::int from public.reviews rv join public.content_items i on i.current_revision_id = rv.revision_id where rv.site_id = ${siteC}) as on_current`;
-      expect(reviews).toEqual({ total: 3, onCurrent: 3 - expectedAdopted });
+      // Imported with approval (B2-5): every current revision of site C is approved (the imported ones and the
+      // starter pages the import did not replace); the replaced starter pages keep their earlier approval too.
+      const [reviews] = await admin<{ total: number; onCurrent: number; items: number }[]>`select (select count(*)::int from public.reviews where site_id = ${siteC}) as total, (select count(*)::int from public.reviews rv join public.content_items i on i.current_revision_id = rv.revision_id where rv.site_id = ${siteC} and rv.state = 'approved') as on_current, (select count(*)::int from public.content_items where site_id = ${siteC}) as items`;
+      expect(reviews!.onCurrent).toBe(reviews!.items);
+      expect(reviews!.total).toBe(3 + applied.items);
     } finally {
       await admin.end();
     }

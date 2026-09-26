@@ -6,10 +6,13 @@ import { z } from "zod";
 import { requireUser } from "@/server/auth/session";
 import { withUser, describeDbError } from "@/server/data/db";
 import { loadSiteContext } from "@/server/data/access";
+import { approvesOnSave } from "@/server/data/content";
 import { getStorage } from "@/server/media/storage";
 import { parseCsv, dryRun, applyImport, type Mapping } from "@/server/import/csv";
 import { csvSpecs, isImportableKind } from "@/server/import/csv-spec";
 import { dryRunPackage, applyPackage } from "@/server/import/package";
+import { dryRunOnboarding, applyOnboarding } from "@/server/import/onboarding";
+import { snakeCaseKeys } from "@/lib/snake-keys";
 
 const uuid = z.uuid();
 
@@ -59,25 +62,40 @@ export async function confirmImportAction(_prev: ImportState, formData: FormData
       if (!job) throw new Error("Import job not found.");
       if (job.state !== "dry_run") throw new Error("This import was already confirmed or cancelled; start a new import to repeat it.");
       const storage = getStorage();
+      // The site's review policy applies to imports as to editor saves (B1, B2-5).
+      const approve = approvesOnSave(ctx.site, ctx.capabilities);
+      const outcome = approve ? "Imported items are approved and go out with the next publish." : "Imported items are drafts awaiting review.";
       if (job.packageType === "csv") {
         if (!job.kind || !isImportableKind(job.kind)) throw new Error("Unsupported kind.");
         const raw = await storage.getPrivate(`${ctx.site.organizationId}/${siteId}/imports/${jobId}.csv`);
         if (!raw) throw new Error("The uploaded file is no longer available; upload it again.");
         const parsed = parseCsv(Buffer.from(raw).toString("utf8"));
-        const dry = await dryRun(db, ctx.site, job.kind, parsed, job.mapping);
-        const applied = await applyImport(db, ctx.site, job.kind, user.id, dry);
+        // The stored mapping's keys come back camel-cased from the database client; the CSV columns are snake_case.
+        const dry = await dryRun(db, ctx.site, job.kind, parsed, snakeCaseKeys(job.mapping));
+        const applied = await applyImport(db, ctx.site, job.kind, user.id, dry, { approve });
         await db`update public.import_jobs set state = 'completed', completed_at = now(), result = ${db.json({ ...applied, errors: dry.counts.error })} where id = ${jobId}`;
         await db`insert into public.audit_events (organization_id, site_id, actor_id, action, entity_type, entity_id, metadata) values (${ctx.site.organizationId}, ${siteId}, ${user.id}, 'import.csv_applied', 'import_job', ${jobId}, ${db.json({ kind: job.kind, ...applied })})`;
-        return `${applied.created} created, ${applied.updated} updated, ${applied.skipped} unchanged; ${dry.counts.error} row(s) with errors were not imported. Imported items are drafts awaiting review.`;
+        return `${applied.created} created, ${applied.updated} updated, ${applied.skipped} unchanged; ${dry.counts.error} row(s) with errors were not imported. ${outcome}`;
       }
       const raw = await storage.getPrivate(`${ctx.site.organizationId}/${siteId}/imports/${jobId}.zip`);
       if (!raw) throw new Error("The uploaded package is no longer available; upload it again.");
+      if (job.packageType === "onboarding") {
+        const dry = await dryRunOnboarding(db, ctx.site, raw, { canApplySettings: ctx.capabilities.isOwner });
+        if (dry.errors.length) throw new Error(`The package failed validation: ${dry.errors[0]}`);
+        const applied = await applyOnboarding(db, ctx.site, user.id, dry, { approve, applySettings: ctx.capabilities.isOwner });
+        await db`update public.import_jobs set state = 'completed', completed_at = now(), result = ${db.json(applied as never)} where id = ${jobId}`;
+        await db`insert into public.audit_events (organization_id, site_id, actor_id, action, entity_type, entity_id, metadata) values (${ctx.site.organizationId}, ${siteId}, ${user.id}, 'import.onboarding_applied', 'import_job', ${jobId}, ${db.json(applied as never)})`;
+        const parts = [`${applied.created} created, ${applied.updated} updated, ${applied.skipped} unchanged`, `${applied.images} image${applied.images === 1 ? "" : "s"}`];
+        if (applied.settings.length) parts.push(`${applied.settings.length} setting${applied.settings.length === 1 ? "" : "s"} (${applied.settings.join(", ")})`);
+        if (applied.pages.length) parts.push(`the ${applied.pages.join(" and ")} page${applied.pages.length === 1 ? "" : "s"} given their text`);
+        return `${parts.join("; ")}. ${outcome}`;
+      }
       const dry = await dryRunPackage(db, ctx.site, raw);
       if (dry.errors.length) throw new Error(`The package failed validation: ${dry.errors[0]}`);
-      const applied = await applyPackage(db, ctx.site, user.id, dry, { keepDesign: !ctx.capabilities.canDesign });
+      const applied = await applyPackage(db, ctx.site, user.id, dry, { keepDesign: !ctx.capabilities.canDesign, approve });
       await db`update public.import_jobs set state = 'completed', completed_at = now(), result = ${db.json(applied)} where id = ${jobId}`;
       await db`insert into public.audit_events (organization_id, site_id, actor_id, action, entity_type, entity_id, metadata) values (${ctx.site.organizationId}, ${siteId}, ${user.id}, 'import.package_applied', 'import_job', ${jobId}, ${db.json(applied)})`;
-      return `${applied.items} items (${applied.adoptedPages} starter pages replaced), ${applied.media} images and the configuration were imported as drafts. Domains and notification recipients were not imported.`;
+      return `${applied.items} items (${applied.adoptedPages} starter pages replaced), ${applied.media} images and the configuration were imported. ${outcome} Domains and notification recipients were not imported.`;
     });
   } catch (err) {
     return { error: err instanceof Error ? err.message : describeDbError(err).message };

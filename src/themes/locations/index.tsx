@@ -8,6 +8,7 @@ import { RichText } from "@/themes/shared/richtext";
 import { Picture } from "@/themes/shared/picture";
 import { InquiryForm } from "@/themes/shared/inquiry-form";
 import { resolveCollection, featuredImage, itemPath } from "@/themes/shared/collections";
+import { visibleSections } from "@/themes/shared/empty";
 import { SiteRoot, BrandMark, linkProps, showSearchLink, pageHeaderImage } from "@/themes/shared/site-root";
 import { SectionFrame, PageContainer } from "@/themes/shared/frame";
 import { siteDesign, isColouredBand, columnsFor } from "@/themes/shared/design";
@@ -172,9 +173,11 @@ export function StoreCard({ ctx, item, featured = false }: { ctx: RenderContext;
 const narrowByDefault = new Set<PageSection["type"]>(["rich_text", "inquiry_form", "faq", "video", "map_link"]);
 
 export function LocationsSections({ ctx, page }: { ctx: RenderContext; page: PagePayload }) {
+  // Sections with nothing to show are left out (B2, D-021); publication lists them.
+  const sections = visibleSections(ctx, page.sections);
   return (
     <div className="space-y-(--section-gap)">
-      {page.sections.map((section, i) => (
+      {sections.map((section, i) => (
         <SectionFrame key={section.id} appearance={section.appearance} narrowAlign="start" narrow={narrowByDefault.has(section.type) || (section.type === "quotes" && (section.variant === "single" || (section.variant === "default" && section.items.length <= 1)))}>
           <LocationsSection ctx={ctx} section={section} first={i === 0} />
         </SectionFrame>
@@ -247,9 +250,7 @@ function LocationsSection({ ctx, section, first }: { ctx: RenderContext; section
           {section.heading ? (first ? <h1 className={`mb-5 ${h1}`}>{section.heading}</h1> : <LocRule>{section.heading}</LocRule>) : null}
           {section.body.length ? (
             <RichText ctx={ctx} blocks={section.body as Block[]} className={`loc-prose ${section.variant === "columns" ? "md:columns-2 md:gap-10" : ""} ${section.variant === "lead" ? "[&>p:first-child]:text-xl [&>p:first-child]:font-semibold" : ""}`} />
-          ) : (
-            <p className="text-(--section-muted)">This section has no text yet.</p>
-          )}
+          ) : null}
         </>
       );
     case "feature_list": {
@@ -263,7 +264,7 @@ function LocationsSection({ ctx, section, first }: { ctx: RenderContext; section
       return (
         <>
           {section.heading ? <LocRule>{section.heading}</LocRule> : null}
-          {section.items.length === 0 ? <p className="text-(--section-muted)">Nothing listed yet.</p> : variant === "list" ? (
+          {section.items.length === 0 ? null : variant === "list" ? (
             <ul className="divide-y divide-(--section-border) border-y border-(--section-border)">{section.items.map((it) => <li key={it.title} className="py-3">{item(it)}</li>)}</ul>
           ) : variant === "grid" ? (
             <ul className={`grid gap-x-8 ${columnsClass[columnsFor("locations", "feature_list", section.columns)]}`}>{section.items.map((it) => <li key={it.title} className="border-t-4 border-(--section-heading) py-3">{item(it)}</li>)}</ul>
@@ -279,9 +280,7 @@ function LocationsSection({ ctx, section, first }: { ctx: RenderContext; section
       return (
         <>
           {section.heading ? <LocRule>{section.heading}</LocRule> : null}
-          {items.length === 0 ? (
-            <p className="rounded-(--radius) border border-dashed border-(--brand-border-strong) p-6 text-(--section-muted)">{section.mode === "selected" ? "No featured store selected." : "No store locations have been published yet."}</p>
-          ) : variant === "featured" || variant === "list" ? (
+          {items.length === 0 ? null : variant === "featured" || variant === "list" ? (
             <div className="space-y-4">{items.map((s) => <StoreCard key={s.id} ctx={ctx} item={s} featured />)}</div>
           ) : (
             <ul className={`grid gap-4 ${columnsClass[columnsFor("locations", "location_collection", section.columns)]}`}>{items.map((s) => <li key={s.id}><StoreCard ctx={ctx} item={s} /></li>)}</ul>
@@ -298,6 +297,9 @@ function LocationsSection({ ctx, section, first }: { ctx: RenderContext; section
         </>
       );
     }
+    case "category_list":
+      // Categories belong to places; this composition does not declare the type (capabilities), so it never gets here.
+      return null;
     case "contact_callout": {
       const { contact } = ctx.snapshot.site;
       const banner = section.variant === "banner";
@@ -341,7 +343,8 @@ function LocationsSection({ ctx, section, first }: { ctx: RenderContext; section
 
 /** Content collections (services on this preset): cell grid by default, cards or rows with images, or text. */
 export function LocationsCollection({ ctx, items, variant = "default", columns = 4 }: { ctx: RenderContext; items: SnapshotItem[]; variant?: string; columns?: 2 | 3 | 4 }) {
-  if (items.length === 0) return <p className="rounded-(--radius) border border-dashed border-(--brand-border-strong) p-6 text-(--section-muted)">Nothing has been published here yet.</p>;
+  // An empty collection renders nothing; the section is left out of the page before this point (B2, D-021).
+  if (items.length === 0) return null;
   const v = variant === "default" ? (siteDesign(ctx).cards === "image-side" ? "list" : siteDesign(ctx).cards === "image-top" ? "text" : "text") : variant;
   const title = (it: SnapshotItem, className: string) => {
     const p = itemPath(ctx, it);

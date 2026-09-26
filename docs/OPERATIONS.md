@@ -220,6 +220,46 @@ and then accepts at `/invite/<token>`; that path is unverified in this environme
   waive a warning with a reason, build a candidate and activate it from its own page. Restore
   works as before from the release history.
 
+## From empty to launch (site-building programme B2)
+
+- A section with nothing to show is left out of the public page (D-021): an empty text slot,
+  a collection without published items, a category list without categories, a video without
+  an id, a map link without an address. Publication warns which sections are left out
+  (`section_left_out`) and when a page has nothing to show (`page_empty`); the editor says
+  under each section what fills it; the overview's setup checklist names the introduction and
+  the About page while they are unwritten. Nothing is generated: a slot stays empty until
+  written.
+- Onboarding package (Import & export → "Download the template"): a ZIP with one CSV per
+  content kind of the preset (`places.csv`, `events.csv`, `articles.csv`, or `services.csv`
+  and `stores.csv`; the CSV templates with `body`, `image` and `image_alt` columns),
+  `site.csv` (key/value rows: wordmark, tagline, description, contact details, the four brand
+  colours, typography, logo, share image, hero image, home subheading, home introduction,
+  About text; the `notes` column is ignored), `images.csv` (file, alt_text, title, license,
+  attribution, source_url, decorative) and an `images/` folder (JPEG, PNG or WebP, up to 10 MB
+  each, 100 files). Upload it on the same page: the dry run validates every sheet, image and
+  setting and writes nothing; confirming ingests the images, imports the rows in order
+  (services before stores, places before events) and applies the settings sheet (a
+  configuration revision, the contact details on the site, and the starter pages' text and
+  hero image as new revisions) in one transaction, audited as `import.onboarding_applied`. The
+  settings sheet needs an organization owner; others import the content and images. Importing
+  the same package again updates the rows and uploads the images again. Format details are in
+  the template's README and `src/server/import/onboarding.ts`.
+- CSV imports cover stores, services, places, events and articles. A plain CSV import cannot
+  name an image (the `image` column must be empty); the onboarding package can.
+- Imports follow the site's review policy: an import by someone who may publish on a site
+  that does not require review is approved on save (each written revision, audited
+  `review.approved_on_save`); otherwise the items are drafts awaiting review. The import
+  page and the job page say which.
+- Media: many files in one upload with one license, attribution and source for the batch,
+  two files at a time, then the alternative-text pass lists every uploaded image with a field
+  for its text or a decorative mark and saves them in one action; the library shows how many
+  images still need alternative text or a license, with a filter for each.
+- Quick add on a content list: a title (and, for a place, a category with the site's existing
+  categories suggested) creates the draft with the site's defaults and opens the editor. The
+  editor's "Duplicate this …" copies the saved version into a new draft with a free slug.
+  Articles are attributed to the site until a person is named; events and stores take the
+  site's time zone.
+
 ## Backups and restore rehearsal
 
 Site export is portability, not disaster recovery.

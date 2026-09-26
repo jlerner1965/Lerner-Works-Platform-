@@ -68,20 +68,24 @@ test("public inquiry form validates inline, preserves input and returns a receip
   await expect(page.getByText(receipt)).toBeVisible();
 });
 
-test("media upload rejects an SVG and accepts a PNG with metadata (MEDIA-01)", async ({ page }) => {
+test("media upload rejects an SVG and accepts a PNG, whose alternative text is asked for right after (MEDIA-01)", async ({ page }) => {
   const { sites } = seed();
   await signIn(page, emails.owner);
   await page.goto(`/app/sites/${sites.pineHollow}/media`);
-  await page.getByLabel("Image file").setInputFiles({ name: "evil.svg", mimeType: "image/svg+xml", buffer: Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>') });
+  await page.getByLabel("Image files").setInputFiles({ name: "evil.svg", mimeType: "image/svg+xml", buffer: Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>') });
   await page.getByRole("button", { name: "Upload" }).click();
   await expect(page.getByRole("alert").filter({ hasText: "SVG is not accepted" })).toBeVisible();
   const { default: sharp } = await import("sharp");
   const png = await sharp({ create: { width: 900, height: 600, channels: 3, background: "#2f5d3a" } }).png().toBuffer();
-  await page.getByLabel("Image file").setInputFiles({ name: "test.png", mimeType: "image/png", buffer: png });
-  await page.getByLabel("Title", { exact: true }).fill("E2E test image");
-  await page.getByLabel("Alternative text", { exact: true }).fill("A solid green rectangle");
-  await page.getByLabel("License / rights").fill("CC0");
+  await page.getByLabel("Image files").setInputFiles({ name: "e2e-test-image.png", mimeType: "image/png", buffer: png });
+  await page.getByLabel("License / rights (all files)").fill("CC0");
   await page.getByRole("button", { name: "Upload" }).click();
-  await expect(page.getByText(/Uploaded "E2E test image"/)).toBeVisible();
-  await expect(page.getByRole("link", { name: /E2E test image/ })).toBeVisible();
+  // The alt-text pass lists the upload under its title (the file name) and saves the text (B2-3).
+  await expect(page.getByRole("heading", { name: /Alternative text for 1 uploaded image/ })).toBeVisible();
+  await page.getByLabel("e2e-test-image", { exact: true }).fill("A solid green rectangle");
+  await page.getByRole("button", { name: /Save alternative text for 1 image/ }).click();
+  await expect(page.getByText(/Saved alternative text for 1 image/)).toBeVisible();
+  const card = page.locator("li", { has: page.getByRole("link", { name: /e2e-test-image/ }) });
+  await expect(card.getByText("alt text", { exact: true })).toBeVisible();
+  await expect(card.getByText("licensed", { exact: true })).toBeVisible();
 });

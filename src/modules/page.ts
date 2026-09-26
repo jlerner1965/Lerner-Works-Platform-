@@ -39,6 +39,7 @@ export const sectionVariants = {
   rich_text: ["default", "columns", "lead"],
   feature_list: ["default", "grid", "list", "cards"],
   content_collection: ["default", "cards", "list", "text", "featured"],
+  category_list: ["default", "chips", "grid", "list"],
   location_collection: ["default", "cards", "list", "featured"],
   contact_callout: ["default", "banner", "split"],
   inquiry_form: ["default", "wide"],
@@ -108,6 +109,21 @@ export const sectionSchema = z.discriminatedUnion("type", [
     mode: z.enum(["selected", "latest", "upcoming"]).default("latest"),
     itemIds: z.array(z.uuid()).max(24).default([]),
     limit: z.number().int().min(1).max(24).default(6),
+    columns: columns.optional(),
+  }),
+  /**
+   * The categories of the published places, each linking to the filtered directory, with the
+   * number of places in it. Fills itself from the release (site-building programme B2): a
+   * fresh site's home page needs no hand-written category list.
+   */
+  z.object({
+    ...sectionBase,
+    type: z.literal("category_list"),
+    variant: variantOf("category_list"),
+    appearance: appearanceSchema,
+    heading: z.string().trim().max(160).default(""),
+    limit: z.number().int().min(1).max(24).default(12),
+    showCounts: z.boolean().default(true),
     columns: columns.optional(),
   }),
   z.object({
@@ -230,6 +246,7 @@ export const sectionTypeLabels: Record<SectionType, string> = {
   rich_text: "Rich text",
   feature_list: "Feature list",
   content_collection: "Content collection",
+  category_list: "Category list (from the places)",
   location_collection: "Location collection",
   contact_callout: "Contact callout",
   inquiry_form: "Inquiry form",
@@ -257,6 +274,7 @@ export const variantLabels: Record<string, string> = {
   cards: "Cards",
   text: "Text only",
   featured: "Featured item and list",
+  chips: "Chips",
   banner: "Banner",
   wide: "Wide",
   accordion: "Expandable questions",
@@ -293,6 +311,7 @@ export function emptySection(type: SectionType, id: string): PageSection {
     rich_text: {},
     feature_list: {},
     content_collection: { kind: "place" },
+    category_list: { heading: "Browse by category" },
     location_collection: {},
     contact_callout: { heading: "Get in touch" },
     inquiry_form: {},

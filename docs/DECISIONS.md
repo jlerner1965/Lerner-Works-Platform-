@@ -279,3 +279,32 @@ exists, and the same computation is persisted as the candidate that is activated
 the careful path (frozen preview, waivers) and restore remain. The dashboard is organised by
 task: content by kind, Look, Publish, Inbox, Settings, Team, Import and export, Activity log.
 D-017 stands throughout the programme.
+
+## D-021 · 2026-09-26 · A section with nothing to show is left out; a fresh site is a structure, not a scaffold of notices
+
+Before phase B2 a fresh site published as a page of placeholders ("No hero image selected
+yet", "No places have been published yet", "This section has no text yet"), and every
+placeholder was a visible defect on a client's site. Decided: (1) a section with nothing to
+show is left out of the public page. One rule (`src/themes/shared/empty.ts`) decides it for
+every composition: an empty rich text, feature list, quotes, facts or FAQ section, a
+collection with no published items, a category list with no categories, a video without an
+id, a map link without an address, a gallery whose images are missing. The renderers apply it
+and print no notice; publication validation lists every section left out
+(`section_left_out`) and warns when a whole page has nothing to show (`page_empty`); the
+editor marks each slot with what fills it. The explicitly added list types (FAQ, quotes,
+gallery, facts) still block publication when empty, as they did since D1: they are only ever
+added on purpose. Index pages keep their empty states, because a page must show something.
+(2) Starter pages are a structure whose slots fill themselves: the community guide's home
+page has an introduction slot, a category list that lists the categories of the published
+places, and collections of the latest places, upcoming events and latest articles; the
+location business's home page has the introduction, the store finder and the services. The
+category list is a new typed section (`category_list`, guide compositions only). No fictional
+copy is generated anywhere: an empty slot is left out until the owner writes it, and the
+setup checklist names it. (3) The onboarding package is the way from empty to launch: one
+spreadsheet per content kind of the preset, a settings sheet for the brand, contact details and
+the starter pages' text, and an images folder listed with alternative text and rights, imported
+through the same dry-run-then-confirm step as a CSV file; images and settings are applied with
+the content in one transaction. Imports follow the site's review policy (D-020): what someone
+who may publish imports is approved on save when the site does not require review. The
+renderer change altered no frozen release (the pilots have no empty sections), so no
+rendering hash was re-recorded.

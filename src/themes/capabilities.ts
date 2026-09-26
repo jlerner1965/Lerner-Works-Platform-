@@ -66,7 +66,8 @@ export const themeCapabilities: Record<ThemeKey, ThemeCapabilities> = {
     label: "Location business (retail)",
     description: "Retail storefront: bold uppercase headings, store cards with live hours, services in a grid.",
     presets: ["location_business"],
-    sectionTypes: allTypes,
+    // Categories belong to places, which this preset does not have.
+    sectionTypes: allTypes.filter((t) => t !== "category_list"),
     variants: {
       ...sectionVariants,
       // The retail composition uses full-width imagery; text-beside-image heroes and the
@@ -84,7 +85,7 @@ export const themeCapabilities: Record<ThemeKey, ThemeCapabilities> = {
     label: "Storefront (bold)",
     description: "Bold storefront: dark header bar with the store finder, header over an accent hero band, store tiles with status badges, service rows.",
     presets: ["location_business"],
-    sectionTypes: allTypes,
+    sectionTypes: allTypes.filter((t) => t !== "category_list"),
     variants: {
       ...sectionVariants,
       content_collection: without("content_collection", "featured"),

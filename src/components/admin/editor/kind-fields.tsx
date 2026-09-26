@@ -12,6 +12,7 @@ import type { Address, HoursException, WeeklyHours } from "@/modules/common";
 import type { Block } from "@/lib/richtext";
 import type { ContentKind } from "@/modules/registry";
 import { themeCapabilities } from "@/themes/capabilities";
+import { toLocalInput, fromLocalInput } from "@/lib/local-time";
 
 interface FieldsProps {
   kind: ContentKind;
@@ -39,7 +40,7 @@ export function KindFields(props: FieldsProps) {
       return (
         <>
           <Fieldset legend="Place details">
-            <TextInput label="Category" value={s("category")} onChange={(v) => set({ category: v })} required error={issues.category} hint="Visitors filter the directory by category; reuse existing names for consistency." />
+            <TextInput label="Category" value={s("category")} onChange={(v) => set({ category: v })} required error={issues.category} hint="Visitors filter the directory by category; reuse existing names for consistency." suggestions={ctx.categories} />
             <TextInput label="Website" value={s("website")} onChange={(v) => set({ website: v })} error={issues.website} placeholder="https://" />
             <TextInput label="Phone" value={s("phone")} onChange={(v) => set({ phone: v })} error={issues.phone} />
             <TextArea label="Area description (when no exact address should be shown)" value={s("areaDescription")} onChange={(v) => set({ areaDescription: v })} rows={2} />
@@ -163,33 +164,4 @@ export function CommonFields({ payload, set, ctx, issues, kind }: { payload: Pay
   );
 }
 
-/** datetime-local value for an instant in a zone (YYYY-MM-DDTHH:MM). */
-export function toLocalInput(iso: string, timeZone: string): string {
-  if (!iso) return "";
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "";
-  try {
-    const parts = new Intl.DateTimeFormat("en-US", { timeZone: timeZone || "UTC", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(d);
-    const g = (t: string) => parts.find((p) => p.type === t)?.value ?? "00";
-    return `${g("year")}-${g("month")}-${g("day")}T${g("hour")}:${g("minute")}`;
-  } catch {
-    return "";
-  }
-}
-
-/** Instant for a wall-clock time in a zone, found by iterating the zone offset. */
-export function fromLocalInput(local: string, timeZone: string): string {
-  const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(local);
-  if (!m) return "";
-  const [y, mo, d, h, mi] = m.slice(1).map(Number) as [number, number, number, number, number];
-  let guess = Date.UTC(y, mo - 1, d, h, mi);
-  for (let i = 0; i < 3; i++) {
-    const back = toLocalInput(new Date(guess).toISOString(), timeZone);
-    if (back === local.slice(0, 16)) break;
-    const bm = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(back);
-    if (!bm) break;
-    const [by, bmo, bd, bh, bmi] = bm.slice(1).map(Number) as [number, number, number, number, number];
-    guess += Date.UTC(y, mo - 1, d, h, mi) - Date.UTC(by, bmo - 1, bd, bh, bmi);
-  }
-  return new Date(guess).toISOString();
-}
+// Wall-clock conversions live in src/lib/local-time.ts, shared with the server-side imports.

@@ -5,6 +5,8 @@ import { collectLinkTargets, type Block } from "@/lib/richtext";
 import { formatRatio } from "@/lib/contrast";
 import { failingPairings } from "@/lib/brand-tokens";
 import { designCapabilityIssues, resolveDesign, sectionCapabilityIssues, themeCompatibilityIssues, themeKeyFor } from "@/themes/capabilities";
+import { sectionHasContent } from "@/themes/shared/empty";
+import type { PageSection } from "@/modules/page";
 import type { ReleaseSnapshot, SnapshotItem } from "@/server/publishing/snapshot";
 import type { BuiltManifest } from "@/server/publishing/manifest";
 
@@ -174,15 +176,34 @@ export function validateManifest(built: BuiltManifest, opts: { now: Date }): Val
               push({ severity: "blocker", code: "wrong_kind_reference", message: `Section ${i + 1} references "${target.title}", which is a ${target.kind}, not a ${kind}.`, itemId: item.id, itemTitle: item.title, field: `${field}.itemIds`, href: itemHref(item.id) });
             }
           }
-          const mode = s.mode as string;
-          if (mode === "selected" && (((s.itemIds as string[]) ?? []).length === 0)) {
-            push({ severity: "warning", code: "empty_collection", message: `Section ${i + 1} is a selected-items collection with no items chosen.`, itemId: item.id, itemTitle: item.title, field, href: itemHref(item.id) });
-          }
+        }
+        if (type === "category_list" && !manifest.config.modules.places) {
+          push({ severity: "blocker", code: "module_disabled_dependency", message: `Section ${i + 1} lists place categories, but the Places module is disabled. Enable the module or remove the section.`, itemId: item.id, itemTitle: item.title, field, href: itemHref(item.id) });
         }
         if (type === "inquiry_form" && !manifest.config.modules.inquiries) {
           push({ severity: "blocker", code: "module_disabled_dependency", message: `Section ${i + 1} is an inquiry form, but the Inquiries module is disabled.`, itemId: item.id, itemTitle: item.title, field, href: itemHref(item.id) });
         }
       });
+      // Sections with nothing to show are left out of the public page (B2, D-021); say which, and
+      // when a whole page is left empty. The item-list types above already block when empty.
+      const parsedPage = kindRegistry.page.schema.safeParse(payload);
+      if (parsedPage.success) {
+        const parsedSections = (parsedPage.data as { sections: PageSection[] }).sections;
+        let shown = 0;
+        parsedSections.forEach((s, i) => {
+          if (sectionHasContent({ snapshot: manifest, now: opts.now }, s)) {
+            shown++;
+            return;
+          }
+          if (s.type === "faq" || s.type === "quotes" || s.type === "gallery" || s.type === "facts") return;
+          const label = sectionTypeLabels[s.type];
+          const why = s.type === "rich_text" ? "has no text yet" : s.type === "feature_list" ? "has no items yet" : s.type === "content_collection" || s.type === "location_collection" ? (s.mode === "selected" ? "has no items chosen" : `has no published ${s.type === "location_collection" ? "stores" : kindRegistry[s.kind].plural.toLowerCase()} to show yet`) : s.type === "category_list" ? "has no published places with a category yet" : s.type === "video" ? "has no video yet" : "has no address yet";
+          push({ severity: "warning", code: "section_left_out", message: `Section ${i + 1} (${label}) ${why}; it is left out of the page until it does.`, itemId: item.id, itemTitle: item.title, field: `sections.${i}`, href: itemHref(item.id) });
+        });
+        if (parsedSections.length > 0 && shown === 0) {
+          push({ severity: "warning", code: "page_empty", message: `"${item.title}" has nothing to show yet: every section is left out, so visitors see an empty page.`, itemId: item.id, itemTitle: item.title, field: "sections", href: itemHref(item.id) });
+        }
+      }
     }
     if (item.kind === "event") {
       const venue = payload.venueItemId as string | null;

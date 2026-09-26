@@ -59,9 +59,7 @@ export function FaqSection({ ctx, section, style }: { ctx: RenderContext; sectio
   return (
     <>
       {section.heading ? style.heading(section.heading) : null}
-      {section.items.length === 0 ? (
-        <p className="text-(--section-muted)">No questions have been added yet.</p>
-      ) : open ? (
+      {section.items.length === 0 ? null : open ? (
         <dl className="divide-y divide-(--section-border) border-y border-(--section-border)">
           {section.items.map((item, i) => (
             <div key={i} className="py-4">
@@ -102,9 +100,7 @@ export function QuotesSection({ section, style }: { section: Of<"quotes">; style
   return (
     <>
       {section.heading ? style.heading(section.heading) : null}
-      {items.length === 0 ? (
-        <p className="text-(--section-muted)">No quotations have been added yet.</p>
-      ) : single ? (
+      {items.length === 0 ? null : single ? (
         <div className="space-y-10">{items.map((item, i) => <div key={i}>{quote(item, true)}</div>)}</div>
       ) : (
         <ul className={`grid gap-8 ${columnsClass[items.length >= 3 ? 3 : 2]}`}>
@@ -147,9 +143,7 @@ export function GallerySection({ ctx, section, style }: { ctx: RenderContext; se
   return (
     <>
       {section.heading ? style.heading(section.heading) : null}
-      {items.length === 0 ? (
-        <p className="text-(--section-muted)">No images have been added yet.</p>
-      ) : variant === "columns" ? (
+      {items.length === 0 ? null : variant === "columns" ? (
         <div className={`gap-4 space-y-4 ${columns === 2 ? "sm:columns-2" : columns === 3 ? "sm:columns-2 lg:columns-3" : "sm:columns-2 lg:columns-4"}`}>{items.map((it) => figure(it))}</div>
       ) : variant === "strip" ? (
         <div className="-mx-4 flex snap-x gap-4 overflow-x-auto px-4 pb-2">{items.map((it) => figure(it, "w-72 shrink-0 snap-start"))}</div>
@@ -165,9 +159,7 @@ export function FactsSection({ section, style }: { section: Of<"facts">; style: 
   return (
     <>
       {section.heading ? style.heading(section.heading) : null}
-      {section.items.length === 0 ? (
-        <p className="text-(--section-muted)">No facts have been added yet.</p>
-      ) : variant === "list" ? (
+      {section.items.length === 0 ? null : variant === "list" ? (
         <dl className="divide-y divide-(--section-border) border-y border-(--section-border)">
           {section.items.map((f, i) => (
             <div key={i} className="grid gap-1 py-3 sm:grid-cols-[minmax(0,1fr)_2fr] sm:gap-6">
@@ -223,9 +215,7 @@ export function VideoSection({ ctx, section, style }: { ctx: RenderContext; sect
       {section.heading ? style.heading(section.heading) : null}
       {section.videoId ? (
         <VideoEmbed provider={section.provider} videoId={section.videoId} title={title} poster={poster} caption={section.caption} buttonClass={style.buttonPrimary} frameClass="rounded-(--radius) bg-(--brand-text)" />
-      ) : (
-        <p className="text-(--section-muted)">No video has been chosen yet.</p>
-      )}
+      ) : null}
     </>
   );
 }
@@ -247,7 +237,7 @@ export function MapLinkSection({ ctx, section, style }: { ctx: RenderContext; se
     <>
       {section.heading ? style.heading(section.heading) : null}
       {section.text ? <p className={style.intro}>{section.text}</p> : null}
-      {query ? <p className="mt-3 text-lg">{line1}{line1 && line2 ? <br /> : null}{line2}</p> : <p className="text-(--section-muted)">No address has been entered yet.</p>}
+      {query ? <p className="mt-3 text-lg">{line1}{line1 && line2 ? <br /> : null}{line2}</p> : null}
       {canLink ? (
         <p className="mt-4"><a href={mapUrl[section.provider](query)} rel="noreferrer" className={onBand ? style.buttonInverse : style.buttonPrimary}>{section.label || "Get directions"}</a></p>
       ) : query ? (

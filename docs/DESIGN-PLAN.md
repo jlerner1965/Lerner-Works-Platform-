@@ -163,7 +163,7 @@ header button (both need the composition work of the theme catalogue); per-site 
 design to publishers (D-016 keeps design owner-only until a customer asks); a second logo for
 dark surfaces.
 
-### D2 · Theme catalogue and design preview — BUILT 2026-09-26 (production on the owner's go)
+### D2 · Theme catalogue and design preview — SHIPPED 2026-09-26 (pull request #9, migration applied, live checks in `docs/evidence/production/d2-b1-2026-09-26-live-checks.txt`)
 
 About three sessions.
 

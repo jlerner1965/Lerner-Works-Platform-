@@ -3,10 +3,11 @@ import { parse } from "csv-parse/sync";
 import type { Db } from "@/server/data/db";
 import type { SiteRow } from "@/server/data/access";
 import { csvSpecs, type ImportableKind } from "@/server/import/csv-spec";
-import { validatePayload, createContentItem, saveRevision, getItem, ContentValidationError } from "@/server/data/content";
+import { validatePayload, createContentItem, saveRevision, getItem, approveOnSave, ContentValidationError } from "@/server/data/content";
 import { slugify } from "@/lib/slug";
+import { parseStructuredText } from "@/lib/richtext";
 import type { HoursInterval, WeeklyHours } from "@/modules/common";
-import { fromLocalInput } from "@/components/admin/editor/kind-fields";
+import { fromLocalInput } from "@/lib/local-time";
 
 export const MAX_ROWS = 500;
 export const MAX_BYTES = 5 * 1024 * 1024;
@@ -75,13 +76,15 @@ function instantFromCell(raw: string, timeZone: string): string | null {
   return null;
 }
 
-/** Converts one CSV row into a content payload for the kind. */
-export function rowToPayload(kind: ImportableKind, row: Record<string, string>, mapping: Mapping, site: { timeZone: string }, services: Map<string, string>): { payload?: Record<string, unknown>; errors: string[] } {
+/** Converts one CSV row into a content payload for the kind. The featured image, if any, is named by file for the onboarding package to resolve. */
+export function rowToPayload(kind: ImportableKind, row: Record<string, string>, mapping: Mapping, site: { timeZone: string }, services: Map<string, string>): { payload?: Record<string, unknown>; errors: string[]; image: string; imageAlt: string } {
   const get = (key: string) => (mapping[key] ? (row[mapping[key]!] ?? "").trim() : "");
   const errors: string[] = [];
   const title = get("title");
   const slug = get("slug") ? slugify(get("slug")) : slugify(title);
-  const base = { schemaVersion: 1, title, slug, summary: get("summary"), body: [], featuredImageAssetId: null, metaTitle: "", metaDescription: "", indexable: true, sourceUrl: get("source_url"), lastVerifiedOn: get("last_verified_on"), attribution: "" };
+  const image = get("image");
+  const imageAlt = get("image_alt");
+  const base = { schemaVersion: 1, title, slug, summary: get("summary"), body: parseStructuredText(get("body")), featuredImageAssetId: null, metaTitle: "", metaDescription: "", indexable: true, sourceUrl: get("source_url"), lastVerifiedOn: get("last_verified_on"), attribution: "" };
   if (!title) errors.push("title is required");
   if (!slug) errors.push("slug could not be derived from the title");
   const address = { line1: get("address_line1"), line2: get("address_line2"), locality: get("locality"), region: get("region"), postalCode: get("postal_code"), approved: false };
@@ -96,18 +99,28 @@ export function rowToPayload(kind: ImportableKind, row: Record<string, string>, 
       else serviceIds.push(id);
     }
     const status = get("status") || "open";
-    return { payload: { ...base, address, phone: get("phone"), timeZone: tz, weeklyHours: hours.value, exceptions: [], serviceItemIds: serviceIds, status, statusNote: get("status_note") }, errors };
+    return { payload: { ...base, address, phone: get("phone"), timeZone: tz, weeklyHours: hours.value, exceptions: [], serviceItemIds: serviceIds, status, statusNote: get("status_note") }, errors, image, imageAlt };
+  }
+  if (kind === "service") {
+    return { payload: { ...base, inquiryPrompt: get("inquiry_prompt") }, errors, image, imageAlt };
   }
   if (kind === "place") {
     const hours = hoursFromRow(get);
     if (hours.error) errors.push(hours.error);
-    return { payload: { ...base, category: get("category"), address, areaDescription: get("area_description"), website: get("website"), phone: get("phone"), hours: hours.value, nextAction: { label: "", path: "" } }, errors };
+    return { payload: { ...base, category: get("category"), address, areaDescription: get("area_description"), website: get("website"), phone: get("phone"), hours: hours.value, nextAction: { label: "", path: "" } }, errors, image, imageAlt };
+  }
+  if (kind === "article") {
+    const publishedOn = get("published_on");
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(publishedOn)) errors.push("published_on: use YYYY-MM-DD");
+    const updatedOn = get("updated_on");
+    if (updatedOn && !/^\d{4}-\d{2}-\d{2}$/.test(updatedOn)) errors.push("updated_on: use YYYY-MM-DD");
+    return { payload: { ...base, authorName: get("author_name"), publishedOn, updatedOn }, errors, image, imageAlt };
   }
   const startsAt = instantFromCell(get("starts_at"), tz);
   const endsAt = instantFromCell(get("ends_at"), tz);
   if (!startsAt) errors.push("starts_at: use YYYY-MM-DD HH:MM or an ISO instant");
   if (!endsAt) errors.push("ends_at: use YYYY-MM-DD HH:MM or an ISO instant");
-  return { payload: { ...base, startsAt: startsAt ?? "", endsAt: endsAt ?? "", timeZone: tz, venueItemId: null, venueText: get("venue_text"), organizerName: get("organizer_name"), organizerUrl: get("organizer_url"), status: get("status") || "scheduled", eventUrl: get("event_url"), admission: get("admission") }, errors };
+  return { payload: { ...base, startsAt: startsAt ?? "", endsAt: endsAt ?? "", timeZone: tz, venueItemId: null, venueText: get("venue_text"), organizerName: get("organizer_name"), organizerUrl: get("organizer_url"), status: get("status") || "scheduled", eventUrl: get("event_url"), admission: get("admission") }, errors, image, imageAlt };
 }
 
 export interface DryRunRow {
@@ -116,6 +129,9 @@ export interface DryRunRow {
   title: string;
   action: "create" | "update" | "skip" | "error";
   errors: string[];
+  /** Featured image file named by the row (onboarding package), resolved to an asset when applied. */
+  image?: string;
+  imageAlt?: string;
 }
 
 export interface DryRunResult {
@@ -129,10 +145,19 @@ function stable(v: unknown): string {
   return JSON.stringify(v, (_k, val) => (val && typeof val === "object" && !Array.isArray(val) ? Object.keys(val as object).sort().reduce((o: Record<string, unknown>, k) => ((o[k] = (val as Record<string, unknown>)[k]), o), {}) : val));
 }
 
+export interface DryRunOptions {
+  /** File names available in the onboarding package's images folder; absent for a plain CSV import, where an image column must stay empty. */
+  imageFiles?: Set<string>;
+  /** Services the same package imports before the stores (slug → placeholder), so store rows may refer to them. */
+  pendingServices?: Set<string>;
+}
+
 /** Validates every row and computes create/update/skip/error without writing anything. */
-export async function dryRun(db: Db, site: SiteRow, kind: ImportableKind, parsed: ParsedCsv, mapping: Mapping): Promise<DryRunResult> {
+export async function dryRun(db: Db, site: SiteRow, kind: ImportableKind, parsed: ParsedCsv, mapping: Mapping, opts: DryRunOptions = {}): Promise<DryRunResult> {
   const spec = csvSpecs[kind];
   const services = new Map((await db<{ id: string; slug: string }[]>`select i.id, r.slug from public.content_items i join public.content_revisions r on r.id = i.current_revision_id where i.site_id = ${site.id} and i.kind = 'service' and i.archived_at is null`).map((s) => [s.slug, s.id]));
+  // Services the same package imports first count as existing (their ids are resolved when the stores are applied).
+  for (const slug of opts.pendingServices ?? []) if (!services.has(slug)) services.set(slug, `pending:${slug}`);
   const existing = new Map((await db<{ externalId: string; payload: Record<string, unknown> }[]>`select i.external_id, r.payload from public.content_items i join public.content_revisions r on r.id = i.current_revision_id where i.site_id = ${site.id} and i.kind = ${kind} and i.external_id is not null`).map((e) => [e.externalId, e.payload]));
   const result: DryRunResult = { counts: { create: 0, update: 0, skip: 0, error: 0, total: parsed.rows.length }, rows: [], valid: {} };
   const seen = new Set<string>();
@@ -150,10 +175,17 @@ export async function dryRun(db: Db, site: SiteRow, kind: ImportableKind, parsed
     if (!externalId) errors.push("external_id is required");
     else if (seen.has(externalId)) errors.push(`external_id "${externalId}" appears more than once in the file`);
     seen.add(externalId);
+    if (conv.image) {
+      if (!opts.imageFiles) errors.push("image: images come with the onboarding package; leave the column empty in a CSV import");
+      else if (!opts.imageFiles.has(conv.image)) errors.push(`image: no file named "${conv.image}" in the package's images folder`);
+    }
     let normalized: Record<string, unknown> | null = null;
     if (conv.payload && errors.length === 0) {
       try {
-        normalized = validatePayload(kind, conv.payload);
+        // Pending service references are placeholders, not uuids; they are resolved when applied.
+        const forCheck = kind === "store" ? { ...conv.payload, serviceItemIds: ((conv.payload.serviceItemIds as string[]) ?? []).filter((id) => !id.startsWith("pending:")) } : conv.payload;
+        normalized = validatePayload(kind, forCheck);
+        if (kind === "store") normalized.serviceItemIds = conv.payload.serviceItemIds;
       } catch (err) {
         if (err instanceof ContentValidationError) errors.push(...err.issues.map((i) => `${i.path || "row"}: ${i.message}`));
         else throw err;
@@ -164,36 +196,61 @@ export async function dryRun(db: Db, site: SiteRow, kind: ImportableKind, parsed
       if (slugOwner !== undefined && slugOwner !== externalId) errors.push(`slug "${normalized.slug}" is already used by another item`);
     }
     const title = conv.payload ? String(conv.payload.title ?? "") : "";
+    const imageFields = conv.image ? { image: conv.image, ...(conv.imageAlt ? { imageAlt: conv.imageAlt } : {}) } : {};
     if (errors.length) {
-      result.rows.push({ row: rowNo, externalId, title, action: "error", errors });
+      result.rows.push({ row: rowNo, externalId, title, action: "error", errors, ...imageFields });
       result.counts.error++;
       return;
     }
     const current = existing.get(externalId);
-    if (current && stable(current) === stable(normalized)) {
+    if (current && !conv.image && stable(current) === stable(normalized)) {
       result.rows.push({ row: rowNo, externalId, title, action: "skip", errors: [] });
       result.counts.skip++;
       return;
     }
-    result.rows.push({ row: rowNo, externalId, title, action: current ? "update" : "create", errors: [] });
+    result.rows.push({ row: rowNo, externalId, title, action: current ? "update" : "create", errors: [], ...imageFields });
     result.counts[current ? "update" : "create"]++;
     result.valid[externalId] = normalized!;
   });
   return result;
 }
 
-/** Applies a confirmed dry run inside one transaction: creates or updates items as drafts. */
-export async function applyImport(db: Db, site: SiteRow, kind: ImportableKind, userId: string, dry: DryRunResult): Promise<{ created: number; updated: number; skipped: number }> {
+export interface ApplyOptions {
+  /** Approve every written revision on save (the importer may publish and the site does not require review). */
+  approve?: boolean;
+  /** Asset ids of the package's images by file name (onboarding), for rows that name a featured image. */
+  imageAssets?: Map<string, string>;
+  /** Ids of the services the package imported, by slug, for store rows that refer to them. */
+  serviceIds?: Map<string, string>;
+}
+
+/**
+ * Applies a confirmed dry run inside one transaction: creates or updates items. With
+ * `approve` (the importer may publish and the site does not require review, B1's rule) every
+ * written revision is approved on save like an editor save; otherwise the items are drafts.
+ */
+export async function applyImport(db: Db, site: SiteRow, kind: ImportableKind, userId: string, dry: DryRunResult, opts: ApplyOptions = {}): Promise<{ created: number; updated: number; skipped: number; approved: boolean }> {
   let created = 0;
   let updated = 0;
   let skipped = 0;
+  const approve = Boolean(opts.approve);
   for (const row of dry.rows) {
     if (row.action !== "create" && row.action !== "update") continue;
-    const payload = dry.valid[row.externalId];
+    let payload = dry.valid[row.externalId];
     if (!payload) continue;
+    if (row.image) {
+      const assetId = opts.imageAssets?.get(row.image);
+      if (!assetId) throw new Error(`image "${row.image}" was not imported; nothing was written`);
+      payload = { ...payload, featuredImageAssetId: assetId };
+    }
+    if (kind === "store" && Array.isArray(payload.serviceItemIds)) {
+      payload = { ...payload, serviceItemIds: (payload.serviceItemIds as string[]).map((id) => (id.startsWith("pending:") ? opts.serviceIds?.get(id.slice(8)) : id)).filter((id): id is string => Boolean(id)) };
+      payload = validatePayload(kind, payload);
+    }
     const [existing] = await db<{ id: string }[]>`select id from public.content_items where site_id = ${site.id} and kind = ${kind} and external_id = ${row.externalId}`;
     if (!existing) {
-      await createContentItem(db, { siteId: site.id, organizationId: site.organizationId, kind, payload, authorId: userId, externalId: row.externalId, changeNote: "CSV import" });
+      const made = await createContentItem(db, { siteId: site.id, organizationId: site.organizationId, kind, payload, authorId: userId, externalId: row.externalId, changeNote: "CSV import" });
+      if (approve) await approveOnSave(db, { item: made.item, revisionId: made.revision.id, actorId: userId });
       created++;
       continue;
     }
@@ -204,7 +261,8 @@ export async function applyImport(db: Db, site: SiteRow, kind: ImportableKind, u
     }
     const saved = await saveRevision(db, { itemId: existing.id, baseRevisionId: current.revision.id, payload, authorId: userId, changeNote: "CSV import" });
     if (!saved.ok) throw new Error(`concurrent edit on ${row.externalId}; import aborted, nothing was written`);
+    if (approve) await approveOnSave(db, { item: { id: existing.id, organizationId: site.organizationId, siteId: site.id }, revisionId: saved.revision.id, actorId: userId });
     updated++;
   }
-  return { created, updated, skipped };
+  return { created, updated, skipped, approved: approve };
 }

@@ -5,7 +5,17 @@ import { moduleIndexRoutes } from "@/modules/registry";
 import { getCurrentSiteConfig } from "@/server/data/sites";
 import { themeKeyFor } from "@/themes/capabilities";
 
-/** Related items, ready assets and known routes for pickers, all scoped to one site. */
+/** The categories the site's places use (current working revisions, not archived), most used first, for suggestions. */
+export async function loadCategories(db: Db, siteId: string): Promise<string[]> {
+  const rows = await db<{ category: string }[]>`
+    select r.payload->>'category' as category from public.content_items i
+    join public.content_revisions r on r.id = i.current_revision_id
+    where i.site_id = ${siteId} and i.kind = 'place' and i.archived_at is null and coalesce(r.payload->>'category', '') <> ''
+    group by 1 order by count(*) desc, 1`;
+  return rows.map((r) => r.category);
+}
+
+/** Related items, ready assets, known routes and category suggestions for pickers, all scoped to one site. */
 export async function loadEditorContext(db: Db, site: SiteRow): Promise<EditorContext> {
   const rows = await db<Array<RelatedItem & { kind: string }>>`
     select i.id, i.kind::text, r.title, r.slug from public.content_items i
@@ -32,5 +42,6 @@ export async function loadEditorContext(db: Db, site: SiteRow): Promise<EditorCo
   const routes: string[] = ["/"];
   for (const page of related.page ?? []) if (page.slug !== "home") routes.push(`/${page.slug}`);
   if (config) for (const idx of moduleIndexRoutes) if (config.config.modules[idx.module]) routes.push(idx.path);
-  return { siteId: site.id, timeZone: site.timeZone, related, assets: assetOptions, routes, themeKey: themeKeyFor(site.preset, config?.config.design) };
+  const categories = related.place ? await loadCategories(db, site.id) : [];
+  return { siteId: site.id, timeZone: site.timeZone, related, assets: assetOptions, routes, categories, themeKey: themeKeyFor(site.preset, config?.config.design) };
 }

@@ -6,7 +6,7 @@ import { getStorage } from "@/server/media/storage";
 import { getCurrentSiteConfig, saveSiteConfig } from "@/server/data/sites";
 import { siteConfigSchema, type SiteConfig } from "@/modules/site-config";
 import { kindRegistry, isContentKind, type ContentKind } from "@/modules/registry";
-import { validatePayload, createContentItem, saveRevision, getItem } from "@/server/data/content";
+import { validatePayload, createContentItem, saveRevision, getItem, approveOnSave } from "@/server/data/content";
 import { ingestImage } from "@/server/media/ingest";
 import { normalizeSnapshot } from "@/server/publishing/snapshot";
 import { sectionCapabilityIssues, themeCompatibilityIssues, themeKeyFor } from "@/themes/capabilities";
@@ -261,8 +261,12 @@ function remap(value: unknown, map: Map<string, string>): unknown {
   return value;
 }
 
-/** Imports a validated package into the site as drafts, with an old→new id map. Never touches domains, members or recipients. */
-export async function applyPackage(db: Db, site: SiteRow, userId: string, dry: PackageDryRun, opts: { keepDesign?: boolean } = {}): Promise<{ items: number; media: number; adoptedPages: number; configRevision: number | null }> {
+/**
+ * Imports a validated package into the site with an old→new id map. Never touches domains,
+ * members or recipients. With `approve` (the importer may publish and the site does not
+ * require review) every imported revision is approved on save; otherwise the items are drafts.
+ */
+export async function applyPackage(db: Db, site: SiteRow, userId: string, dry: PackageDryRun, opts: { keepDesign?: boolean; approve?: boolean } = {}): Promise<{ items: number; media: number; adoptedPages: number; configRevision: number | null; approved: boolean }> {
   if (dry.errors.length) throw new Error("package has validation errors");
   const idMap = new Map<string, string>();
   let mediaCount = 0;
@@ -300,6 +304,7 @@ export async function applyPackage(db: Db, site: SiteRow, userId: string, dry: P
     const current = (await getItem(db, targetId))!;
     const saved = await saveRevision(db, { itemId: targetId, baseRevisionId: current.revision.id, payload, authorId: userId, changeNote: "Imported from site package" });
     if (!saved.ok) throw new Error("concurrent edit during import");
+    if (opts.approve) await approveOnSave(db, { item: { id: targetId, organizationId: site.organizationId, siteId: site.id }, revisionId: saved.revision.id, actorId: userId });
     if (item.archived) await db`update public.content_items set archived_at = now(), archived_by = ${userId} where id = ${targetId}`;
   }
   let configRevision: number | null = null;
@@ -313,7 +318,7 @@ export async function applyPackage(db: Db, site: SiteRow, userId: string, dry: P
       if (saved.ok) configRevision = saved.revision.version;
     }
   }
-  return { items: pending.length, media: mediaCount, adoptedPages: adopted, configRevision };
+  return { items: pending.length, media: mediaCount, adoptedPages: adopted, configRevision, approved: Boolean(opts.approve) };
 }
 
 function stripRefs(value: unknown): Record<string, unknown> {

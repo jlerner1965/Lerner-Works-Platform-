@@ -1,0 +1,24 @@
+D2 + B1 live checks on production, 2026-09-26T20:33:20Z (main 167c9d1: merges of pull requests #9 (D2, fd83985) and #10 (B1, 761da04), merged by the owner)
+Migrations 20260926000300_design_delegation.sql, 20260926000400_review_policy.sql and 20260926000500_onboarding_package.sql applied to project fvpooyxkuvltjzjbevxf at 2026-09-26T20:32Z through the Management API (3 applied, 9 already applied), after the merges: the owner merged first; the migrations followed as soon as the merge was seen. 20260926000500 belongs to B2 (not yet merged) and only widens a check constraint the B1 code never exercises.
+Site under test: aragosan (owner's test site, demo mode, version-1 release normalised at read time).
+
+200  GET /demo/aragosan
+PASS  theme root rendered (lw-site class)
+PASS  per-preset font classes on the theme root (D2, D-019)
+PASS  font preload links in the head (D2)
+PASS  derived brand tokens present
+PASS  design scale variables present (D1)
+PASS  platform name absent from the page
+200  GET /fonts/source-serif-4-normal.woff2  content-type: font/woff2  cache-control: public, max-age=31536000, immutable
+
+200 image/svg+xml; charset=utf-8  GET https://app.lernerworksplatform.dev/demo/aragosan/favicon.svg
+200 text/html; charset=utf-8  GET https://app.lernerworksplatform.dev/demo/aragosan/events
+200 text/html; charset=utf-8  GET https://app.lernerworksplatform.dev/demo/aragosan/search?q=a
+404 text/html; charset=utf-8  GET https://app.lernerworksplatform.dev/demo/no-such-site
+200 text/html; charset=utf-8  GET https://app.lernerworksplatform.dev/sign-in
+200 application/json  GET https://app.lernerworksplatform.dev/healthz
+307 text/html; charset=utf-8  GET https://app.lernerworksplatform.dev/app
+
+401  GET /api/jobs/deliver (401 = cron target reachable, secret required)
+
+Dashboard checks (Look → Theme and preview, Publish → Publish now, Settings → Publishing → review policy, the delegation switch, header button, dark logo) need the owner's session and are the owner's look on the live site.

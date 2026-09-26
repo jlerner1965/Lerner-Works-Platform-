@@ -7,7 +7,8 @@ import type { PagePayload, PageSection } from "@/modules/page";
 import { RichText } from "@/themes/shared/richtext";
 import { Picture } from "@/themes/shared/picture";
 import { InquiryForm } from "@/themes/shared/inquiry-form";
-import { resolveCollection, featuredImage, itemPath } from "@/themes/shared/collections";
+import { resolveCollection, resolveCategories, featuredImage, itemPath } from "@/themes/shared/collections";
+import { visibleSections } from "@/themes/shared/empty";
 import { SiteRoot, BrandMark, siteLogo, linkProps, showSearchLink, pageHeaderImage } from "@/themes/shared/site-root";
 import { SectionFrame, PageContainer } from "@/themes/shared/frame";
 import { siteDesign, columnsFor } from "@/themes/shared/design";
@@ -164,9 +165,11 @@ function PageHeading({ children, className = "" }: { children: ReactNode; classN
 const narrowByDefault = new Set<PageSection["type"]>(["rich_text", "inquiry_form", "faq", "video", "map_link"]);
 
 export function GuideSections({ ctx, page }: { ctx: RenderContext; page: PagePayload }) {
+  // Sections with nothing to show are left out (B2, D-021); publication lists them.
+  const sections = visibleSections(ctx, page.sections);
   return (
     <div className="space-y-(--section-gap)">
-      {page.sections.map((section, index) => (
+      {sections.map((section, index) => (
         <SectionFrame key={section.id} appearance={section.appearance} narrow={narrowByDefault.has(section.type) || (section.type === "quotes" && (section.variant === "single" || (section.variant === "default" && section.items.length <= 1)))}>
           <GuideSection ctx={ctx} section={section} first={index === 0} />
         </SectionFrame>
@@ -205,14 +208,12 @@ function ImageHero({ ctx, section }: { ctx: RenderContext; section: Extract<Page
       </div>
     );
   }
+  // split; without an image the words stand on their own (no placeholder box, B2).
+  if (!media) return <div className="max-w-3xl border-b border-(--section-border) pb-10">{text(true)}</div>;
   return (
     <div className="grid items-center gap-8 md:grid-cols-[5fr_6fr]">
       <div>{text(true)}</div>
-      {media ? (
-        <Picture ctx={ctx} media={media} sizes="(min-width: 768px) 55vw, 100vw" className="aspect-[4/3] w-full rounded-(--radius) object-cover" loading="eager" fetchPriority="high" />
-      ) : (
-        <div className="aspect-[4/3] rounded-(--radius) border border-dashed border-(--brand-border-strong) p-6 text-sm text-(--section-muted)">No hero image selected yet.</div>
-      )}
+      <Picture ctx={ctx} media={media} sizes="(min-width: 768px) 55vw, 100vw" className="aspect-[4/3] w-full rounded-(--radius) object-cover" loading="eager" fetchPriority="high" />
     </div>
   );
 }
@@ -238,9 +239,7 @@ function GuideSection({ ctx, section, first }: { ctx: RenderContext; section: Pa
           {section.heading ? (first ? <PageHeading className="mb-6 text-4xl">{section.heading}</PageHeading> : <GuideSectionHeading>{section.heading}</GuideSectionHeading>) : null}
           {section.body.length ? (
             <RichText ctx={ctx} blocks={section.body as Block[]} className={`guide-prose ${section.variant === "columns" ? "md:columns-2 md:gap-10" : ""} ${section.variant === "lead" ? "[&>p:first-child]:text-xl [&>p:first-child]:leading-relaxed" : ""}`} />
-          ) : (
-            <p className="text-(--section-muted)">This section has no text yet.</p>
-          )}
+          ) : null}
         </>
       );
     case "feature_list": {
@@ -258,9 +257,7 @@ function GuideSection({ ctx, section, first }: { ctx: RenderContext; section: Pa
       return (
         <>
           {section.heading ? <GuideSectionHeading>{section.heading}</GuideSectionHeading> : null}
-          {section.items.length === 0 ? (
-            <p className="text-(--section-muted)">No categories have been added yet.</p>
-          ) : variant === "list" ? (
+          {section.items.length === 0 ? null : variant === "list" ? (
             <ul className="divide-y divide-(--section-border) border-y border-(--section-border)">
               {section.items.map((it) => <li key={it.title} className="py-3">{item(it)}</li>)}
             </ul>
@@ -291,6 +288,33 @@ function GuideSection({ ctx, section, first }: { ctx: RenderContext; section: Pa
         <>
           {section.heading ? <GuideSectionHeading>{section.heading}</GuideSectionHeading> : null}
           <GuideCollection ctx={ctx} kind="store" items={items} mode="latest" variant={section.variant} columns={columnsFor("guide", "location_collection", section.columns)} />
+        </>
+      );
+    }
+    case "category_list": {
+      const categories = resolveCategories(ctx, section);
+      if (categories.length === 0) return null;
+      const variant = section.variant === "default" ? "chips" : section.variant;
+      const count = (n: number) => (section.showCounts ? <span className="text-(--section-muted)"> ({n})</span> : null);
+      const link = "font-(family-name:--font-heading) text-lg font-semibold text-(--section-heading) hover:underline";
+      return (
+        <>
+          {section.heading ? <GuideSectionHeading>{section.heading}</GuideSectionHeading> : null}
+          {variant === "chips" ? (
+            <ul className="flex flex-wrap gap-2 text-sm">
+              {categories.map((c) => (
+                <li key={c.name}><a href={href(ctx, c.path)} className="inline-block rounded-(--radius) border border-(--brand-border-strong) px-3 py-1 hover:border-(--section-heading) hover:text-(--section-heading)">{c.name}{count(c.count)}</a></li>
+              ))}
+            </ul>
+          ) : variant === "list" ? (
+            <ul className="divide-y divide-(--section-border) border-y border-(--section-border)">
+              {categories.map((c) => <li key={c.name} className="py-3"><a href={href(ctx, c.path)} className={link}>{c.name}</a>{count(c.count)}</li>)}
+            </ul>
+          ) : (
+            <ul className={`grid gap-x-8 ${columnsClass[columnsFor("guide", "category_list", section.columns)]}`}>
+              {categories.map((c) => <li key={c.name} className="border-t border-(--section-border) py-3"><a href={href(ctx, c.path)} className={link}>{c.name}</a>{count(c.count)}</li>)}
+            </ul>
+          )}
         </>
       );
     }
@@ -367,10 +391,9 @@ function eventDate(ev: SnapshotItem): { day: string; mon: string; tz: string } {
 }
 
 export function GuideCollection({ ctx, kind, items, mode, variant = "default", columns = 3 }: { ctx: RenderContext; kind: string; items: SnapshotItem[]; mode: string; variant?: string; columns?: 2 | 3 | 4 }) {
-  if (items.length === 0) {
-    const label = kind === "event" ? (mode === "upcoming" ? "No upcoming events are scheduled right now." : "No events have been published yet.") : kind === "place" ? "No places have been published yet." : kind === "article" ? "No articles have been published yet." : "Nothing has been published here yet.";
-    return <p className="text-(--section-muted)">{label}</p>;
-  }
+  // An empty collection renders nothing; the section is left out of the page before this point (B2, D-021).
+  if (items.length === 0) return null;
+  void mode;
   const v = resolveCollectionVariant(ctx, kind, variant);
   const eyebrow = (it: SnapshotItem): string => {
     if (kind === "event") {

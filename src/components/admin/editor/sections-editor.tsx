@@ -19,6 +19,42 @@ export function newSection(type: SectionType): PageSection {
   return emptySection(type, newId());
 }
 
+const kindPlural: Record<string, string> = { place: "places", event: "events", article: "articles", service: "services" };
+
+/**
+ * What a slot still needs, shown under its title. A section with nothing to show is left out
+ * of the public page (B2, D-021); the hint says so, and says what fills the slot.
+ */
+export function slotHint(section: PageSection): string | null {
+  switch (section.type) {
+    case "rich_text":
+      return section.body.length ? null : "Nothing to show yet: write the text, or remove the section. It is left out of the public page until it has text.";
+    case "feature_list":
+      return section.items.length ? null : "Nothing to show yet: add items. The section is left out of the public page until it has some.";
+    case "faq":
+    case "quotes":
+    case "facts":
+    case "gallery":
+      return section.items.length ? null : "Nothing to show yet: add items, or remove the section. Publication needs at least one.";
+    case "content_collection":
+      if (section.mode === "selected") return section.itemIds.length ? null : "No items chosen: the section is left out of the public page until some are.";
+      return `Fills itself with the published ${kindPlural[section.kind] ?? section.kind}${section.mode === "upcoming" ? " that are upcoming" : ""}; it is left out of the public page while there are none.`;
+    case "location_collection":
+      if (section.mode === "selected") return section.itemIds.length ? null : "No stores chosen: the section is left out of the public page until some are.";
+      return "Fills itself with the published stores; it is left out of the public page while there are none.";
+    case "category_list":
+      return "Fills itself with the categories of the published places; it is left out of the public page while there are none.";
+    case "image_hero":
+      return section.imageAssetId ? null : "No image chosen: the heading and text stand on their own until one is.";
+    case "video":
+      return section.videoId ? null : "No video yet: the section is left out of the public page until one is chosen.";
+    case "map_link":
+      return section.address.line1 || section.address.locality ? null : "No address yet: the section is left out of the public page until one is entered.";
+    default:
+      return null;
+  }
+}
+
 const alignLabels: Record<(typeof sectionAligns)[number], string> = { start: "Left", center: "Centred" };
 const widthLabels: Record<(typeof sectionWidths)[number], string> = { default: "Usual for this section", narrow: "Narrow (reading width)", wide: "Full page width" };
 const columnOptions = [{ value: "", label: "Theme default" }, { value: "2", label: "2 columns" }, { value: "3", label: "3 columns" }, { value: "4", label: "4 columns" }];
@@ -39,6 +75,7 @@ export function SectionsEditor({ sections, onChange, ctx, issues, capabilities }
           <li key={s.id} className="rounded border border-line bg-surface">
             <div className="flex flex-wrap items-center gap-2 border-b border-line bg-surface-muted px-3 py-2 text-sm">
               <span className="font-semibold">{i + 1}. {sectionTypeLabels[s.type]}</span>
+              {slotHint(s) ? <span className="basis-full text-xs text-ink-subtle sm:basis-auto">{slotHint(s)}</span> : null}
               <span className="ml-auto flex gap-1">
                 <Button type="button" variant="secondary" onClick={() => move(i, -1)} disabled={i === 0} aria-label={`Move section ${i + 1} up`}>Move up</Button>
                 <Button type="button" variant="secondary" onClick={() => move(i, 1)} disabled={i === sections.length - 1} aria-label={`Move section ${i + 1} down`}>Move down</Button>
@@ -193,6 +230,17 @@ function SectionFields({ section, onChange, ctx, prefix, issues }: { section: Pa
         </>
       );
     }
+    case "category_list":
+      return (
+        <>
+          <div className="grid gap-3 sm:grid-cols-[1fr_8rem_10rem]">
+            <TextInput label="Heading" value={section.heading} onChange={(v) => onChange({ ...section, heading: v })} error={err("heading")} />
+            <TextInput label="Limit" type="number" value={String(section.limit)} onChange={(v) => onChange({ ...section, limit: Math.max(1, Math.min(24, Number(v) || 1)) })} hint="Largest categories first." />
+            <SelectInput label="Columns (grid)" value={section.columns ? String(section.columns) : ""} onChange={(v) => onChange({ ...section, columns: v ? (Number(v) as 2 | 3 | 4) : undefined })} options={columnOptions} />
+          </div>
+          <Checkbox label="Show how many places each category has" checked={section.showCounts} onChange={(v) => onChange({ ...section, showCounts: v })} />
+        </>
+      );
     case "location_collection": {
       const options = (ctx.related.store ?? []).map((r) => ({ value: r.id, label: r.title }));
       return (
