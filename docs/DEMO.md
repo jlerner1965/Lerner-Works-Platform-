@@ -17,28 +17,34 @@ Before the demonstration: `pnpm dev` in one terminal and `pnpm worker:dev` in an
    out first). Content → Events → "Harvest Market on Aspen Street": change the summary,
    Save draft. Reload the public event page: unchanged.
 4. **Review.** Editor: Request review. Owner: Reviews shows the item; open it, Revision
-   history shows "Changed: Summary"; Approve.
-5. **Publish.** Owner: Publishing → Build candidate. The candidate shows "Changed (1)" and
-   the findings list. Preview frozen candidate (viewport toggles). Activate. Reload the
-   public event page: the new summary is live. The candidate page links to the release.
+   history shows "Changed: Summary"; Approve (an editor's work always needs a publisher's
+   approval; the owner's own saves are approved as they are saved unless the site requires
+   review, Settings → Publishing).
+5. **Publish.** Owner: Publish. The page lists what the next release contains ("Changed (1)")
+   and "Publish now" would publish it in one step; for the demonstration take the careful
+   path: Build a candidate, look at the findings list, Preview the frozen candidate (viewport
+   toggles), Activate. Reload the public event page: the new summary is live. The candidate
+   page links to the release.
 6. **Denied access.** Editor window: open `/app/sites/<range-athletics-id>` → 404, nothing
    from organization B is rendered; the sidebar never offered it.
 7. **Holiday hours.** Sign in as `publisher-b@rangeathletics.example`. Content → Stores →
-   Longmont: add a date exception (e.g. December 24, Christmas Eve, 09:00–14:00). Save,
-   then "Approve (own work, audited)" — a publisher approving their own revision is allowed
-   and recorded as such in the audit log — Build candidate, Activate. Public store page shows the exception under
-   "Upcoming exceptions" (within 90 days of today) and the weekly table is unchanged.
+   Longmont: add a date exception (e.g. December 24, Christmas Eve, 09:00–14:00). Save: the
+   editor reports the version as approved, because the site does not require a separate
+   review and a publisher's own save is approved on save (recorded as an approval by the
+   publisher in the audit log). Publish → Build a candidate, Activate (or "Publish now").
+   Public store page shows the exception under "Upcoming exceptions" (within 90 days of
+   today) and the weekly table is unchanged.
 8. **Inquiry.** Visitor: on the Longmont store page, send the form. A receipt reference
    appears. Publisher: Inquiries lists it as New with delivery "pending"; after the worker's
    next pass the detail page shows "delivered" with the local sink file reference. Storage
    and email are shown as separate facts.
-9. **Recover.** Publisher: Publishing → Release history → open the previous release → the
+9. **Recover.** Publisher: Publish → Release history → open the previous release → the
    difference view lists what restoring would change → enter a reason → Restore. Public
    store page shows the old hours again; the inquiry is still in the inbox; drafts are
    untouched.
 10. **Reusable delivery.** Owner: Create site → Community guide preset → "Cedar Bend Guide".
-    The new site has starter pages and empty states only. Pine Hollow → Import / export →
-    Download site package. Cedar Bend → Import / export → upload the package → the
+    The new site has starter pages and empty states only. Pine Hollow → Import & export →
+    Download site package. Cedar Bend → Import & export → upload the package → the
     validation summary lists items, images and the starter pages that will be replaced →
     Import package as drafts → Content shows the imported places, events and articles as
     unpublished drafts with new ids.

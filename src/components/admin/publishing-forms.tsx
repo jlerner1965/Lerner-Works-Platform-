@@ -1,8 +1,56 @@
 "use client";
 
-import { useActionState, useId } from "react";
-import { activateCandidateAction, waiveWarningAction, restoreReleaseAction, type PublishState, type WaiveState, type RestoreState } from "@/server/actions/publishing";
+import { useActionState, useEffect, useId } from "react";
+import { useRouter } from "next/navigation";
+import { activateCandidateAction, waiveWarningAction, restoreReleaseAction, publishNowAction, type PublishState, type WaiveState, type RestoreState, type PublishNowState } from "@/server/actions/publishing";
 import { Alert, Button, inputClass } from "@/components/admin/ui";
+
+/**
+ * One-step publishing (B1): builds the candidate and activates it in one action. The page
+ * around it shows what will publish and any blockers before this form is enabled.
+ */
+export function PublishNowForm({ siteId, disabled, disabledReason, demoUrl }: { siteId: string; disabled: boolean; disabledReason?: string; demoUrl: string | null }) {
+  const [state, action, pending] = useActionState<PublishNowState, FormData>(publishNowAction, {});
+  const router = useRouter();
+  const id = useId();
+  useEffect(() => {
+    if (state.outcome === "activated" || state.outcome === "nothing") router.refresh();
+  }, [state.outcome, router]);
+  return (
+    <form action={action} className="space-y-3">
+      <input type="hidden" name="siteId" value={siteId} />
+      {state.outcome === "activated" ? (
+        <Alert tone="success" title={state.message ?? "Published."} role="status">
+          <p>
+            {demoUrl ? <a href={demoUrl} target="_blank" rel="noreferrer" className="underline">Open the published site</a> : "The live domain serves it now."}
+            {state.releaseId ? <> · <a href={`/app/sites/${siteId}/publishing/releases/${state.releaseId}`} className="underline">Release details</a></> : null}
+          </p>
+        </Alert>
+      ) : null}
+      {state.outcome === "nothing" ? <Alert tone="info" role="status">{state.message}</Alert> : null}
+      {state.error ? (
+        <Alert tone="danger" title={state.outcome === "blocked" ? "Not published" : "Publishing failed"} role="alert">
+          <p>{state.error}</p>
+          {state.candidateId ? <p className="mt-1"><a href={`/app/sites/${siteId}/publishing/candidates/${state.candidateId}`} className="underline">Open the candidate</a></p> : null}
+          {state.outcome === "failed" ? <p className="mt-1">The previous release stays active; nothing half-published exists.</p> : null}
+        </Alert>
+      ) : null}
+      {state.outcome !== "activated" ? (
+        <>
+          <div>
+            <label htmlFor={`${id}-note`} className="mb-1 block text-sm font-medium">Note for the release history (optional)</label>
+            <input id={`${id}-note`} name="note" className={`${inputClass} max-w-lg`} maxLength={300} placeholder="What changed, in a few words" />
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <Button type="submit" disabled={pending || disabled}>{pending ? "Publishing…" : "Publish now"}</Button>
+            {disabled && disabledReason ? <span className="text-sm text-ink-muted">{disabledReason}</span> : null}
+          </div>
+          <p className="text-xs text-ink-subtle">Publishing builds a frozen candidate from the work above, checks it once more and activates it atomically. Every release is kept; an earlier one can be restored from the history below.</p>
+        </>
+      ) : null}
+    </form>
+  );
+}
 
 export function ActivateForm({ siteId, candidateId, idempotencyKey, demoUrl, unwaived }: { siteId: string; candidateId: string; idempotencyKey: string; demoUrl: string | null; unwaived: number }) {
   const [state, action, pending] = useActionState<PublishState, FormData>(activateCandidateAction, {});

@@ -10,7 +10,7 @@ test("edit → draft → frozen preview → publish → public page (PUB-01, PUB
 
   // First release.
   await page.goto(`/app/sites/${sites.pineHollow}/publishing`);
-  await page.getByRole("button", { name: "Build candidate" }).click();
+  await page.getByRole("button", { name: "Build a candidate" }).click();
   await expect(page).toHaveURL(/\/publishing\/candidates\//);
   await expect(page.getByText(/Ready to activate/)).toBeVisible();
   await page.getByRole("button", { name: "Activate this candidate" }).click();
@@ -29,23 +29,22 @@ test("edit → draft → frozen preview → publish → public page (PUB-01, PUB
   await page.goto(`/app/sites/${sites.pineHollow}/content?kind=page&q=Home`);
   await page.getByRole("link", { name: "Home", exact: true }).first().click();
   await page.getByLabel("Subheading").first().fill(marker);
-  await page.getByRole("button", { name: "Save draft" }).click();
-  await expect(page.getByText(/Saved version \d+/)).toBeVisible();
+  // The owner's save is approved on save (review not required, B1); the public page is still unchanged.
+  await page.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(page.getByText(/Saved version \d+.*It is approved/)).toBeVisible();
   await pub.reload();
   await expect(pub.locator("body")).not.toContainText(marker);
 
   // Candidate built now stays frozen even if the draft changes again.
-  await page.getByRole("button", { name: /Approve/ }).click();
-  await expect(page.getByText("Revision approved.")).toBeVisible();
   await page.goto(`/app/sites/${sites.pineHollow}/publishing`);
-  await page.getByRole("button", { name: "Build candidate" }).click();
+  await page.getByRole("button", { name: "Build a candidate" }).click();
   await expect(page).toHaveURL(/\/publishing\/candidates\//);
   const candidateUrl = page.url();
   await expect(page.getByText("Changed (1)")).toBeVisible();
   await page.goto(`/app/sites/${sites.pineHollow}/content?kind=page&q=Home`);
   await page.getByRole("link", { name: "Home", exact: true }).first().click();
   await page.getByLabel("Subheading").first().fill(`${marker} LATER EDIT`);
-  await page.getByRole("button", { name: "Save draft" }).click();
+  await page.getByRole("button", { name: "Save", exact: true }).click();
   await expect(page.getByText(/Saved version \d+/)).toBeVisible();
   const previewUrl = candidateUrl.replace("/publishing/candidates/", "/previews/") + "/render";
   await page.goto(previewUrl);
@@ -78,8 +77,8 @@ test("site B is unaffected and unauthorized access is denied without leaks (AUTH
   const publishing = await page.goto(`/app/sites/${sites.pineHollow}/publishing`);
   expect(publishing?.status()).toBe(404);
   await page.goto(`/app/sites/${sites.pineHollow}`);
-  await expect(page.getByRole("link", { name: "Publishing" })).toHaveCount(0);
-  await expect(page.getByRole("link", { name: "Inquiries" })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Publish", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Inbox", exact: true })).toHaveCount(0);
   await page.getByRole("button", { name: "Sign out" }).click();
   await expect(page).toHaveURL(/sign-in/);
   const after = await page.goto(`/app/sites/${sites.pineHollow}`);

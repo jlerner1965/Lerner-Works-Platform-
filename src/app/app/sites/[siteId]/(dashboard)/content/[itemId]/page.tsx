@@ -56,6 +56,7 @@ export default async function ItemEditorPage({ params }: { params: Promise<{ sit
         ctx={editor}
         timeZone={ctx.site.timeZone}
         isOwnRevision={found.revision.authorId === user.id}
+        reviewRequired={ctx.site.reviewRequired}
       />
     </>
   );

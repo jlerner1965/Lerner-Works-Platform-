@@ -44,7 +44,7 @@ preset in use so the first paint already renders with them (decision D-019).
 
 ## Design scales (D1)
 
-`siteConfig.design` (Settings → Design, organization owners only, audited as `design.updated`)
+`siteConfig.design` (Look → Design, organization owners only, audited as `design.updated`)
 sets four scales that the theme root exposes as variables (`src/themes/shared/design.ts`).
 Themes use the variables, never the option names.
 
@@ -121,7 +121,7 @@ logo (`branding.logoDarkAssetId`) or the wordmark, never the light-background lo
 `brandPairings()` lists every pairing the themes render with its WCAG 2.2 AA minimum
 (4.5:1 for text, 3:1 for focus rings and field borders). Publication validation
 (`src/server/publishing/validate.ts`) blocks on any failing pairing and names it, with both
-colours and the measured ratio; the Settings → Brand card shows the same list live. The
+colours and the measured ratio; the Look → Brand card shows the same list live. The
 pairings:
 
 | Pairing | Minimum |

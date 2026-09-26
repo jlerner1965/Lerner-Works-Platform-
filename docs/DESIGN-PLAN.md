@@ -282,4 +282,7 @@ only when it runs on production and the owner has seen it on a pilot.
 - Video providers beyond YouTube and Vimeo, if any customer needs one.
 - Delegation of design to a customer's publisher stays off by default (confirmed by the
   boundary decision of 2026-09-26, D-017); it is a per-site switch the agency turns on.
-- Whether D3 happens at all: decided after D2 is in customer use (see D3).
+- Whether D3 happens at all: decided after D2 is in customer use (see D3), and after the
+  site-building programme (`docs/SITE-BUILDING-PLAN.md`) has made the daily paths fast; the
+  owner's feedback of 2026-09-26 (the dashboard was hard to navigate; a fresh site was an
+  empty scaffold) is being answered there first.

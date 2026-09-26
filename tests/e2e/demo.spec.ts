@@ -66,7 +66,7 @@ test("steps 1–6: dashboard, homepages, editor edit → review → approve → 
 
   // Step 5: build candidate, preview, publish; the change is public.
   await owner.goto(`/app/sites/${sites.pineHollow}/publishing`);
-  await owner.getByRole("button", { name: "Build candidate" }).click();
+  await owner.getByRole("button", { name: "Build a candidate" }).click();
   await expect(owner.getByText(/Ready to activate/)).toBeVisible();
   await expect(owner.getByText("Changed (1)")).toBeVisible();
   await shot(owner, "05-candidate-summary");
@@ -104,13 +104,12 @@ test("steps 7–9: holiday hours update, inquiry to inbox with delivery status, 
   await row.getByLabel("Label").fill("Christmas Eve");
   await row.getByLabel("Closed all day").uncheck();
   await row.getByRole("button", { name: "Add interval" }).click();
-  await publisher.getByRole("button", { name: "Save draft" }).click();
-  await expect(publisher.getByText(/Saved version/)).toBeVisible();
-  await publisher.getByRole("button", { name: /^Approve \(own work, audited\)$/ }).click();
-  await expect(publisher.getByText("Revision approved.")).toBeVisible();
+  // A publisher's save is approved on save: the pilot does not require a separate review (B1).
+  await publisher.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(publisher.getByText(/Saved version \d+.*It is approved/)).toBeVisible();
   await shot(publisher, "07-store-hours-edited");
   await publisher.goto(`/app/sites/${sites.rangeAthletics}/publishing`);
-  await publisher.getByRole("button", { name: "Build candidate" }).click();
+  await publisher.getByRole("button", { name: "Build a candidate" }).click();
   await expect(publisher.getByText(/Ready to activate/)).toBeVisible();
   await publisher.getByRole("button", { name: "Activate this candidate" }).click();
   await expect(publisher.getByText(/Release activated/).first()).toBeVisible();

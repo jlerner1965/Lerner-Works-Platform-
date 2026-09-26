@@ -5,7 +5,12 @@ architecture. Resume from `docs/PROGRESS.md`. The design flexibility programme (
 is planned in `docs/DESIGN-PLAN.md`; D0 and D1 are shipped, D2 (theme catalogue, design
 preview, delegation) is built and goes to production on the owner's go. Themes are
 compositions in code registered under immutable keys in `src/themes/index.ts` with their
-capabilities declared in `src/themes/capabilities.ts` (decision D-018).
+capabilities declared in `src/themes/capabilities.ts` (decision D-018). The site-building
+programme (`docs/SITE-BUILDING-PLAN.md`, decision D-020) is the current work: its bar is
+that the owner would choose the platform over hand-building a site, and every change in it
+is built to last (migration, service, tests at three levels, docs, release gate). B1 is
+built: review policy per site with approval on save, one-step publishing, task-based
+dashboard.
 Public themes use only the derived brand tokens, design variables and font variables described
 in `docs/DESIGN-TOKENS.md` (a unit test rejects literal colours in `src/themes`). A theme or
 renderer change must keep every frozen release in `tests/fixtures/releases/` rendering as

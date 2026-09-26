@@ -55,7 +55,11 @@ Local demonstration routes: `/demo/pine-hollow` and `/demo/range-athletics`. Das
   application into `.next-e2e` and serves it with `next start` on port 3100 (see
   `docs/DECISIONS.md` D-009). `E2E_USE_BUILD=0 pnpm test:e2e` uses `next dev` instead for
   faster iteration; it is not release evidence. Screenshots written by the demonstration
-  spec land in `docs/evidence/demo/`.
+  spec land in `docs/evidence/demo/`, those of the site-building specs in
+  `docs/evidence/dashboard/`; `walkthrough.spec.ts` writes the SB-06 measurement (screens,
+  fields and actions per task of the create-brand-populate-publish walk-through, and the
+  empty-state notices left on the published home) to `docs/evidence/walkthrough/latest.json`
+  with a screenshot of the published home beside it.
 - `pnpm verify` — the release gate, in order: setup check, lint, typecheck, unit,
   integration, e2e, production build.
 - `pnpm exec tsx scripts/screenshots.ts --base <url> [--out <dir>] [--only <names>]` —
@@ -63,7 +67,7 @@ Local demonstration routes: `/demo/pine-hollow` and `/demo/range-athletics`. Das
   `docs/evidence/screenshots/`; fails on a non-200 response, horizontal overflow or a console
   error. Run it against a server that serves a database seeded with `pnpm seed:demo` (each
   design phase re-runs it). The pass is repeated per composition of the theme catalogue
-  (D2): switch a pilot's theme in Settings → Design, publish, run the pass with `--only` the
+  (D2): switch a pilot's theme in Look → Design, publish, run the pass with `--only` the
   pilot's pages and `--out docs/evidence/screenshots/<theme>` (`magazine` for the guide pages,
   `storefront` for the retail pages), then switch the pilot back and publish again; the
   default compositions stay in `docs/evidence/screenshots/`.
@@ -78,7 +82,7 @@ Local demonstration routes: `/demo/pine-hollow` and `/demo/range-athletics`. Das
 theme or renderer change, which is its job. To accept an intended change:
 
 1. Render the old releases with the new code: on a database seeded with `pnpm seed:demo`,
-   restore the release the previous evidence was taken from (Publishing → release → Restore, or
+   restore the release the previous evidence was taken from (Publish → Release history → Restore, or
    `restoreRelease` from a script), start `next start`, and run `scripts/screenshots.ts` into a
    temporary directory.
 2. Compare with the previous evidence: `scripts/screenshot-diff.ts --before
@@ -201,6 +205,21 @@ and then accepts at `/invite/<token>`; that path is unverified in this environme
   domains). Importing validates paths, sizes, checksums and schemas, then creates drafts with
   new ids; same-slug starter pages are replaced.
 
+## Review policy and publishing (site-building programme B1)
+
+- Each site has a review policy (Settings → Publishing, owners only; `sites.review_required`,
+  off by default). Off: a revision saved by an owner or publisher is approved on save, as an
+  immutable review row on that exact revision, audited as `review.approved_on_save`; editors'
+  work still needs a publisher's approval. On: every revision needs an explicit approval,
+  including the owner's own (audited as `review.self_approved`). Changing the policy is audited
+  as `site.review_policy_changed`.
+- Publish (sidebar → Publish) shows what the next release would contain, computed from the
+  saved and approved work without writing anything, with blockers linked to their fixes.
+  "Publish now" builds the candidate from exactly that computation and activates it in one
+  action; warnings are recorded with the release. To look at the frozen result first or to
+  waive a warning with a reason, build a candidate and activate it from its own page. Restore
+  works as before from the release history.
+
 ## Backups and restore rehearsal
 
 Site export is portability, not disaster recovery.
@@ -215,7 +234,7 @@ Site export is portability, not disaster recovery.
 
 ## Content rollback vs application rollback
 
-- Content rollback: Publishing → Release history → Restore. Creates a new release from the
+- Content rollback: Publish → Release history → Restore. Creates a new release from the
   historical snapshot; drafts and inquiries are untouched.
 - Application rollback: redeploy the previous application build (hosting provider). Snapshot
   readers stay backward compatible with stored `schema_version` values.

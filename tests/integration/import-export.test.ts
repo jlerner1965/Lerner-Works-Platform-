@@ -130,9 +130,10 @@ describe("portable site package (PORT-03)", () => {
       // Site C has no domains, members or inquiries from the package.
       const [extra] = await admin<{ domains: number; inquiries: number }[]>`select (select count(*)::int from public.domains where site_id = ${siteC}) as domains, (select count(*)::int from public.inquiries where site_id = ${siteC}) as inquiries`;
       expect(extra).toEqual({ domains: 0, inquiries: 0 });
-      // Imported content is unreviewed draft.
-      const reviewed = await admin`select id from public.reviews where site_id = ${siteC}`;
-      expect(reviewed.length).toBe(0);
+      // Imported content is unreviewed draft: the only reviews in site C are the approvals on save of its three
+      // starter pages (B1), and none sits on the revision the import wrote for an adopted page.
+      const [reviews] = await admin<{ total: number; onCurrent: number }[]>`select (select count(*)::int from public.reviews where site_id = ${siteC}) as total, (select count(*)::int from public.reviews rv join public.content_items i on i.current_revision_id = rv.revision_id where rv.site_id = ${siteC}) as on_current`;
+      expect(reviews).toEqual({ total: 3, onCurrent: 3 - expectedAdopted });
     } finally {
       await admin.end();
     }

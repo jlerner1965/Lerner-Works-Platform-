@@ -103,6 +103,24 @@ export async function saveRevision(
   return { ok: true, revision };
 }
 
+/**
+ * Approval on save (site-building programme B1, decision D-020). A site whose review policy
+ * does not require an explicit decision treats a save by someone who may publish as approved:
+ * an immutable review row on that exact revision, written in the same transaction and
+ * audited. Editors' work is never approved this way (they cannot publish), and a site with
+ * review required approves nothing without a decision.
+ */
+export function approvesOnSave(site: { reviewRequired: boolean }, capabilities: { canPublish: boolean }): boolean {
+  return !site.reviewRequired && capabilities.canPublish;
+}
+
+export async function approveOnSave(db: Db, input: { item: Pick<ContentItemRow, "id" | "organizationId" | "siteId">; revisionId: string; actorId: string }): Promise<void> {
+  await db`insert into public.reviews (organization_id, site_id, item_id, revision_id, state, comment, actor_id)
+    values (${input.item.organizationId}, ${input.item.siteId}, ${input.item.id}, ${input.revisionId}, 'approved', 'Approved on save: this site does not require a separate review.', ${input.actorId})`;
+  await db`insert into public.audit_events (organization_id, site_id, actor_id, action, entity_type, entity_id, metadata)
+    values (${input.item.organizationId}, ${input.item.siteId}, ${input.actorId}, 'review.approved_on_save', 'content_revision', ${input.revisionId}, ${db.json({ itemId: input.item.id })})`;
+}
+
 export interface ItemListEntry {
   item: ContentItemRow;
   revision: RevisionRow;

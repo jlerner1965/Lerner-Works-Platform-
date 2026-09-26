@@ -8,7 +8,7 @@ import { getCandidate, isWaived } from "@/server/publishing/candidates";
 import { discardCandidateAction } from "@/server/actions/publishing";
 import { Alert, Badge, Button, Card, LinkButton, PageHeader, formatDateTime } from "@/components/admin/ui";
 import { ActivateForm, WaiveForm } from "@/components/admin/publishing-forms";
-import { kindRegistry, type ContentKind } from "@/modules/registry";
+import { ChangeSummaryList, ExcludedList } from "@/components/admin/publish-summary";
 
 export const dynamic = "force-dynamic";
 
@@ -20,9 +20,7 @@ export default async function CandidatePage({ params }: { params: Promise<{ site
   const cand = await withUser(user.id, (db) => getCandidate(db, candidateId));
   if (!cand || cand.siteId !== siteId) notFound();
   const idempotencyKey = crypto.randomUUID();
-  const s = cand.summary;
   const notes = cand.selection.notes ?? [];
-  const excluded = notes.filter((n) => n.note === "excluded_unapproved" || n.note === "unapproved_newer_draft");
   const isOpen = cand.state === "ready" || cand.state === "blocked";
   const base = `/app/sites/${siteId}`;
   return (
@@ -59,27 +57,8 @@ export default async function CandidatePage({ params }: { params: Promise<{ site
       </div>
       <div className="grid gap-4 lg:grid-cols-2">
         <Card title="Change summary">
-          {s.firstRelease ? <p className="mb-2 text-sm"><Badge tone="info">First release</Badge> Everything below is new.</p> : null}
-          <SummaryList title="Added" items={s.added.map((a) => `${a.kind}: ${a.title}${a.path ? ` (${a.path})` : " (no public route)"}`)} />
-          <SummaryList title="Changed" items={s.changed.map((c) => `${c.kind}: ${c.title} — ${c.fields.length ? c.fields.join(", ") : "no field changes"}`)} />
-          <SummaryList title="Removed" items={s.removed.map((r) => `${r.kind}: ${r.title}${r.path ? ` (${r.path})` : ""}`)} />
-          <SummaryList title="Removed routes" items={s.removedRoutes} />
-          <SummaryList title="New redirects" items={s.newRedirects.map((r) => `${r.from} → ${r.to}`)} />
-          {s.navigationChanged ? <div className="mb-3 text-sm"><p className="font-medium">Navigation changed</p><p className="text-ink-muted">Before: {s.navigationChanged.before.join(" · ") || "none"}</p><p className="text-ink-muted">After: {s.navigationChanged.after.join(" · ") || "none"}</p></div> : null}
-          <SummaryList title="Configuration changed" items={s.configFields} />
-          <SummaryList title="Media added" items={s.mediaAdded.map((id) => cand.manifest.media[id]?.title || id.slice(0, 8))} />
-          <SummaryList title="Media changed (focal point or details)" items={(s.mediaChanged ?? []).map((id) => cand.manifest.media[id]?.title || id.slice(0, 8))} />
-          {!s.firstRelease && s.added.length + s.changed.length + s.removed.length + s.configFields.length + s.mediaAdded.length + (s.mediaChanged?.length ?? 0) === 0 && !s.navigationChanged ? <p className="text-sm text-ink-muted">No differences from the active release.</p> : null}
-          {excluded.length ? (
-            <div className="mt-3 rounded border border-warning/40 bg-warning-soft p-3 text-sm">
-              <p className="font-medium">Not included (unapproved)</p>
-              <ul className="mt-1 list-disc pl-5">
-                {excluded.map((n) => (
-                  <li key={n.itemId}>{kindRegistry[n.kind as ContentKind].label}: <Link href={`${base}/content/${n.itemId}`} className="underline">{n.title}</Link> — {n.note === "excluded_unapproved" ? "new item whose latest revision is not approved" : "the published version stays; the newer draft is not approved"}</li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
+          <ChangeSummaryList summary={cand.summary} mediaTitle={(id) => cand.manifest.media[id]?.title || id.slice(0, 8)} />
+          <ExcludedList siteId={siteId} notes={notes} />
         </Card>
         <Card title="Findings">
           {cand.validation.blockers.length === 0 && cand.validation.warnings.length === 0 ? <p className="text-sm text-ink-muted">No findings.</p> : null}
@@ -125,15 +104,5 @@ export default async function CandidatePage({ params }: { params: Promise<{ site
         <details className="mt-2 text-sm"><summary className="cursor-pointer text-action underline">Routes</summary><ul className="mt-1 columns-2 text-xs">{cand.manifest.routes.map((r) => <li key={r.path}>{r.path}</li>)}</ul></details>
       </Card>
     </>
-  );
-}
-
-function SummaryList({ title, items }: { title: string; items: string[] }) {
-  if (items.length === 0) return null;
-  return (
-    <div className="mb-3 text-sm">
-      <p className="font-medium">{title} ({items.length})</p>
-      <ul className="list-disc pl-5 text-ink-muted">{items.map((i, k) => <li key={k}>{i}</li>)}</ul>
-    </div>
   );
 }
