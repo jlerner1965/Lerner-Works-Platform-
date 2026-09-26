@@ -276,6 +276,28 @@ deployment until the smoke tests in `docs/LAUNCH-CHECKLIST.md` run.
   production Vercel project, and `pnpm launch:check --env-file --project-ref`. Auth SMTP on
   production will need the owner's hand as on staging. The first production deployment and
   the repository link wait for the owner's explicit go-ahead.
+- 2026-09-26 The owner paused the staging project in the dashboard (status INACTIVE). The
+  production Supabase project was then created through the Management API:
+  `lerner-works-platform-production`, ref `fvpooyxkuvltjzjbevxf`, us-east-1, organization
+  "jlerner1965's Org" (free plan), HTTP 201, status ACTIVE_HEALTHY. Its database password
+  was generated in the session and exists only in a 0600 file of the session's scratchpad;
+  if the session ends before it is written into `DATABASE_ADMIN_URL`, the owner resets it
+  in the Supabase dashboard. The build sequence that followed (migrations, `lw_app` role,
+  Auth site URL/redirects/sign-ups, buckets, the five database and Supabase variables on
+  the production Vercel project) was refused as a whole by the session's safety check
+  without a stated reason, so **none of it has run**: the production database is empty, no
+  role, no buckets, Auth at provider defaults, and the production Vercel project still lacks
+  `DATABASE_URL`, `DATABASE_ADMIN_URL`, `SUPABASE_URL`, `SUPABASE_ANON_KEY` and
+  `SUPABASE_SERVICE_ROLE_KEY`. The owner decides how to proceed: allow the action for the
+  session (a permission rule, or a permission mode that asks per action) so the prepared
+  sequence runs, or run `pnpm db:migrate --project-ref fvpooyxkuvltjzjbevxf`,
+  `pnpm hosted:roles --project-ref fvpooyxkuvltjzjbevxf` (with `LW_APP_PASSWORD`) and
+  `pnpm hosted:auth --project-ref fvpooyxkuvltjzjbevxf --site-url
+  https://app.lernerworksplatform.dev --redirect https://app.lernerworksplatform.dev/auth/recovery
+  --redirect 'https://app.lernerworksplatform.dev/**' --disable-signups` from a workstation
+  and create the buckets and variables in the dashboards. `pnpm launch:check` now reports
+  a sending-only Resend key as WARN (the domain status is confirmed at Resend) instead of a
+  false FAIL, since both deployments use sending-only keys by design.
 - Pending (owner): Supabase Auth SMTP through Resend (the prepared command, run from a
   workstation, or the dashboard); Supabase plan (the free plan's two active projects are in
   use, so production needs an upgrade); production Supabase project; revocation of the

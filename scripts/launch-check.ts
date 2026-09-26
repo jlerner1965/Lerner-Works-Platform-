@@ -287,7 +287,15 @@ async function notifyChecks(cfg: { NOTIFY_PROVIDER: string; NOTIFY_RESEND_API_KE
   try {
     const res = await fetch("https://api.resend.com/domains", { headers: { Authorization: `Bearer ${key}` } });
     if (!res.ok) {
-      add("FAIL", "Notifications", `Resend responded ${res.status} to a read-only domain listing`);
+      // Deployed keys are sending-only by design; they cannot list domains, so the status is
+      // reported as unverifiable from here rather than as a failure of the configuration.
+      let restricted = false;
+      try {
+        restricted = ((await res.json()) as { name?: string }).name === "restricted_api_key";
+      } catch {
+        /* not json */
+      }
+      add(restricted ? "WARN" : "FAIL", "Notifications", restricted ? `the key is sending-only, so the status of the sending domain ${fromDomain ?? "(none)"} cannot be read from here; confirm it at Resend (a read needs a full-access key)` : `Resend responded ${res.status} to a read-only domain listing`);
       return;
     }
     const body = (await res.json()) as { data?: Array<{ name: string; status: string }> };

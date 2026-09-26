@@ -103,8 +103,9 @@ It verifies configuration completeness, both database connections and their priv
 the local auth shim, RLS on every table, session-table exposure, absence of `.example`
 demonstration accounts, live-site invariants, Supabase Auth reachability with sign-ups
 disabled, the auth email sender (custom SMTP or the default mailer; with `--project-ref`),
-both storage buckets and their visibility, the Resend sending domain status (read only),
-the job secret and cron schedule, and the Vercel project. Every item must be OK (WARN is
+both storage buckets and their visibility, the Resend sending domain status (read only; a
+sending-only key reports WARN and the status is confirmed at Resend), the job secret and
+cron schedule, and the Vercel project. Every item must be OK (WARN is
 acceptable only where the report says so). It never prints secrets and sends no email.
 
 ## 5. First owner
