@@ -8,7 +8,7 @@ import { RichText } from "@/themes/shared/richtext";
 import { Picture } from "@/themes/shared/picture";
 import { InquiryForm } from "@/themes/shared/inquiry-form";
 import { resolveCollection, featuredImage, itemPath } from "@/themes/shared/collections";
-import { SiteRoot, BrandMark, linkProps, showSearchLink, pageHeaderImage } from "@/themes/shared/site-root";
+import { SiteRoot, BrandMark, siteLogo, linkProps, showSearchLink, pageHeaderImage } from "@/themes/shared/site-root";
 import { SectionFrame, PageContainer } from "@/themes/shared/frame";
 import { siteDesign, columnsFor } from "@/themes/shared/design";
 import { FaqSection, QuotesSection, CtaBannerSection, GallerySection, FactsSection, VideoSection, MapLinkSection, columnsClass, type SectionStyle } from "@/themes/shared/sections";
@@ -76,6 +76,7 @@ export function GuideLayout({ ctx, children, title }: { ctx: RenderContext; chil
               ) : null}
             </ul>
           </nav>
+          {config.navigation.cta?.label && config.navigation.cta.path ? <a {...linkProps(ctx, config.navigation.cta.path)} className={guideStyle.buttonPrimary}>{config.navigation.cta.label}</a> : null}
         </div>
       </header>
       <main id="content" className="py-8">
@@ -87,7 +88,7 @@ export function GuideLayout({ ctx, children, title }: { ctx: RenderContext; chil
         {config.footer.variant === "compact" ? (
           <div className="mx-auto flex max-w-(--container) flex-col gap-4 px-4 py-8 text-sm sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
             <div className="flex flex-col gap-1">
-              <p className="font-(family-name:--font-heading) text-lg font-bold">{config.branding.wordmark}</p>
+              {siteLogo(ctx, "dark") ? <p><BrandMark ctx={ctx} surface="dark" imageClass="h-8" textClass="font-(family-name:--font-heading) text-lg font-bold" /></p> : <p className="font-(family-name:--font-heading) text-lg font-bold">{config.branding.wordmark}</p>}
               {config.footer.text ? <p className="max-w-md">{config.footer.text}</p> : null}
               {config.footer.showContactDetails && (site.contact.email || site.contact.phone) ? (
                 <p>
@@ -111,7 +112,7 @@ export function GuideLayout({ ctx, children, title }: { ctx: RenderContext; chil
         ) : (
           <div className="mx-auto grid max-w-(--container) gap-8 px-4 py-10 sm:grid-cols-3">
             <div>
-              <p className="font-(family-name:--font-heading) text-xl font-bold">{config.branding.wordmark}</p>
+              {siteLogo(ctx, "dark") ? <p><BrandMark ctx={ctx} surface="dark" imageClass="h-10" textClass="font-(family-name:--font-heading) text-xl font-bold" /></p> : <p className="font-(family-name:--font-heading) text-xl font-bold">{config.branding.wordmark}</p>}
               {config.footer.text ? <p className="mt-2 max-w-xs text-sm">{config.footer.text}</p> : null}
             </div>
             {config.footer.showContactDetails ? (

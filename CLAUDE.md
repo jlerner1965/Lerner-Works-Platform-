@@ -2,7 +2,10 @@
 
 The full specification is `docs/Lerner-Works-Platform-Build-Guide.md`. Read it before changing
 architecture. Resume from `docs/PROGRESS.md`. The design flexibility programme (phases D0–D3)
-is planned in `docs/DESIGN-PLAN.md`; D0 is shipped, D1 is built (production on the owner's go).
+is planned in `docs/DESIGN-PLAN.md`; D0 and D1 are shipped, D2 (theme catalogue, design
+preview, delegation) is built and goes to production on the owner's go. Themes are
+compositions in code registered under immutable keys in `src/themes/index.ts` with their
+capabilities declared in `src/themes/capabilities.ts` (decision D-018).
 Public themes use only the derived brand tokens, design variables and font variables described
 in `docs/DESIGN-TOKENS.md` (a unit test rejects literal colours in `src/themes`). A theme or
 renderer change must keep every frozen release in `tests/fixtures/releases/` rendering as
@@ -26,6 +29,11 @@ in `docs/OPERATIONS.md`, decision D-015).
   `docs/PROGRESS.md` and `docs/ACCEPTANCE.md` as BLOCKED, not PASS.
 - Commits/pushes go only to the branch the session was configured for; no pull requests,
   remote repositories or public deployments without explicit approval.
+- Not a page builder (`docs/DECISIONS.md` D-017): never add a canvas, free positioning,
+  per-element styling, custom CSS or HTML, a template gallery, generated pages or copy, or
+  design controls for anyone but the agency (per-site delegation to a publisher stays off by
+  default). Themes are compositions in code; sections are typed contracts; design settings are
+  enumerated values.
 
 ## Commands
 

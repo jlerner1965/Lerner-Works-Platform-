@@ -25,13 +25,16 @@ export function SiteRoot({ ctx, themeClass, children }: { ctx: RenderContext; th
   } as React.CSSProperties;
   return (
     <div lang={metadata.language} className={`lw-site ${themeClass} ${type.classNames} min-h-screen bg-(--brand-bg) text-(--brand-text) font-(family-name:--font-body)`} style={style}>
+      {/* The preset's files, preloaded so the first paint uses them (React hoists the links into <head>). */}
+      {type.preload.map((href) => <link key={href} rel="preload" as="font" type="font/woff2" crossOrigin="anonymous" href={href} />)}
       {children}
     </div>
   );
 }
 
-export function siteLogo(ctx: RenderContext): SnapshotMedia | null {
-  const id = ctx.snapshot.config.branding.logoAssetId;
+export function siteLogo(ctx: RenderContext, surface: "light" | "dark" = "light"): SnapshotMedia | null {
+  const { branding } = ctx.snapshot.config;
+  const id = surface === "dark" ? branding.logoDarkAssetId : branding.logoAssetId;
   const media = id ? ctx.snapshot.media[id] ?? null : null;
   return media && Object.keys(media.variants).length > 0 ? media : null;
 }
@@ -39,11 +42,13 @@ export function siteLogo(ctx: RenderContext): SnapshotMedia | null {
 /**
  * The site's mark: the uploaded logo when the release carries one, otherwise the wordmark
  * as text. A logo's alternative text is its recorded alt text or the wordmark; a logo marked
- * decorative keeps the wordmark for assistive technology.
+ * decorative keeps the wordmark for assistive technology. On dark or primary-coloured
+ * surfaces (`surface="dark"`) only the dark-surface logo is used; without one the wordmark is
+ * shown, because a logo drawn for the light background may vanish there.
  */
-export function BrandMark({ ctx, imageClass, textClass }: { ctx: RenderContext; imageClass: string; textClass: string }) {
+export function BrandMark({ ctx, imageClass, textClass, surface = "light" }: { ctx: RenderContext; imageClass: string; textClass: string; surface?: "light" | "dark" }) {
   const { branding } = ctx.snapshot.config;
-  const logo = siteLogo(ctx);
+  const logo = siteLogo(ctx, surface);
   if (!logo) return <span className={textClass}>{branding.wordmark}</span>;
   const alt = logo.decorative ? "" : logo.alt.trim() || branding.wordmark;
   return (

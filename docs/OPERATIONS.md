@@ -58,10 +58,15 @@ Local demonstration routes: `/demo/pine-hollow` and `/demo/range-athletics`. Das
   spec land in `docs/evidence/demo/`.
 - `pnpm verify` — the release gate, in order: setup check, lint, typecheck, unit,
   integration, e2e, production build.
-- `pnpm exec tsx scripts/screenshots.ts --base <url> [--out <dir>]` — responsive screenshot
-  pass over the two pilots (13 public pages × 390/768/1440) into `docs/evidence/screenshots/`;
-  fails on a non-200 response, horizontal overflow or a console error. Run it against a server
-  that serves a database seeded with `pnpm seed:demo` (each design phase re-runs it).
+- `pnpm exec tsx scripts/screenshots.ts --base <url> [--out <dir>] [--only <names>]` —
+  responsive screenshot pass over the two pilots (15 public pages × 390/768/1440) into
+  `docs/evidence/screenshots/`; fails on a non-200 response, horizontal overflow or a console
+  error. Run it against a server that serves a database seeded with `pnpm seed:demo` (each
+  design phase re-runs it). The pass is repeated per composition of the theme catalogue
+  (D2): switch a pilot's theme in Settings → Design, publish, run the pass with `--only` the
+  pilot's pages and `--out docs/evidence/screenshots/<theme>` (`magazine` for the guide pages,
+  `storefront` for the retail pages), then switch the pilot back and publish again; the
+  default compositions stay in `docs/evidence/screenshots/`.
 - `pnpm exec tsx scripts/screenshot-diff.ts --before <dir> --after <dir> [--out <dir>]` —
   pixel comparison of two screenshot directories (share of differing pixels per page, size
   changes, optional highlighted difference images). Used with the rendering-hash procedure below.
@@ -85,7 +90,12 @@ theme or renderer change, which is its job. To accept an intended change:
 
 New fixtures (after the pilots are re-composed) come from
 `pnpm exec tsx scripts/export-release-fixtures.ts`, which also writes a version-1 copy of each
-release so the normalisation path stays covered.
+release so the normalisation path stays covered. The version-4 fixtures were exported with the
+pilots switched to the magazine and storefront compositions, so the hash test freezes every
+composition of the catalogue; the version-3 fixtures keep the same content under the original
+compositions. `tests/unit/themes.test.ts` additionally renders every route of the version-3
+fixtures under every compatible theme, without hashes, so a new composition is exercised on
+the pilots' content before it has fixtures of its own.
 
 ## Local auth provider
 

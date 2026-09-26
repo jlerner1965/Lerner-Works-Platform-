@@ -94,9 +94,10 @@ rule; ESLint 9.39.5 (the latest 9.x, within the peer range `>=9.0.0`) is pinned 
 `next/font/google` failed to resolve under Turbopack in this environment
 (`@vercel/turbopack-next/internal/font/google/font` not found) and, more importantly, it makes
 every build depend on network access to Google Fonts. The three OFL typefaces (Source Serif 4,
-Source Sans 3, Public Sans) are now bundled as woff2 latin subsets in `src/themes/fonts/` and
-loaded through `next/font/local`, which self-hosts and preloads them. Licenses are recorded in
-`src/themes/fonts/LICENSE.md`.
+Source Sans 3, Public Sans) were bundled as woff2 latin subsets and loaded through
+`next/font/local`. Since D2 the files (six families) are served from `public/fonts/` with
+hand-declared `@font-face` rules and a per-preset preload (D-019); the self-hosting rule
+stands. Licenses are recorded in `public/fonts/LICENSE.md`.
 
 ## D-009 · 2026-09-26 · Browser tests run against a production build
 
@@ -194,3 +195,66 @@ status colours stay derived so buttons and notices always read. Design settings 
 organization owners only (`canDesign`), audited as `design.updated`; the per-site delegation to
 publishers planned in D-014 is not switched on in D1. Facts sections take owner-entered
 label/value pairs only (no computed metrics, per the no-fake-metrics rule).
+
+## D-017 · 2026-09-26 · The platform is not a page builder
+
+Decided by the owner before phase D2, to keep the product from turning into a weaker version
+of an online site builder. The platform never gets: a canvas or free positioning; per-element
+styling; custom CSS or HTML from any user; a template gallery of near-identical skins;
+generated pages or copy; design controls for anyone but the agency, other than an explicit
+per-site delegation to a customer's publisher that stays off by default. What it offers
+instead, and what the agency sells: compositions written in code by the agency (themes),
+typed section contracts with content-only fields, enumerated design options validated on
+write and at publication, and a publishing path (candidate, checks, atomic activation,
+restore) that design changes share with content. The difference from a builder is the
+content contracts and the publishing integrity, not the number of layout knobs. Phase D3
+(visual, in-context editing) is optional and is decided only after D2 is in use with a
+customer; it may only edit the same validated structures as the forms. Every phase's exit
+review checks this decision (design plan principle 8).
+
+## D-018 · 2026-09-26 · Theme catalogue rules
+
+A theme is a composition written in code for one or more named presets, registered in
+`src/themes/index.ts` under a key that is never reused or removed, because releases reference
+it. It declares its capabilities in `src/themes/capabilities.ts` (presets, section types,
+variants, header, hero and card styles and their defaults) and its rhythm and column defaults
+in `src/themes/shared/design.ts`; a unit test enforces the declaration's invariants and renders
+every route of the frozen pilot releases under every compatible theme. `design.theme` is
+`default` (the preset's original composition) or a theme written for the site's preset; a
+choice not written for the preset is refused on save, on package import and at publication
+(`theme_unsupported`), and a stored configuration that carries one anyway resolves to the
+preset's composition rather than failing to render. Configuration from before D2 has no theme
+field and resolves to the original composition, so earlier releases render as published;
+adding a theme must leave every existing theme's rendering hashes unchanged, and each new
+composition gets its own frozen fixtures. Switching keeps the content: sections the new theme
+does not render are listed when the switch is saved and block publication until an owner
+changes them; nothing is rewritten automatically, and the design preview shows the result
+before any candidate exists. A composition earns its place by a distinct hierarchy, navigation
+and page structure (principle 5), not by recolouring: the catalogue is not a template gallery
+(D-017). Compositions share the token, scale and section-band vocabulary of
+`docs/DESIGN-TOKENS.md` and use no literal colours.
+
+## D-019 · 2026-09-26 · Fonts are served from public/fonts, with metric fallbacks and a per-preset preload
+
+The typography presets' files moved from `next/font/local` to `public/fonts/` (the same
+self-hosted OFL latin subsets; D-008 stands, no request leaves the origin). Reason: `next/font`
+can only preload every family in a page's module graph, so the D0 build preloaded nothing and
+the browser swapped each family in after the first paint. The two D0 compositions absorbed
+that, but the magazine composition's decks and bottom-anchored hero re-wrapped by a line and
+moved the page: Lighthouse measured a cumulative layout shift of 0.13 to 0.20 on the magazine
+pages against the 0.1 target of DES-13, and a metric-adjusted fallback cannot remove it (a
+two-line paragraph still breaks differently by a word). The theme root now knows the preset in
+use and preloads exactly its files (`<link rel="preload" as="font">`, hoisted into the head), so
+the first paint already has them: on the unthrottled load Lighthouse observes, the shift is
+0.00 on every page of both compositions, and at most 0.02 on a throttled 1.6 Mbps load. The
+`@font-face` rules and each family's metric-adjusted local fallback live in
+`src/app/globals.css` with the override values `next/font` had computed for these files; the
+fallback faces name Times New Roman and Arial first and the metric-compatible Liberation,
+Tinos and Arimo faces after them, because `local()` finds neither on Linux or ChromeOS and a
+generic fallback re-wraps everything (Android has none of them, so there the preload alone
+limits the swap). The files carry a one-year immutable cache header; a replaced file gets a
+new name. Adding a family means fetching the latin subset, adding the `@font-face` rules and a
+fallback face with computed metrics, declaring the family in `src/themes/fonts.ts` and
+extending `public/fonts/LICENSE.md`. The change altered the theme root's class names and
+added the preload links to every page, so the rendering hashes were re-recorded after the
+screenshot comparison of D-015 (result in `docs/PROGRESS.md`).

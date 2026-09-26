@@ -36,8 +36,9 @@ Gaps found in that survey, and their state after D0 (shipped 2026-09-26, see sec
   site's language field, share images come from the page or the site.
 - Index titles and intros and the "Search" link were hard-coded → editable per module in
   Settings → Listing pages; the Search link can be switched off. The retail theme's "Find a
-  store" header button remains part of that theme's composition (carried to the D2
-  compositions; D1 added the header layout choice only).
+  store" header button stayed part of that theme's composition until D2 made the header
+  button a configuration field (`navigation.cta`) of every composition, with "Find a store"
+  as the retail default.
 - The `inquiries` module switch was not enforced by the submission endpoint or store pages →
   `submit_inquiry` refuses submissions when the active release has the module off; store
   pages show no form.
@@ -65,6 +66,12 @@ Gaps found in that survey, and their state after D0 (shipped 2026-09-26, see sec
 7. **The agency designs.** Design controls are for organization owners (the agency), with an
    explicit per-site delegation to publishers when the agency chooses. Editors and reviewers
    never see them (D-014).
+8. **Not a page builder (D-017).** The platform never gets a canvas, free positioning,
+   per-element styling, custom CSS or HTML, a template gallery of near-identical skins, or
+   generated pages and copy. Flexibility is always a choice among options the agency composed:
+   a theme is a composition written in code, a section is a typed contract, a design setting is
+   an enumerated value. Any phase that would need one of the excluded things to meet its goal
+   changes its goal, not the boundary. Every phase's exit review checks this principle.
 
 ## 3 Architecture changes shared by the phases
 
@@ -118,7 +125,7 @@ primary-coloured; a dark logo on it needs a light variant, which the D1 token ov
 header/footer style options cover); configurable "Find a store" header button (D1 header
 style).
 
-### D1 · Bounded design options — BUILT 2026-09-26, on production after the owner's go
+### D1 · Bounded design options — DONE 2026-09-26 (on production)
 
 The main flexibility step, without a page builder. About three sessions.
 
@@ -156,7 +163,7 @@ header button (both need the composition work of the theme catalogue); per-site 
 design to publishers (D-016 keeps design owner-only until a customer asks); a second logo for
 dark surfaces.
 
-### D2 · Theme catalogue and design preview
+### D2 · Theme catalogue and design preview — BUILT 2026-09-26 (production on the owner's go)
 
 About three sessions.
 
@@ -172,15 +179,61 @@ About three sessions.
 Exit: DES-10 and DES-11 PASS; a site switched between themes and back with identical earlier
 releases; screenshots per theme.
 
-### D3 · Visual, in-context editing
+What shipped, and where:
 
-Four to six sessions; start only after D2 is in use.
+| Item | Implementation |
+|---|---|
+| Theme registry | `src/themes/index.ts` registers the four compositions under immutable keys (`guide`, `locations`, `magazine`, `storefront`; `themeKeys` in `src/modules/site-config.ts`); `getTheme(snapshot)` resolves `design.theme` through `themeKeyFor(preset, design)`, so a release renders with the theme it was published with, and configuration from before D2 (no theme field) resolves to the preset's original composition (D-018) |
+| Capability declarations | `themeCapabilities` in `src/themes/capabilities.ts`: per theme the presets it is written for, a one-sentence description, section types, variants per type, header/hero/card styles and their defaults; `themesForPreset` lists the compatible compositions with the preset's own first; `themeCompatibilityIssues` refuses a theme not written for the site's preset on save, in the package import dry run and at publication (`theme_unsupported`); the rhythm and column defaults of each composition are declared in `src/themes/shared/design.ts` (`docs/DESIGN-TOKENS.md`) |
+| Theme switching | Settings → Design → Theme (the preset default plus each compatible composition with its description); a switch is a configuration revision audited as `design.updated`; composition choices the new theme does not offer reset to its default with a note; the save answers with the migration notes of the plan: the theme change, and every page whose sections the new theme does not render ("Publication is blocked until it is changed"); publication then blocks with `variant_unsupported` / `design_unsupported` naming the page and field |
+| Magazine composition | `src/themes/magazine` for the community guide: centred masthead with a date line and rule-lined navigation, full-width feature hero, collection grids with a featured lead, boxed facts, article pages with deck, byline, drop cap and a "More from the guide" sidebar, dark footer; renders all fifteen section types |
+| Storefront composition | `src/themes/storefront` for the location business: dark header bar with the store finder laid over the opening hero from 768 px (`header: overlay`), bleed hero, store tiles with live status badges, numbered service rows, a dark status strip on store pages, a footer listing the stores; renders all fifteen section types |
+| Design preview | `/app/sites/{siteId}/previews/design` (owners, or the publishers of a delegated site): the current configuration revision rendered over the active release (`loadDesignPreview` in `src/server/publishing/design-preview.ts`) at 390/768/1440 with a device-width switcher; assets the draft references but no release carries are served through the dashboard's private media route; a banner names the configuration revision, theme and release; `noindex`, no inquiry endpoint; nothing is written |
+| Delegation | migration `20260926000300_design_delegation.sql`: `sites.design_delegated`, `set_design_delegation()` (organization owners only, audited as `design.delegation_changed`) and a trigger that refuses a configuration revision changing `design` unless its author is an owner or the site is delegated; `canDesign` is owner, or publisher of a delegated site; the switch itself is shown to owners only |
+| Header button and overlay | `navigation.cta` (label plus an internal path or https link, checked at publication like every navigation target) renders as the header button of all four compositions and replaces the retail default "Find a store" when set; `header: overlay` is declared by the storefront only |
+| Dark-surface logo | `branding.logoDarkAssetId`, used where the brand sits on the primary colour or a dark band (guide and magazine footers, the storefront header bar); without it those places keep the wordmark, never a logo drawn for the light background |
+| Typography presets | three added in `src/themes/fonts.ts`: Classic serif (Lora headings, Source Sans 3 text), Modern grotesk (Inter), Friendly rounded (Nunito), self-hosted latin subsets under the SIL Open Font License (`public/fonts/LICENSE.md`); no request leaves the origin. Font delivery changed with them (D-019): the files are served from `public/fonts/` with metric-adjusted fallback faces in `globals.css`, and the theme root preloads the files of the preset in use, so the swap no longer moves the page (the magazine's decks had measured a layout shift of 0.13–0.20 before) |
+| Snapshot schema | version 4 (`design.theme`, `branding.logoDarkAssetId`, `navigation.cta`); older releases normalised at read time; the version-1 to version-3 rendering hashes are unchanged, and version-4 fixtures of both pilots on the new compositions join the rendering-hash test |
+| Tests | unit `themes.test` (catalogue invariants, resolution and compatibility, configuration defaults, typography presets, and every route of the frozen version-3 releases rendered under every compatible theme); integration `themes.test` (DES-10 switch, preview, publish, restore, switch back; incompatible theme refused on save, at publication and on package import; DES-11 delegation at the action and at the database, audited; editors and reviewers denied); e2e `themes.spec` (the same in the browser, both pilots) |
+
+Exit review against principle 8 (not a page builder, D-017): D2 adds no canvas, positioning,
+per-element styling, custom CSS or HTML, template gallery, generated content, or design control
+outside the agency. The two compositions are code written for one preset each; the theme
+select offers only compositions written for the site's preset; the design preview renders the
+same validated configuration through the same renderer and edits nothing; delegation is one
+explicit per-site switch held by the owner and enforced in the database; the header button
+and the dark logo are typed configuration fields checked at publication. Each preset has two
+compositions that differ in hierarchy, navigation and page structure, not in colour
+(principle 5).
+
+Carried from D1 and closed in D2: the header overlaid on the hero, the configurable header
+button, the dark-surface logo and the per-site delegation switch. Still open: further video
+providers (section 7); whether D3 happens at all.
+
+Exit review, 2026-09-26: DES-10 and DES-11 PASS (`docs/ACCEPTANCE.md`); both pilots switched
+to the new compositions and back with every earlier release rendering as before (rendering
+hashes over eight frozen releases; the screenshot comparison of the restored original
+compositions against the D1 evidence differs only in the footer release number); screenshots
+per composition in `docs/evidence/screenshots/magazine/` and `storefront/`; DES-13 performance
+and layout-shift targets met on all eight measured pages, with the LCP target missed on four
+(the guide home as at every phase, the magazine home and about, the storefront store detail
+by 0.02 s; `docs/evidence/LIGHTHOUSE.md`); DES-14 unchanged at 143 KiB. Two findings of the
+first measurement were fixed in the phase: the magazine's layout shift (font delivery, D-019)
+and the storefront tiles' city label contrast.
+
+### D3 · Visual, in-context editing — OPTIONAL
+
+Four to six sessions. Optional by the owner's decision of 2026-09-26: it is decided only after
+D2 is in use with a real customer, on evidence that the form-based editor and the design
+preview leave a daily task slow or error-prone. It is a convenience layer over the same
+structures, never a capability, and it is the phase closest to the boundary of principle 8.
 
 - Editable preview: section outlines, click or keyboard selection, side panel with the
   section's form, live token controls, drag-and-drop reordering with keyboard equivalent,
   undo within the session, explicit Save draft / Request review / Preview as today.
 - No free positioning, no custom CSS, no arbitrary components: the editor edits the same
-  validated structures as the forms.
+  validated structures as the forms. Nothing in D3 may add a control that principle 8
+  excludes; if a wanted convenience needs one, the convenience is dropped.
 - Same review and publication path; the visual editor never bypasses candidates and checks.
 
 Exit: DES-12 to DES-14 PASS; usability check of the daily workflows in build guide section 5
@@ -215,7 +268,7 @@ are NOT RUN.
 | D0 | 1 session | nothing |
 | D1 | 3 sessions | D0 (tokens, contrast gate) |
 | D2 | 3 sessions | D1 (variants, capability declarations) |
-| D3 | 4–6 sessions | D2 (design preview) |
+| D3 (optional) | 4–6 sessions | D2 in customer use; a decision by the owner on evidence |
 
 Sizes are rough and sequential, not commitments. Each phase ends with `pnpm verify`, the
 screenshot pass, the Lighthouse run, and updates to `docs/PROGRESS.md`, `docs/ACCEPTANCE.md`
@@ -227,5 +280,6 @@ only when it runs on production and the owner has seen it on a pilot.
 - Font families for the additional typography presets: only OFL-licensed, self-hosted
   families are proposed; name any brand fonts you hold licences for.
 - Video providers beyond YouTube and Vimeo, if any customer needs one.
-- Whether delegation of design to a customer's publisher should ever be on by default (the
-  plan says off).
+- Delegation of design to a customer's publisher stays off by default (confirmed by the
+  boundary decision of 2026-09-26, D-017); it is a per-site switch the agency turns on.
+- Whether D3 happens at all: decided after D2 is in customer use (see D3).

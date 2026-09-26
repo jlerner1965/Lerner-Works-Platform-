@@ -24,10 +24,17 @@ export const indexCopySchema = z
   .default({ title: "", intro: "" });
 
 export const footerVariants = ["columns", "compact"] as const;
-export const typographyPresetKeys = ["editorial-serif", "utility-sans"] as const;
+export const typographyPresetKeys = ["editorial-serif", "utility-sans", "classic-serif", "modern-grotesk", "friendly-rounded"] as const;
 
 const hexOrAuto = z.union([z.literal(""), hexColor]).default("");
-export const headerStyles = ["default", "left", "centered"] as const;
+/**
+ * Compositions the platform renders (design programme D2, decision D-017). A key is never
+ * renamed or removed: releases carry it, and old releases must keep rendering. Which themes a
+ * preset may use, and what each renders, is declared in `src/themes/capabilities.ts`.
+ */
+export const themeKeys = ["guide", "locations", "magazine", "storefront"] as const;
+export type ThemeKey = (typeof themeKeys)[number];
+export const headerStyles = ["default", "left", "centered", "overlay"] as const;
 export const heroStyles = ["default", "split", "full", "stacked"] as const;
 export const cardStyles = ["default", "image-top", "image-side", "text"] as const;
 export const radiusScales = ["none", "small", "medium", "large"] as const;
@@ -43,6 +50,8 @@ export const tokenOverrideKeys = ["surface", "surfaceStrong", "muted", "border",
  */
 export const designSchema = z
   .object({
+    /** The composition; "default" is the preset's original theme (D2). */
+    theme: z.enum(["default", ...themeKeys]).default("default"),
     header: z.enum(headerStyles).default("default"),
     hero: z.enum(heroStyles).default("default"),
     cards: z.enum(cardStyles).default("default"),
@@ -68,6 +77,8 @@ export const siteConfigSchema = z.object({
     wordmark: z.string().trim().min(1).max(60),
     tagline: z.string().trim().max(120).default(""),
     logoAssetId: z.uuid().nullable().default(null),
+    /** Logo drawn for dark and primary-coloured surfaces (footer bands, dark header bars); the wordmark is shown there when unset (D2). */
+    logoDarkAssetId: z.uuid().nullable().default(null),
     colors: z.object({
       primary: hexColor,
       accent: hexColor,
@@ -79,6 +90,8 @@ export const siteConfigSchema = z.object({
   navigation: z.object({
     items: z.array(navigationItemSchema).max(8).default([]),
     showSearch: z.boolean().default(true),
+    /** Header button for themes with a button slot; empty label or path means the theme's own default (D2). */
+    cta: z.object({ label: z.string().trim().max(40).default(""), path: z.union([z.literal(""), linkTarget]).default("") }).default({ label: "", path: "" }),
   }),
   footer: z.object({
     text: z.string().trim().max(400).default(""),

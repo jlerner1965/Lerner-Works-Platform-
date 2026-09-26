@@ -49,7 +49,7 @@ export default async function PreviewRenderPage({ params, searchParams }: { para
         <strong>Preview</strong>
         <span>Candidate {candidateId.slice(0, 8)} · frozen {formatDateTime(cand.createdAt)} · not the published site</span>
       </div>
-      {getTheme(cand.manifest.site.preset).render(ctx, route)}
+      {getTheme(cand.manifest).render(ctx, route)}
     </>
   );
 }

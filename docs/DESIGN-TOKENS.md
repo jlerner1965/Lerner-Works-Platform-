@@ -33,8 +33,14 @@ Mixing is per sRGB channel: `mix(a → b, t) = a + (b − a) · t`, rounded to w
 | success | `--brand-success` | `#1e7f4f`, same stepping as danger | "Open now" |
 | successSoft | `--brand-success-soft` | as dangerSoft | reserved |
 
-Typography is not derived: `branding.typography` selects a preset in `src/themes/fonts.ts`,
-and themes read only `--font-heading` and `--font-body`.
+Typography is not derived: `branding.typography` selects one of five presets in
+`src/themes/fonts.ts` (Editorial serif: Source Serif 4 headings with Source Sans 3 text;
+Utility sans: Public Sans; Classic serif: Lora with Source Sans 3; Modern grotesk: Inter;
+Friendly rounded: Nunito), all self-hosted latin subsets under the SIL Open Font License
+(`public/fonts/LICENSE.md`), and themes read only `--font-heading` and `--font-body`. The
+`@font-face` rules, each family's metric-adjusted local fallback and the class that sets each
+family's variable live in `src/app/globals.css`; the theme root preloads the files of the
+preset in use so the first paint already renders with them (decision D-019).
 
 ## Design scales (D1)
 
@@ -45,7 +51,7 @@ Themes use the variables, never the option names.
 | Option | Values | CSS variable | Used for |
 |---|---|---|---|
 | `radius` | none 0 px · small 0.25 rem · medium 0.75 rem · large 1.5 rem | `--radius` | images, cards, buttons, fields, panels |
-| `density` | guide: compact 2.25 rem · regular 3.5 rem · spacious 5 rem; retail: compact 2 rem · regular 3 rem · spacious 4.5 rem | `--section-gap` | vertical distance between sections ("regular" is each composition's original rhythm, so earlier releases render unchanged) |
+| `density` | per composition, see the theme catalogue below (guide: compact 2.25 rem · regular 3.5 rem · spacious 5 rem; retail: 2 · 3 · 4.5 rem) | `--section-gap` | vertical distance between sections ("regular" is each composition's original rhythm, so earlier releases render unchanged) |
 | `density` | compact 2 rem · regular 3 rem · spacious 4.5 rem | `--band-pad` | vertical padding inside coloured bands |
 | `container` | narrow 56 rem · regular 72 rem · wide 88 rem | `--container` | page width; "narrow" sections use the reading width (48 rem) regardless, centred on the guide and at the start of the container on the retail composition |
 
@@ -83,6 +89,32 @@ Text over a hero image (`image_hero` with the `full` style) sits on the text col
 the picture: `.lw-hero-overlay-light` 55 %, `-medium` 70 %, `-strong` 85 % (`color-mix`), with
 `onText` as the text colour. Publication warns (`hero_overlay_light`) when the light overlay is
 chosen, because readability then depends on the photograph.
+
+## Theme catalogue (D2)
+
+`design.theme` chooses the composition a site renders with: `default` is the preset's
+original composition, or one of the themes written for the preset. `src/themes/capabilities.ts`
+declares per theme the presets, the section types and variants, the header, hero and card
+styles and their defaults; `src/themes/index.ts` registers the compositions under immutable
+keys, and a release renders with the theme it was published with (decision D-018). Every
+composition uses this document's vocabulary: brand and section tokens for colour, the design
+variables for scale, and its own values for the "regular" rhythm and the theme-default column
+counts in `src/themes/shared/design.ts`.
+
+| Theme (key) | Preset | Header styles | Hero styles | `--section-gap` compact / regular / spacious | Theme-default columns: features · collections · stores · gallery · facts |
+|---|---|---|---|---|---|
+| Community guide (`guide`) | community guide | left*, centered | split*, full, stacked | 2.25 / 3.5 / 5 rem | 4 · 3 · 3 · 3 · 3 |
+| Magazine (`magazine`) | community guide | left, centered* | split, full*, stacked | 2.5 / 4 / 5.5 rem | 3 · 3 · 3 · 3 · 4 |
+| Location business (`locations`) | location business | left*, centered | full*, stacked | 2 / 3 / 4.5 rem | 4 · 4 · 3 · 3 · 3 |
+| Storefront (`storefront`) | location business | left, centered, overlay* | split, full*, stacked | 1.5 / 2.5 / 4 rem | 4 · 3 · 3 · 4 · 4 |
+
+`*` marks what `default` resolves to. Cards in collections offer image-top (the default),
+image-side and text in every theme; the guide and magazine compositions do not render store
+collections, and the two retail compositions do not offer the editorial "featured item"
+collection style. The `overlay` header (storefront only) lays the dark header bar over the
+opening hero from 768 px. Where a composition puts the brand on the primary colour or a dark
+band (the guide and magazine footers, the storefront header bar) it renders the dark-surface
+logo (`branding.logoDarkAssetId`) or the wordmark, never the light-background logo.
 
 ## The gate
 

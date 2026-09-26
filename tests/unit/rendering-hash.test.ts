@@ -1,13 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-
-// Fonts are loaded by the Next.js build; here each family only needs its variable class name.
-vi.mock("next/font/local", () => ({
-  default: (opts: { variable?: string }) => ({ className: "font-mock", variable: `${(opts.variable ?? "--font").replace(/^--/, "")}-mock`, style: {} }),
-}));
-
 import { getTheme } from "@/themes";
 import { normalizeSnapshot } from "@/server/publishing/snapshot";
 import { resolveRoute } from "@/server/publishing/public-site";
@@ -34,7 +28,7 @@ function renderFixture(file: string): Record<string, string> {
   const raw = JSON.parse(fs.readFileSync(path.join(dir, file), "utf8")) as unknown;
   const snapshot = normalizeSnapshot(raw);
   if (!snapshot) throw new Error(`${file} is not a supported snapshot`);
-  const theme = getTheme(snapshot.site.preset);
+  const theme = getTheme(snapshot);
   const basePath = `/demo/${snapshot.site.key}`;
   const out: Record<string, string> = {};
   for (const route of [...snapshot.routes].sort((a, b) => a.path.localeCompare(b.path))) {

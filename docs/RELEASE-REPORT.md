@@ -42,6 +42,7 @@ setup check, lint, typecheck, 28 unit tests, 35 integration tests against the is
 | Launch readiness (repository side) | Hosted configuration enforced at startup; platform sessions for Supabase Auth unreachable by PostgREST roles; invitation account creation and password recovery; Supabase Storage adapter; authenticated job endpoints with a cron schedule; domain register → verify → activate workflow with explicit go-live; readiness report; first-owner bootstrap | unit `hosted-adapters.test`, integration `hosted.test`, e2e `routing.spec` (LAUNCH-01..05, 07); runbook `docs/LAUNCH-CHECKLIST.md` |
 | Identity completeness (design D0) | Logo with wordmark fallback, typography preset, every theme colour derived from the four brand colours with a 15-pairing contrast gate and a literal-colour audit, per-site favicon (asset or generated monogram), share image, titles without the platform name, `lang` per site, editable listing copy, Search link switch, external navigation links, footer layouts, page header image, Inquiries switch enforced at intake | unit `brand-tokens.test`, `publishing.test`; integration `inquiries.test`; e2e `routing.spec` (DES-01..05); screenshots `docs/evidence/screenshots/`; `docs/DESIGN-TOKENS.md` |
 | Bounded design options (design D1) | Site-wide design options (header, hero and card style, radius, density, container, derived-colour overrides) for organization owners, audited; a style and appearance (background band, alignment, width) on every section, validated against the theme's declared vocabulary on save, on import and at publication; seven new section types (FAQ, quotes, call to action, gallery, facts, click-to-load video, map link); media focal points frozen into releases and applied to every crop; bold and italic in rich text; snapshot schema version 3 with older releases normalised at read time and a rendering-hash test over six frozen releases; both pilots re-composed | unit `design-options.test`, `rendering-hash.test`, `richtext.test`; integration `design.test`; e2e `design.spec` (DES-06..09); screenshot comparison of the restored D0-era releases (`scripts/screenshot-diff.ts`); screenshots `docs/evidence/screenshots/`; `docs/DESIGN-TOKENS.md`; decisions D-015, D-016 |
+| Theme catalogue and design preview (design D2) | Four compositions in code registered under immutable keys with declared capabilities (two per preset: guide and magazine for the community guide, retail and storefront for the location business); the theme chosen per site as a configuration revision, refused on save, import and publication when not written for the preset, with the pages whose sections the new theme does not render listed at save time and blocking publication; releases keep the theme they were published with (the version-1 to version-3 rendering hashes are unchanged); a design preview rendering the draft configuration over the active release at 390/768/1440 without writing anything; design delegation per site by owners only, audited and enforced by a database trigger; header button, overlay header, dark-surface logo, three more self-hosted typography presets; snapshot schema version 4 | unit `themes.test`, `rendering-hash.test` (eight frozen releases); integration `themes.test`; e2e `themes.spec` (DES-10, DES-11); screenshots per composition `docs/evidence/screenshots/{magazine,storefront}/`; `docs/DESIGN-TOKENS.md` (theme catalogue); decisions D-017, D-018 |
 
 The full matrix with per-row evidence is `docs/ACCEPTANCE.md`.
 
@@ -61,15 +62,27 @@ conditions in `docs/evidence/LIGHTHOUSE.md`):
 | Store detail, after design phase D1 | 97 | 100 | 0.011 | 2.30 s | met |
 | Retail home, after design phase D1 (full-width hero with focal point, services as cards) | 99 | 100 | 0.006 | 2.06 s | met |
 | Guide about, after design phase D1 (FAQ accordion, gallery) | 98 | 100 | 0.025 | 2.20 s | met |
+| Guide home, after design phase D2 (fonts of the preset preloaded, D-019) | 93 | 100 | 0.000 | 3.07 s | missed by 0.57 s (runs 3.06–3.12 s) |
+| Store detail, after design phase D2 | 98 | 100 | 0.000 | 2.29 s | met |
+| Retail home, after design phase D2 | 99 | 100 | 0.000 | 2.18 s | met |
+| Guide about, after design phase D2 | 98 | 100 | 0.000 | 2.40 s | met |
+| Magazine home (D2 composition of the guide pilot) | 95 | 100 | 0.000 | 2.84 s | missed by 0.34 s |
+| Storefront store detail (D2 composition of the retail pilot) | 97 | 100 | 0.000 | 2.52 s | missed by 0.02 s |
+| Storefront home | 99 | 100 | 0.000 | 2.24 s | met |
+| Magazine about | 97 | 100 | 0.000 | 2.69 s | missed by 0.19 s |
 
-Performance ≥ 90 and CLS ≤ 0.1 are met on both pages. The guide home's LCP is bounded by the
-simulated first-visit transfer (client runtime and two font files) rather than the hero
-image; reducing it further means trimming client JavaScript on public pages. SEO scores of 66
-are only the crawlability audit failing on purpose: demonstration routes are `noindex`.
-Field Core Web Vitals cannot be claimed from these runs. The public JavaScript baseline
-recorded at D0 is 143 KiB of script transfer per page, and D1 leaves it at 143 KiB on every
-measured page; the click-to-load video player is part of that client chunk
-(`docs/evidence/LIGHTHOUSE.md`).
+Performance ≥ 90 and CLS ≤ 0.1 are met on every measured page. Since D2 the cumulative
+layout shift is 0.000 everywhere, because the theme root preloads the fonts of the preset in
+use and each family has a metric-adjusted fallback (D-019; the magazine composition had
+measured 0.13–0.14 before); on the simulated slow link the same preload moved the guide
+home's LCP from 2.73 s to 3.07 s, because the font files now download alongside the hero
+image. The guide home's LCP is bounded by the simulated first-visit transfer (client runtime
+and fonts) rather than the hero image; reducing it means trimming client JavaScript on public
+pages. SEO scores of 66 are only the crawlability audit failing on purpose: demonstration
+routes are `noindex`. Field Core Web Vitals cannot be claimed from these runs. The public
+JavaScript baseline recorded at D0 is 143 KiB of script transfer per page, and D1 and D2
+leave it at 143 KiB on every measured page of every composition; the click-to-load video
+player is part of that client chunk (`docs/evidence/LIGHTHOUSE.md`).
 
 ## 4. Production build, secret inspection and fresh install
 

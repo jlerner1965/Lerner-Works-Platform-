@@ -4,12 +4,12 @@ import type { Db } from "@/server/data/db";
 import type { SiteRow } from "@/server/data/access";
 import { getStorage } from "@/server/media/storage";
 import { getCurrentSiteConfig, saveSiteConfig } from "@/server/data/sites";
-import { siteConfigSchema } from "@/modules/site-config";
+import { siteConfigSchema, type SiteConfig } from "@/modules/site-config";
 import { kindRegistry, isContentKind, type ContentKind } from "@/modules/registry";
 import { validatePayload, createContentItem, saveRevision, getItem } from "@/server/data/content";
 import { ingestImage } from "@/server/media/ingest";
 import { normalizeSnapshot } from "@/server/publishing/snapshot";
-import { sectionCapabilityIssues, themeKeyForPreset } from "@/themes/capabilities";
+import { sectionCapabilityIssues, themeCompatibilityIssues, themeKeyFor } from "@/themes/capabilities";
 
 export const PACKAGE_VERSION = 1;
 export const MAX_PACKAGE_BYTES = 64 * 1024 * 1024;
@@ -179,8 +179,15 @@ export async function dryRunPackage(db: Db, site: SiteRow, bytes: Uint8Array): P
   if (cfgRaw) {
     const parsed = siteConfigSchema.safeParse(JSON.parse(strFromU8(cfgRaw)));
     if (!parsed.success) out.errors.push("site-config.json does not match the configuration schema.");
-    else out.config = parsed.data;
+    else {
+      for (const issue of themeCompatibilityIssues(site.preset, parsed.data.design)) out.errors.push(`site-config.json: ${issue.message}`);
+      out.config = parsed.data;
+    }
   }
+  // Pages are checked against the theme the site will render with: the package's own configuration when it carries one, else the site's current theme.
+  const packagedConfig = out.config as SiteConfig | null;
+  const currentConfig = packagedConfig ? null : await getCurrentSiteConfig(db, site.id);
+  const targetTheme = themeKeyFor(site.preset, (packagedConfig ?? currentConfig?.config)?.design);
   const redirectsRaw = entries["redirects.json"];
   if (redirectsRaw) {
     try {
@@ -219,7 +226,7 @@ export async function dryRunPackage(db: Db, site: SiteRow, bytes: Uint8Array): P
       continue;
     }
     if (item.kind === "page") {
-      const unsupported = sectionCapabilityIssues(themeKeyForPreset(site.preset), ((parsed.data as { sections?: Array<{ type: string; variant?: string }> }).sections ?? []));
+      const unsupported = sectionCapabilityIssues(targetTheme, ((parsed.data as { sections?: Array<{ type: string; variant?: string }> }).sections ?? []));
       if (unsupported.length) {
         out.errors.push(`${p}: ${unsupported[0]!.message}`);
         continue;
@@ -255,7 +262,7 @@ function remap(value: unknown, map: Map<string, string>): unknown {
 }
 
 /** Imports a validated package into the site as drafts, with an old→new id map. Never touches domains, members or recipients. */
-export async function applyPackage(db: Db, site: SiteRow, userId: string, dry: PackageDryRun): Promise<{ items: number; media: number; adoptedPages: number; configRevision: number | null }> {
+export async function applyPackage(db: Db, site: SiteRow, userId: string, dry: PackageDryRun, opts: { keepDesign?: boolean } = {}): Promise<{ items: number; media: number; adoptedPages: number; configRevision: number | null }> {
   if (dry.errors.length) throw new Error("package has validation errors");
   const idMap = new Map<string, string>();
   let mediaCount = 0;
@@ -300,6 +307,8 @@ export async function applyPackage(db: Db, site: SiteRow, userId: string, dry: P
     const current = await getCurrentSiteConfig(db, site.id);
     if (current) {
       const config = remap(dry.config, idMap) as Record<string, unknown>;
+      // Design settings are the owner's (D-017): an importer without design rights keeps the site's current design.
+      if (opts.keepDesign) config.design = current.config.design;
       const saved = await saveSiteConfig(db, { siteId: site.id, organizationId: site.organizationId, baseRevisionId: current.id, config, authorId: userId, changeNote: "Imported from site package" });
       if (saved.ok) configRevision = saved.revision.version;
     }

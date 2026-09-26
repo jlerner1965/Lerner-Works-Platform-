@@ -51,7 +51,10 @@ export function LocationsLayout({ ctx, children }: { ctx: RenderContext; childre
   const { config, site } = ctx.snapshot;
   const centered = siteDesign(ctx).header === "centered";
   const navLink = "border-b-4 border-transparent py-1 hover:border-(--brand-accent) aria-[current=page]:border-(--brand-accent)";
-  const findStore = config.modules.stores ? <a href={href(ctx, "/locations")} className="rounded-(--radius) bg-(--brand-accent) px-4 py-2 text-sm font-bold uppercase tracking-wide text-(--brand-on-accent) hover:bg-(--brand-primary) hover:text-(--brand-on-primary)">Find a store</a> : null;
+  // Header button: the owner's label and path when set (D2), else the composition's "Find a store" while the stores module is on.
+  const cta = config.navigation.cta;
+  const buttonClass = "rounded-(--radius) bg-(--brand-accent) px-4 py-2 text-sm font-bold uppercase tracking-wide text-(--brand-on-accent) hover:bg-(--brand-primary) hover:text-(--brand-on-primary)";
+  const findStore = cta?.label && cta.path ? <a {...linkProps(ctx, cta.path)} className={buttonClass}>{cta.label}</a> : config.modules.stores ? <a href={href(ctx, "/locations")} className={buttonClass}>Find a store</a> : null;
   return (
     <SiteRoot ctx={ctx} themeClass="locations-theme">
       <a href="#content" className="skip-link">Skip to content</a>

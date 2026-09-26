@@ -1,0 +1,36 @@
+# Lighthouse 13.5.0, Chromium 141 headless, mobile preset, simulated throttling, three runs per page,
+# next start of the production build on http://127.0.0.1:3200 with the seeded development database.
+# Design phase D2, 2026-09-26. Per-run summary: perf/a11y/bp/seo scores, CLS, LCP, script transfer (jsKiB),
+# total transfer, requests off the origin, transfer by resource type.
+
+## Both pilots on their original compositions (guide, retail; release 8 of each after the switch back)
+guide-home 1 perf 94 a11y 100 bp 100 seo 66 CLS 0.000 LCP 3.06s jsKiB 143 totalKiB 318 offOrigin 0 types Document=44,Image=31,Script=143,Font=99,Other=1
+guide-home 2 perf 93 a11y 100 bp 100 seo 66 CLS 0.000 LCP 3.12s jsKiB 143 totalKiB 318 offOrigin 0 types Document=44,Image=31,Script=143,Font=99,Other=1
+guide-home 3 perf 93 a11y 100 bp 100 seo 66 CLS 0.000 LCP 3.07s jsKiB 143 totalKiB 318 offOrigin 0 types Document=44,Image=31,Script=143,Font=99,Other=1
+store-detail 1 perf 98 a11y 100 bp 100 seo 66 CLS 0.000 LCP 2.29s jsKiB 143 totalKiB 230 offOrigin 0 types Document=39,Image=20,Script=143,Font=27,Other=1
+store-detail 2 perf 98 a11y 100 bp 100 seo 66 CLS 0.000 LCP 2.37s jsKiB 143 totalKiB 230 offOrigin 0 types Document=39,Image=20,Script=143,Font=27,Other=1
+store-detail 3 perf 98 a11y 100 bp 100 seo 66 CLS 0.000 LCP 2.28s jsKiB 143 totalKiB 230 offOrigin 0 types Document=39,Image=20,Script=143,Font=27,Other=1
+retail-home 1 perf 100 a11y 100 bp 100 seo 66 CLS 0.000 LCP 1.92s jsKiB 143 totalKiB 260 offOrigin 0 types Document=41,Image=49,Script=143,Font=27,Other=1
+retail-home 2 perf 99 a11y 100 bp 100 seo 66 CLS 0.000 LCP 2.18s jsKiB 143 totalKiB 260 offOrigin 0 types Document=41,Image=49,Script=143,Font=27,Other=1
+retail-home 3 perf 98 a11y 100 bp 100 seo 66 CLS 0.000 LCP 2.30s jsKiB 143 totalKiB 260 offOrigin 0 types Document=41,Image=49,Script=143,Font=27,Other=1
+guide-about 1 perf 96 a11y 100 bp 100 seo 66 CLS 0.000 LCP 2.79s jsKiB 143 totalKiB 314 offOrigin 0 types Document=40,Image=31,Script=143,Font=99,Other=1
+guide-about 2 perf 98 a11y 100 bp 100 seo 66 CLS 0.000 LCP 2.40s jsKiB 143 totalKiB 314 offOrigin 0 types Document=40,Image=31,Script=143,Font=99,Other=1
+guide-about 3 perf 99 a11y 100 bp 100 seo 66 CLS 0.000 LCP 2.20s jsKiB 143 totalKiB 314 offOrigin 0 types Document=40,Image=31,Script=143,Font=99,Other=1
+
+## Both pilots on the D2 compositions (Pine Hollow on magazine with the Classic serif preset, Range Athletics on storefront with the Modern grotesk preset; release 7 of each)
+guide-home 1 perf 95 a11y 100 bp 100 seo 66 CLS 0.000 LCP 2.83s jsKiB 143 totalKiB 299 offOrigin 0 types Document=46,Image=20,Script=143,Font=88,Other=1
+guide-home 2 perf 95 a11y 100 bp 100 seo 66 CLS 0.000 LCP 2.84s jsKiB 143 totalKiB 299 offOrigin 0 types Document=46,Image=20,Script=143,Font=88,Other=1
+guide-home 3 perf 95 a11y 100 bp 100 seo 66 CLS 0.000 LCP 2.85s jsKiB 143 totalKiB 299 offOrigin 0 types Document=46,Image=20,Script=143,Font=88,Other=1
+store-detail 1 perf 97 a11y 100 bp 100 seo 66 CLS 0.000 LCP 2.53s jsKiB 143 totalKiB 252 offOrigin 0 types Document=40,Image=20,Script=143,Font=48,Other=1
+store-detail 2 perf 97 a11y 100 bp 100 seo 66 CLS 0.000 LCP 2.52s jsKiB 143 totalKiB 252 offOrigin 0 types Document=40,Image=20,Script=143,Font=48,Other=1
+store-detail 3 perf 97 a11y 100 bp 100 seo 66 CLS 0.000 LCP 2.52s jsKiB 143 totalKiB 252 offOrigin 0 types Document=40,Image=20,Script=143,Font=48,Other=1
+retail-home 1 perf 99 a11y 100 bp 100 seo 66 CLS 0.000 LCP 2.24s jsKiB 143 totalKiB 282 offOrigin 0 types Document=42,Image=49,Script=143,Font=48,Other=1
+retail-home 2 perf 100 a11y 100 bp 100 seo 66 CLS 0.000 LCP 1.89s jsKiB 143 totalKiB 282 offOrigin 0 types Document=42,Image=49,Script=143,Font=48,Other=1
+retail-home 3 perf 97 a11y 100 bp 100 seo 66 CLS 0.000 LCP 2.59s jsKiB 143 totalKiB 282 offOrigin 0 types Document=42,Image=49,Script=143,Font=48,Other=1
+guide-about 1 perf 98 a11y 100 bp 100 seo 66 CLS 0.000 LCP 2.37s jsKiB 143 totalKiB 301 offOrigin 0 types Document=40,Image=28,Script=143,Font=88,Other=1
+guide-about 2 perf 97 a11y 100 bp 100 seo 66 CLS 0.000 LCP 2.69s jsKiB 143 totalKiB 301 offOrigin 0 types Document=40,Image=28,Script=143,Font=88,Other=1
+guide-about 3 perf 96 a11y 100 bp 100 seo 66 CLS 0.000 LCP 2.69s jsKiB 143 totalKiB 301 offOrigin 0 types Document=40,Image=28,Script=143,Font=88,Other=1
+
+## For the record: the D2 compositions before the two fixes of this phase (font delivery D-019; store tile kicker contrast)
+# guide-home (magazine) CLS 0.141 / 0.074 / 0.141, performance 89 / 94 / 89; guide-about (magazine) CLS 0.127 on all three runs;
+# store-detail (storefront) accessibility 97 and retail-home (storefront) 96: the store tiles' city label (accent on the text colour) at 3.54:1.

@@ -11,11 +11,14 @@ import type { PresetKey } from "@/modules/presets";
  * 3 — configuration gained `design` (header, hero and card styles, radius, density,
  *     container, token overrides); page sections carry `variant` and `appearance`, seven
  *     section types were added, and media may carry a focal point (design programme D1).
+ * 4 — configuration gained `design.theme` (the composition, "default" = the preset's
+ *     original one), `branding.logoDarkAssetId`, `navigation.cta` and more typography
+ *     presets (design programme D2).
  * Older snapshots render unchanged: `normalizeSnapshot` fills the schema defaults at read
  * time and never rewrites the stored release (the rendering-hash test proves the output).
  */
-export const SNAPSHOT_SCHEMA_VERSION = 3 as const;
-export const SUPPORTED_SNAPSHOT_SCHEMA_VERSIONS = [1, 2, 3];
+export const SNAPSHOT_SCHEMA_VERSION = 4 as const;
+export const SUPPORTED_SNAPSHOT_SCHEMA_VERSIONS = [1, 2, 3, 4];
 
 export interface SnapshotItem {
   id: string;
@@ -68,7 +71,7 @@ export interface SnapshotRedirect {
 }
 
 export interface ReleaseSnapshot {
-  schemaVersion: 1 | 2 | 3;
+  schemaVersion: 1 | 2 | 3 | 4;
   site: {
     id: string;
     key: string;

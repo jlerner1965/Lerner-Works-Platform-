@@ -4,7 +4,7 @@ import { sectionTypeLabels, type SectionType } from "@/modules/page";
 import { collectLinkTargets, type Block } from "@/lib/richtext";
 import { formatRatio } from "@/lib/contrast";
 import { failingPairings } from "@/lib/brand-tokens";
-import { designCapabilityIssues, resolveDesign, sectionCapabilityIssues, themeKeyForPreset } from "@/themes/capabilities";
+import { designCapabilityIssues, resolveDesign, sectionCapabilityIssues, themeCompatibilityIssues, themeKeyFor } from "@/themes/capabilities";
 import type { ReleaseSnapshot, SnapshotItem } from "@/server/publishing/snapshot";
 import type { BuiltManifest } from "@/server/publishing/manifest";
 
@@ -44,10 +44,13 @@ export function validateManifest(built: BuiltManifest, opts: { now: Date }): Val
   const itemById = manifest.items;
 
   const push = (f: Finding) => (f.severity === "blocker" ? blockers : warnings).push(f);
-  const themeKey = themeKeyForPreset(manifest.site.preset);
+  const themeKey = themeKeyFor(manifest.site.preset, manifest.config.design);
   const design = resolveDesign(themeKey, manifest.config.design);
 
-  // Site-level design options must be ones the theme offers.
+  // The chosen theme must be written for the site's preset, and the design options must be ones it offers.
+  for (const issue of themeCompatibilityIssues(manifest.site.preset, manifest.config.design)) {
+    push({ severity: "blocker", code: "theme_unsupported", message: issue.message, field: issue.path, href: settingsHref });
+  }
   for (const issue of designCapabilityIssues(themeKey, manifest.config.design)) {
     push({ severity: "blocker", code: "design_unsupported", message: issue.message, field: issue.path, href: settingsHref });
   }
@@ -79,7 +82,12 @@ export function validateManifest(built: BuiltManifest, opts: { now: Date }): Val
   }
 
   // Navigation and footer targets must exist (external https links are rendered as given).
-  const navTargets = [...manifest.config.navigation.items.map((n) => ({ ...n, where: "navigation" })), ...manifest.config.footer.links.map((n) => ({ ...n, where: "footer" }))];
+  const cta = manifest.config.navigation.cta;
+  const navTargets = [
+    ...manifest.config.navigation.items.map((n) => ({ ...n, where: "navigation" })),
+    ...manifest.config.footer.links.map((n) => ({ ...n, where: "footer" })),
+    ...(cta && cta.label && cta.path ? [{ label: cta.label, path: cta.path, where: "header button" }] : []),
+  ];
   for (const n of navTargets) {
     if (isExternalLink(n.path)) continue;
     if (!routePaths.has(normalizePath(n.path))) {

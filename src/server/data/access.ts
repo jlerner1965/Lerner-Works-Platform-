@@ -14,7 +14,7 @@ export interface SiteCapabilities {
   canViewInquiries: boolean;
   canManageAccess: boolean;
   canManageSettings: boolean;
-  /** Design controls (design programme D-014): organization owners; per-site delegation to publishers arrives in D2. */
+  /** Design controls (design programme D-014, D-017): organization owners, and this site's publishers when the owner has delegated design to them. */
   canDesign: boolean;
 }
 
@@ -33,6 +33,8 @@ export interface SiteRow {
   inquiryRecipients: string[];
   currentConfigRevisionId: string | null;
   activeReleaseId: string | null;
+  /** Owner's per-site delegation of the design controls to publishers (D2). */
+  designDelegated: boolean;
   demoContentLoadedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
@@ -55,7 +57,7 @@ export interface SiteContext {
   capabilities: SiteCapabilities;
 }
 
-export function computeCapabilities(orgRole: OrgRole | null, siteRole: SiteRole | null): SiteCapabilities {
+export function computeCapabilities(orgRole: OrgRole | null, siteRole: SiteRole | null, designDelegated = false): SiteCapabilities {
   const isOwner = orgRole === "owner";
   return {
     orgRole,
@@ -68,7 +70,7 @@ export function computeCapabilities(orgRole: OrgRole | null, siteRole: SiteRole 
     canViewInquiries: isOwner || siteRole === "publisher",
     canManageAccess: isOwner,
     canManageSettings: isOwner || siteRole === "publisher",
-    canDesign: isOwner,
+    canDesign: isOwner || (siteRole === "publisher" && designDelegated),
   };
 }
 
@@ -109,7 +111,7 @@ export async function loadSiteContext(db: Db, siteId: string): Promise<SiteConte
       (select m.organization_role from public.memberships m where m.organization_id = ${site.organizationId} and m.user_id = auth.uid()) as org_role,
       (select sm.site_role from public.site_memberships sm where sm.site_id = ${siteId} and sm.user_id = auth.uid()) as site_role`;
   const role = roles[0] ?? { orgRole: null, siteRole: null };
-  return { site, organization: org, capabilities: computeCapabilities(role.orgRole, role.siteRole) };
+  return { site, organization: org, capabilities: computeCapabilities(role.orgRole, role.siteRole, site.designDelegated) };
 }
 
 export async function getSiteContext(userId: string, siteId: string): Promise<SiteContext | null> {

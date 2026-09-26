@@ -10,7 +10,8 @@ import { createContentItem, saveRevision, getItem, setArchived, findSlugCollisio
 import { isContentKind, kindRegistry, type ContentKind } from "@/modules/registry";
 import { presets } from "@/modules/presets";
 import { slugify } from "@/lib/slug";
-import { sectionCapabilityIssues, themeKeyForPreset } from "@/themes/capabilities";
+import { sectionCapabilityIssues, themeKeyFor } from "@/themes/capabilities";
+import { getCurrentSiteConfig } from "@/server/data/sites";
 
 const uuid = z.uuid();
 
@@ -49,7 +50,8 @@ export async function saveItemAction(input: { itemId: string; baseRevisionId: st
       }
       // Section styles are a fixed vocabulary per theme: rejected here, on import and at publication.
       if (current.item.kind === "page") {
-        const issues = sectionCapabilityIssues(themeKeyForPreset(ctx.site.preset), (payload.sections as Array<{ type: string; variant?: string }>) ?? []);
+        const config = await getCurrentSiteConfig(db, current.item.siteId);
+        const issues = sectionCapabilityIssues(themeKeyFor(ctx.site.preset, config?.config.design), (payload.sections as Array<{ type: string; variant?: string }>) ?? []);
         if (issues.length) return { status: "invalid", issues, message: "Some sections use a style this site's theme does not offer." };
       }
       const collision = await findSlugCollision(db, current.item.siteId, current.item.kind, payload.slug, current.item.id);

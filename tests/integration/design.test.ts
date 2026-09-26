@@ -22,10 +22,6 @@ vi.mock("@/server/auth/session", () => ({
 }));
 vi.mock("next/cache", () => ({ revalidatePath: () => undefined, revalidateTag: () => undefined }));
 vi.mock("next/navigation", () => ({ redirect: (to: string) => { throw new Error(`redirect ${to}`); } }));
-// Fonts are loaded by the Next.js build; each family only needs its variable class name here.
-vi.mock("next/font/local", () => ({
-  default: (opts: { variable?: string }) => ({ className: "font-mock", variable: `${(opts.variable ?? "--font").replace(/^--/, "")}-mock`, style: {} }),
-}));
 
 async function homeItem(siteId: string) {
   return withUser(owner, async (db) => {
@@ -129,7 +125,7 @@ describe("focal points follow the image into every crop (DES-07)", () => {
     const release = (await resolveDemoRelease("range-athletics"))!;
     expect(release.snapshot.media[assetId]!.focal).toEqual({ x: 0.25, y: 0.75 });
     const { getTheme } = await import("@/themes");
-    const theme = getTheme(release.snapshot.site.preset);
+    const theme = getTheme(release.snapshot);
     const basePath = "/demo/range-athletics";
     const now = new Date("2026-09-26T12:00:00Z");
     const html = renderToStaticMarkup(theme.render(makeRenderContext({ snapshot: release.snapshot, basePath, mode: "demo", path: "/", query: {}, inquiryEndpoint: `${basePath}/inquiries`, releaseVersion: 1, publishedAt: now, now }), resolveRoute(release.snapshot, "/")));

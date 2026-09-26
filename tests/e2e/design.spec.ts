@@ -41,7 +41,7 @@ test("owners set site-wide design options; the change is audited and only owners
   await expect(designCard().getByLabel("Corner radius")).toHaveValue("none");
   await designCard().getByLabel("Corner radius").selectOption("medium");
   await designCard().getByLabel("Spacing").selectOption("spacious");
-  await designCard().getByRole("button", { name: "Save" }).click();
+  await designCard().getByRole("button", { name: "Save", exact: true }).click();
   await expect(page.getByText(/Design saved as configuration revision/)).toBeVisible();
   await page.reload();
   await expect(designCard().getByLabel("Corner radius")).toHaveValue("medium");
@@ -52,7 +52,7 @@ test("owners set site-wide design options; the change is audited and only owners
   await page.goto(`/app/sites/${sites.pineHollow}/settings`);
   await designCard().getByLabel("Corner radius").selectOption("none");
   await designCard().getByLabel("Spacing").selectOption("regular");
-  await designCard().getByRole("button", { name: "Save" }).click();
+  await designCard().getByRole("button", { name: "Save", exact: true }).click();
   await expect(page.getByText(/Design saved as configuration revision/)).toBeVisible();
   await page.getByRole("button", { name: "Sign out" }).click();
   await signIn(page, emails.editorA);
