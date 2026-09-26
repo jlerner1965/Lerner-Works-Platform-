@@ -121,8 +121,14 @@ deployment until the smoke tests in `docs/LAUNCH-CHECKLIST.md` run.
   `staging.lernerworksplatform.dev` attached and reported as configured. The database password
   of the Supabase project was rotated with the owner's approval so the elevated connection
   string could be set. Sender: `notifications@lernerworksplatform.dev`.
-- Pending: connect the repository to the Vercel project (first deployment); first owner;
-  smoke tests.
+- 2026-09-26 Repository connected to the Vercel project with `main` as production branch;
+  first deployment `dpl_HFYpGUZLcbDM8eambuoJVxZ6oVEe` from `main` (commit `bf928e5`) READY;
+  `https://staging.lernerworksplatform.dev/healthz` answers `{"ok":true,"database":"reachable"}`
+  through the pooler as the application role; `/app` redirects to sign-in.
+  `pnpm launch:check --env-file … --project-ref` reported every item OK before deploying.
+  Supabase Auth SMTP through Resend was not set (the session's safety check refused the
+  secret write); the default Supabase mailer remains until the owner enters it.
+- Pending: first owner (`pnpm bootstrap:owner --project-ref`); smoke tests 1–7.
 
 ## Feature ledger
 
