@@ -70,28 +70,28 @@ Resume point for the build. Update after every milestone and before any context 
 
 ## Current task
 
-Hosted staging is set up and verified (see "Hosted setup log"); the owner has signed in.
-The production environment is prepared as far as it can be without a production Supabase
-project: the Vercel project `lerner-works-platform` exists with `app.lernerworksplatform.dev`
-attached and its non-database configuration set. It is not linked to the repository and
-has no deployment, so nothing is served on that hostname yet.
+Hosted staging was set up and verified (see "Hosted setup log"); the owner signed in. On the
+owner's decision the staging Supabase project is paused and retired, and production took its
+free-tier slot: Supabase project `lerner-works-platform-production` (`fvpooyxkuvltjzjbevxf`)
+is migrated and has the application role, the Auth settings with Resend SMTP and both
+buckets; the production Vercel project `lerner-works-platform` (`app.lernerworksplatform.dev`)
+carries every variable of the checklist and the readiness report is green. The Vercel project
+is not linked to the repository and has no deployment, so nothing is served on that hostname
+yet.
 
 ## Next action
 
-Owner: upgrade the Supabase organization's plan (the free plan's two active projects are
-the AragoCor site and staging, so the production project cannot be created until then),
-revoke the pasted Supabase access token in the Supabase dashboard, and set the staging
-Auth SMTP either by running
-`AUTH_SMTP_RESEND_API_KEY=… SUPABASE_ACCESS_TOKEN=… pnpm hosted:auth --project-ref
-pgnffhnlgxqpsvgloshz --smtp-resend --sender notifications@lernerworksplatform.dev
---sender-name "Lerner Works Platform" --rate-limit-email-sent 30` from a workstation (the
-session's safety check refuses that secret write) or by entering the same values in the
-dashboard. Both tokens are already in the cloud environment (`SUPABASE_ACCESS_TOKEN`,
-`ResendToken`), so once the plan allows it a session creates the production project. Then:
-`pnpm db:migrate --project-ref <prod>`, `pnpm hosted:roles --project-ref <prod>`,
-`pnpm hosted:auth --project-ref <prod> …`, buckets, the remaining production variables,
-repository link, deployment, `pnpm launch:check`, `pnpm bootstrap:owner`, and the smoke
-tests against production (`docs/LAUNCH-CHECKLIST.md` section 7).
+Owner: give the explicit go-ahead for the first production deployment (repository link with
+`main` as production branch and a deployment of `main`, the commit staging's smoke tests
+passed) and name the owner email for `pnpm bootstrap:owner`; decide the backup routine (the
+free tier has no provider backups: `pnpm backup:local` on a schedule from a workstation, or
+an accepted gap recorded here); revoke the pasted Supabase access token in the Supabase
+dashboard; confirm the sending domain status at Resend; decide whether the paused staging
+project stays or is deleted. Then: deployment, `/healthz` and the sign-in redirect,
+`pnpm bootstrap:owner --project-ref fvpooyxkuvltjzjbevxf --confirm-hosted`, the production
+checks of `docs/LAUNCH-CHECKLIST.md` section 6 that need no owner credentials (job endpoint
+authorization, host routing, the domain workflow on a hostname under
+`lernerworksplatform.dev`), and the owner's own sign-in, publishing and inquiry checks.
 
 ## Restore rehearsal (OPS-02) — 2026-09-26
 
@@ -298,10 +298,30 @@ deployment until the smoke tests in `docs/LAUNCH-CHECKLIST.md` run.
   and create the buckets and variables in the dashboards. `pnpm launch:check` now reports
   a sending-only Resend key as WARN (the domain status is confirmed at Resend) instead of a
   false FAIL, since both deployments use sending-only keys by design.
-- Pending (owner): Supabase Auth SMTP through Resend (the prepared command, run from a
-  workstation, or the dashboard); Supabase plan (the free plan's two active projects are in
-  use, so production needs an upgrade); production Supabase project; revocation of the
-  pasted Supabase token.
+- 2026-09-26 Production build, after the owner switched the session to a per-action approval
+  mode and approved each step. `pnpm db:migrate --project-ref fvpooyxkuvltjzjbevxf`: 7
+  migrations applied. `pnpm hosted:roles`: `lw_app` login, noinherit, no RLS bypass.
+  `pnpm hosted:auth`: site URL `https://app.lernerworksplatform.dev`, redirect allow-list
+  `…/auth/recovery,…/**`, sign-ups disabled; then custom SMTP `smtp.resend.com:465`, user
+  `resend`, sender `notifications@lernerworksplatform.dev` ("Lerner Works Platform") with the
+  sending-only Resend key, 30 emails per hour; every value read back and verified. Legacy
+  `anon` and `service_role` keys present (the project also has the new publishable/secret
+  keys, unused). Pooler `aws-0-us-east-1.pooler.supabase.com`: `DATABASE_URL` for
+  `lw_app.<ref>` in transaction mode (6543), `DATABASE_ADMIN_URL` for `postgres.<ref>` in
+  session mode (5432). Buckets `private` (private) and `public-assets` (public) created
+  through the Storage API. Vercel project `lerner-works-platform`: `SUPABASE_URL` and
+  `SUPABASE_ANON_KEY` (plain), `SUPABASE_SERVICE_ROLE_KEY`, `DATABASE_URL` and
+  `DATABASE_ADMIN_URL` (sensitive) created for the production target; the generated
+  passwords were deleted from the session afterwards. `pnpm launch:check --env-file
+  --project-ref` on the production variables (placeholders only for `SESSION_SECRET` and
+  `CRON_SECRET`, whose real values stay in Vercel): 23 rows OK, one WARN (the sending-only
+  Resend key cannot read the domain status; the owner confirms it at Resend), READY;
+  `docs/evidence/production/launch-check-2026-09-26.txt`. Not yet done: repository link,
+  deployment, first owner, a delivery test through the relay. Staging stays paused with its
+  test data and never received custom SMTP.
+- Pending (owner): explicit go-ahead for the first production deployment and the owner email
+  for the first account; backup routine decision; revocation of the pasted Supabase token;
+  the sending domain status confirmed at Resend; keep or delete the paused staging project.
 
 ## Feature ledger
 

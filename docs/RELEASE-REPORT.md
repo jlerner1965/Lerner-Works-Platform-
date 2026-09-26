@@ -105,17 +105,19 @@ Release label: **hosted staging verified**, with these open items before "live p
 - The owner signed in to staging on 2026-09-26 (password set through a one-time token-hash
   link). The backup schedule is still the owner's check (physical backups enabled, no
   snapshot yet, point-in-time recovery off; the project is on the free tier).
-- A separate **production** Supabase project. The Vercel project `lerner-works-platform`
-  with `app.lernerworksplatform.dev` is prepared (Node 22.x, production-only variables, its
-  own sending-only Resend key) but is not linked to the repository and has no deployment;
-  it waits for the Supabase project. Creating it was refused on 2026-09-26 because the
-  organization is on the free plan with both active-project slots in use (the AragoCor
-  site and staging); the plan upgrade is the owner's decision
-  (`docs/LAUNCH-CHECKLIST.md` section 7). Staging holds test data.
-- Supabase Auth SMTP through Resend (the session's safety check refuses to write that
-  secret, on 2026-09-26 again through `pnpm hosted:auth`; the owner runs that command from
-  a workstation or enters the values in the dashboard; the default Supabase mailer is
-  rate-limited and meant for testing).
+- The **production** Supabase project `lerner-works-platform-production` exists since
+  2026-09-26 on the free tier, in the slot of the staging project the owner paused (no plan
+  upgrade for now; the free tier's idle pausing, missing provider backups and published
+  limits are recorded in `docs/PROGRESS.md`). It is migrated and has the application role,
+  the Auth settings with Resend SMTP and both buckets; the Vercel project
+  `lerner-works-platform` with `app.lernerworksplatform.dev` carries every variable and the
+  readiness report is green (`docs/evidence/production/launch-check-2026-09-26.txt`). It is
+  not linked to the repository and has no deployment until the owner's go-ahead; the first
+  owner and the production checks of the checklist follow the deployment. Staging stays
+  paused with its test data.
+- Supabase Auth SMTP through Resend is set on production (verified by read-back on
+  2026-09-26; a delivery test through the relay is still to come). The paused staging
+  project never received it.
 - Real customer content, the customer's hostname and DNS, and the go-live decision.
 - Plan costs for Vercel, Supabase and Resend remain the owner's to confirm; none is quoted here.
 
