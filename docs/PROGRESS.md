@@ -106,8 +106,16 @@ deployment until the smoke tests in `docs/LAUNCH-CHECKLIST.md` run.
   owner's approval the four DNS records Resend required (DKIM TXT, MX and SPF TXT on `send`,
   CNAME `rsend`) were added to the Vercel zone through its API; Resend reports the domain
   **verified**. Sender for the platform: `notifications@lernerworksplatform.dev`.
-- Pending: Vercel project + environment variables + staging hostname; Supabase staging project
-  (roles script, migrations, auth settings, buckets); first owner; smoke tests.
+- 2026-09-26 Supabase project `Lerner-Works-Platform-` (ref `pgnffhnlgxqpsvgloshz`, us-east-1,
+  PostgreSQL 17; created by the owner) used as the staging project: through the Management
+  API the seven migrations were applied (`pnpm db:migrate --project-ref`), the `lw_app` role
+  created (`pnpm hosted:roles`), Auth set to sign-ups disabled with the staging site URL and
+  recovery redirect, buckets `private` (private) and `public-assets` (public) created.
+  Verified state: 19 tables all with RLS, no PostgREST grants on `app_sessions`, `lw_app`
+  can execute the session functions, no local auth shim. A separate production project is
+  still to be created before launch.
+- Pending: Vercel project (owner creates it in the dashboard) + environment variables +
+  staging hostname; elevated database connection string; first owner; smoke tests.
 
 ## Feature ledger
 
