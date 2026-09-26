@@ -85,6 +85,16 @@ describe("GoTrue client", () => {
     expect(f.calls[2]!.headers.authorization).toBe("Bearer at");
   });
 
+  it("verifies an emailed recovery token hash into a session", async () => {
+    const f = fakeFetch([{ status: 200, body: session }, { status: 403, body: { error_code: "otp_expired", msg: "Email link is invalid or has expired" } }]);
+    const c = new GoTrueClient("https://proj.supabase.co", "anon", undefined, f.impl);
+    const ok = await c.verifyRecoveryTokenHash("hash123");
+    expect(ok.ok).toBe(true);
+    expect(f.calls[0]!.url).toBe("https://proj.supabase.co/auth/v1/verify");
+    expect(JSON.parse(f.calls[0]!.body!)).toEqual({ type: "recovery", token_hash: "hash123" });
+    expect(await c.verifyRecoveryTokenHash("stale")).toMatchObject({ ok: false, reason: "invalid_code" });
+  });
+
   it("reads public settings for the launch check", async () => {
     const f = fakeFetch([{ status: 200, body: { disable_signup: true, external: { email: true } } }]);
     const c = new GoTrueClient("https://proj.supabase.co", "anon", undefined, f.impl);

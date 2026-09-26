@@ -18,11 +18,12 @@ export function ForgotPasswordForm() {
   );
 }
 
-export function RecoveryForm({ code }: { code: string }) {
+export function RecoveryForm({ code, tokenHash }: { code: string; tokenHash?: string }) {
   const [state, action, pending] = useActionState<RecoveryState, FormData>(completePasswordRecoveryAction, {});
   return (
     <form action={action} className="space-y-4 rounded border border-line bg-surface p-6 shadow-sm" noValidate>
       <input type="hidden" name="code" value={code} />
+      <input type="hidden" name="tokenHash" value={tokenHash ?? ""} />
       {state.error ? <Alert tone="danger" role="alert">{state.error}</Alert> : null}
       <label className="block text-sm">New password (at least 12 characters)
         <input name="password" type="password" autoComplete="new-password" required minLength={12} className={inputClass} />

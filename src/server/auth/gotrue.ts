@@ -156,6 +156,31 @@ export class GoTrueClient {
     return { ok: false, reason: "invalid_code", message };
   }
 
+  /**
+   * Verifies a recovery token hash delivered by email (the `{{ .TokenHash }}` template
+   * variable) and returns a session. Works from any browser, unlike the PKCE code flow.
+   */
+  async verifyRecoveryTokenHash(tokenHash: string): Promise<ExchangeOutcome> {
+    let res: Response;
+    try {
+      res = await this.fetchImpl(this.url("verify"), {
+        method: "POST",
+        headers: this.headers(this.anonKey),
+        body: JSON.stringify({ type: "recovery", token_hash: tokenHash }),
+      });
+    } catch (err) {
+      return { ok: false, reason: "unavailable", message: `network error: ${(err as Error).message}` };
+    }
+    const body = await readJson(res);
+    if (res.ok) {
+      const session = parseSession(body);
+      return session ? { ok: true, session } : { ok: false, reason: "unavailable", message: "unexpected provider response" };
+    }
+    const message = describe(body as ErrorBody, res.status);
+    if (res.status >= 500 || res.status === 429) return { ok: false, reason: "unavailable", message };
+    return { ok: false, reason: "invalid_code", message };
+  }
+
   /** Sets a new password for the user identified by a valid access token. */
   async updatePassword(accessToken: string, password: string): Promise<{ ok: boolean; message?: string }> {
     let res: Response;
