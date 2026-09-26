@@ -128,6 +128,16 @@ secrets; the Supabase access token is the owner's to revoke in the dashboard.
 
 ## 6. Known defects and limitations
 
+- Scheduled delivery never ran on Vercel Cron until 2026-09-26: Vercel Cron calls the job
+  endpoints on the production deployment's generated `*.vercel.app` hostname, where (a) the
+  project's Standard Deployment Protection answered with a sign-in redirect that cron jobs do
+  not follow, and (b) the application's host routing answered 404 for `/api/jobs/*` on any
+  hostname other than `APP_HOST`. Found on production after the first real inquiry; fixed by
+  limiting Deployment Protection to preview deployments and by exempting `/api/jobs/` from
+  host routing; `pnpm launch:check` now probes the job endpoint on the deployment URL. Until
+  the fix is deployed, inquiries are stored and can be delivered by calling the endpoint with
+  the job secret.
+
 - The Turbopack development server intermittently answered 404 for a nested dynamic route
   that was first requested while another route was still compiling. It affects `next dev`
   only; browser tests therefore run against a production build (`docs/DECISIONS.md` D-009).

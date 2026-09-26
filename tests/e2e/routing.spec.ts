@@ -14,6 +14,12 @@ test("unknown hosts, forbidden host paths and environment metadata (ROUTE-01, ME
   expect(body).not.toContain("Pine Hollow");
   expect(body).not.toContain("Range Athletics");
   expect((await request.get(`${baseURL}/host/pinehollow.example`)).status()).toBe(404);
+  // Health and the scheduled job endpoints are exempt from host routing: Vercel Cron calls them
+  // on the deployment's generated hostname, so they must answer there (with their own checks).
+  expect((await request.get(`${baseURL}/healthz`, { headers: { Host: "unknown.example" } })).status()).toBe(200);
+  const job = await request.get(`${baseURL}/api/jobs/deliver`, { headers: { Host: "unknown.example" } });
+  expect([401, 503]).toContain(job.status());
+  expect(await job.json()).toMatchObject({ ok: false });
 
   const demo = await request.get(`${baseURL}/demo/pine-hollow`);
   expect(demo.status()).toBe(200);

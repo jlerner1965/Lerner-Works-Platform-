@@ -105,7 +105,9 @@ demonstration accounts, live-site invariants, Supabase Auth reachability with si
 disabled, the auth email sender (custom SMTP or the default mailer; with `--project-ref`),
 both storage buckets and their visibility, the Resend sending domain status (read only; a
 sending-only key reports WARN and the status is confirmed at Resend), the job secret and
-cron schedule, and the Vercel project. Every item must be OK (WARN is
+cron schedule, the Vercel project, and that the job endpoint answers 401 on the production
+deployment's generated URL (the cron target; a redirect or 404 there means Vercel Cron would
+run and deliver nothing). Every item must be OK (WARN is
 acceptable only where the report says so). It never prints secrets and sends no email.
 
 ## 5. First owner
@@ -182,7 +184,12 @@ Only after all seven pass can the release be labelled **hosted staging verified*
 Host routing consults only the `Host` header; Vercel forwards the requested customer
 hostname as `Host` for every domain attached to the project. `X-Forwarded-Host` is ignored.
 The dashboard is served only on `APP_HOST`; every other hostname is resolved through the
-verified domain registry or answered with a neutral 404.
+verified domain registry or answered with a neutral 404. Two paths are exempt and answer on
+every hostname: `/healthz` and the job endpoints under `/api/jobs/`, because Vercel Cron
+calls them on the deployment's generated `*.vercel.app` URL, not on `APP_HOST`. For the same
+reason Deployment Protection must leave production deployment URLs open ("Only Preview
+Deployments"): under Standard Protection the cron request is answered with a sign-in
+redirect, which cron jobs do not follow, and nothing is logged.
 
 ## 9. What remains outside this repository
 

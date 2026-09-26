@@ -6,6 +6,10 @@ import { NextResponse, type NextRequest } from "next/server";
  * resolved through the verified domain registry by rewriting to the internal /host/<name>
  * route, which returns a neutral 404 for unknown or unverified hosts. Only the Host header is
  * consulted; forwarded-host headers are not trusted here.
+ *
+ * Two paths are exempt and answer on every hostname: /healthz, and the scheduled job
+ * endpoints under /api/jobs/, which authenticate with the job secret instead of the host.
+ * Vercel Cron calls them on the deployment's generated *.vercel.app URL, never on APP_HOST.
  */
 const LOOPBACK = new Set(["localhost", "127.0.0.1", "::1", "[::1]"]);
 
@@ -32,5 +36,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/|assets/|favicon.ico|healthz).*)"],
+  matcher: ["/((?!_next/|assets/|favicon.ico|healthz|api/jobs/).*)"],
 };
