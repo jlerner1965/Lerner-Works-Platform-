@@ -151,6 +151,12 @@ describe("onboarding package for a community guide", () => {
       expect.stringContaining('logo: no file named "missing.png"'),
     ]));
     await expect(withUser(owner, (db) => applyOnboarding(db, site, owner, dry2, { approve: true, applySettings: true }))).rejects.toThrow(/validation errors/);
+    // Colours that would fail the publication gate's contrast pairings are refused by the dry run (B4), naming the pairing.
+    const pale = zipSync({ "site.csv": strToU8("key,value\r\naccent_color,#c98a2e\r\nbackground_color,#fbf7f0\r\n") });
+    const dry4 = await withUser(owner, (db) => dryRunOnboarding(db, site, pale, { canApplySettings: true }));
+    expect(dry4.errors).toEqual(expect.arrayContaining([expect.stringMatching(/site\.csv: colours: Links and accent text on the background \(#c98a2e on #fbf7f0\) reads at 2\.7\d:1; the minimum is 4\.5:1/)]));
+    const dark = zipSync({ "site.csv": strToU8("key,value\r\naccent_color,#8f5312\r\nbackground_color,#fbf7f0\r\n") });
+    expect((await withUser(owner, (db) => dryRunOnboarding(db, site, dark, { canApplySettings: true }))).errors).toEqual([]);
     // Without the owner, the settings sheet is announced as skipped.
     const dry3 = await withUser(owner, (db) => dryRunOnboarding(db, site, zipSync({ "site.csv": strToU8("key,value\r\ntagline,Hello\r\n") }), { canApplySettings: false }));
     expect(dry3.errors).toEqual([]);

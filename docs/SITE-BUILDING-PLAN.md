@@ -122,6 +122,20 @@ fail the bar.
 - Build one realistic client site end to end through the dashboard with licensed
   photography, timing every step; fix what is slow or plain; record the result as the
   acceptance evidence for the bar; production on the owner's go.
+- Status: built and verified in the repository on 2026-09-26 (decision D-023). Two client
+  sites with public-domain photography (Library of Congress, Carol M. Highsmith Archive), a
+  community guide and a location business, written as the onboarding package a client fills
+  in (`src/server/demo/proof/`, `pnpm proof:package`); each built end to end through the
+  dashboard by `tests/e2e/proof.spec.ts` as a person does and counted per task (the guide: 12
+  screens, 83 fields, 43 actions from an empty site to a published one with a composed home
+  page, a composed About page and an added event; the location business: 8, 52, 26), captured
+  under every composition of its preset (`docs/evidence/proof/`). Found by the build and
+  fixed: the proxy's 10 MB body buffer truncated a package larger than that; the settings
+  sheet's opening picture did nothing for a home that opens with words alone; colours that
+  fail the contrast pairings passed the dry run; the quick-add form said "Add a event". SB-08
+  PASS; SB-09 (the bar itself) is the owner's: their own timed build on production with the
+  packages and their judgement of the captures and the sites. Production on the owner's go
+  with B2 and B3 (no migration).
 
 ## 4 Acceptance rows
 
@@ -134,6 +148,8 @@ fail the bar.
 | SB-05 | Bulk media upload with alt text | Twenty images in one upload; each with alt text before use |
 | SB-06 | Walk-through measured after each phase | Create site, brand it, add five places, publish, through the dashboard as a person would: screens, fields and actions per task and the scripted run's time recorded per phase by `tests/e2e/walkthrough.spec.ts` (`docs/evidence/walkthrough/`), with the empty-state notices left on the published home; a person's own timing of a complete build is B4's evidence |
 | SB-07 | Publish a page carrying every B3 section, then view it under each composition of the preset | The release carries every picture the sections refer to; every composition renders the page from the frozen release with no script for the lightbox or the band and no frame before the visitor asks for the map; the editor offers the sections and treatments and says what each slot still needs |
+| SB-08 | Build a realistic client site end to end through the dashboard from the package a client fills in, with real photography | Counted per task and timed; published at the first attempt with no blocker; every section with content; captured under every composition of the preset |
+| SB-09 | The bar (D-020) | The owner's own timed build on production with the packages, and their judgement: they would choose the platform over building by hand, and the result is launch-ready rather than templated |
 
 ## 5 Open points for the owner
 

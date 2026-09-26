@@ -18,7 +18,12 @@ B3 is built (D-022): a richer section vocabulary (people, logo strip, image-and-
 photo band, hero collage/offset/statement, gallery lightbox, portraits on quotations,
 click-to-load map, rich text divider/callout/button; shared renderers in
 `src/themes/shared/rich-sections.tsx`, no client script except the map) and a third
-composition per preset (`almanac`, `practice`); snapshot schema version 5.
+composition per preset (`almanac`, `practice`); snapshot schema version 5. B4 is the proof
+(D-023): two realistic client sites with public-domain photography written as onboarding
+packages in `src/server/demo/proof/` (`pnpm proof:package`), built end to end through the
+dashboard by `tests/e2e/proof.spec.ts` with the counts, times and captures in
+`docs/evidence/proof/`; the owner's own timing on production is the number the bar is
+judged by.
 Public themes use only the derived brand tokens, design variables and font variables described
 in `docs/DESIGN-TOKENS.md` (a unit test rejects literal colours in `src/themes`). A theme or
 renderer change must keep every frozen release in `tests/fixtures/releases/` rendering as

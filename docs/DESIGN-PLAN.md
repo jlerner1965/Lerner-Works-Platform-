@@ -229,6 +229,10 @@ portraits on quotations, the hero treatments offset, collage and statement, a ga
 drawn by CSS, a click-to-load map and rich text divider, callout and button blocks, all typed
 and enumerated, rendered by every composition from shared renderers, with snapshot schema
 version 5 and ten frozen releases in the rendering-hash test. The D3 question is unchanged.
+Phase B4 (decision D-023) put the compositions on real photography: two client sites with
+public-domain photographs, built through the dashboard and captured under every composition
+of their preset (`docs/evidence/proof/`), for the owner's judgement of the design programme's
+result on the material a client brings.
 
 ### D3 · Visual, in-context editing — OPTIONAL
 

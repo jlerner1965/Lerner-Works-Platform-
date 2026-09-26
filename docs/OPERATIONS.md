@@ -265,6 +265,25 @@ and then accepts at `/invite/<token>`; that path is unverified in this environme
   Articles are attributed to the site until a person is named; events and stores take the
   site's time zone.
 
+## The proof sites (site-building programme B4)
+
+- Two realistic client sites with real photography live in `src/server/demo/proof/` as the
+  onboarding package a client fills in: Cedar Bend Guide (community guide) and Bookcliff Farm
+  Markets (location business). `pnpm proof:package --site cedar-bend` (or `bookcliff`) writes
+  the ZIP; `pnpm proof:package --list` lists the sites. The package imports on any site
+  created from the same preset, locally or on production (Import & export → dry run →
+  confirm), and is the material of the timed dashboard build recorded in
+  `docs/evidence/proof/` by `tests/e2e/proof.spec.ts` on every run of the browser suite.
+- The photographs are committed under `src/server/demo/proof/photos/<site>/` (web-sized JPEGs,
+  22 MB in all) with their archive ids, catalogue records and rights in the fixtures and in
+  `docs/evidence/ASSETS.md`; `pnpm proof:photos` fetches any that are missing from the Library
+  of Congress image service and reduces them the same way. `tests/integration/proof.test.ts`
+  imports both packages on fresh sites, publishes them and renders every composition.
+- Upload limits: the proxy buffers request bodies on the dashboard routes, and its limit is
+  set to 64 MB (`proxyClientMaxBodySize` in `next.config.ts`) so that an onboarding or site
+  package of that size, and a two-file media upload, arrive whole; the routes check the sizes
+  themselves (64 MB for packages, 10 MB per image, 5 MB for a CSV).
+
 ## Backups and restore rehearsal
 
 Site export is portability, not disaster recovery.
