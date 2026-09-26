@@ -23,6 +23,97 @@ hotlinked images, no third-party logos. Rights: created for this project, releas
 CC0-1.0; each asset row records this license, an attribution note and its fixture key in
 `source_url` (`fixture://<site>/<key>`).
 
+## Photographs of the proof sites (site-building programme B4)
+
+The two proof sites (`src/server/demo/proof/`: Cedar Bend Guide and Bookcliff Farm Markets)
+use real photography from the Carol M. Highsmith Archive at the Library of Congress, Prints
+and Photographs Division. The archive's rights statement for every photograph used is "No
+known restrictions on publication" (Ms. Highsmith placed her archive in the public domain);
+each catalogue record is linked below and recorded on the asset row as its source URL, with
+the license "Public domain: Library of Congress, no known restrictions on publication" and
+the attribution "Carol M. Highsmith Archive, Library of Congress, Prints and Photographs
+Division". The web-sized files (1800 pixels on the long edge, JPEG quality 82, metadata
+stripped) were made from the archive's quarter-size JPEGs by `scripts/fetch-proof-photos.ts`
+(`pnpm proof:photos`), which records the archive id, catalogue URL and title of each one.
+
+The photographs show real Colorado towns, valleys, orchards and markets (and a few stands and
+markets elsewhere), but the towns, businesses, people, addresses and phone numbers on the
+proof sites are invented: no photograph shows a business named on those pages, and none is
+presented as the real place it depicts. The people (editors, quotations) and the members'
+marks on both sites are stylised artwork drawn by `src/server/demo/images.ts` (CC0-1.0),
+because no licensed photographs of consenting people or organisations' marks were available;
+a client's own staff photographs and partners' logos replace them.
+### Cedar Bend Guide (`src/server/demo/proof/photos/cedar-bend/`, 40 photographs)
+
+| File | Used for | Library of Congress title | Record |
+|---|---|---|---|
+| main-street.jpg | hero image; share image | Elk Avenue, the main street of Crested Butte, a town heavily populated during ski season located high in the Rocky Mountains in Gunnison County, Colorado | [33500:33500](https://www.loc.gov/item/2015633515/) |
+| downtown.jpg | article: How this guide checks a listing | [Downtown Ouray, Colorado] | [32300:32363](https://www.loc.gov/item/2015632378/) |
+| main-street-block.jpg | home or About page composition | A block of Main Street in Ouray, Colorado, an old mining community high in the San Juan Mountains of southwestern Colorado | [32300:32307](https://www.loc.gov/item/2015632322/) |
+| valley-view.jpg | home or About page composition | View of Pleasant Valley and distant mountains around Ridgway, Colorado | [37700:37752](https://www.loc.gov/item/2017687644/) |
+| alta-lake.jpg | home or About page composition | Rocky Mountain reflection in one of the string of Alta Lakes outside Telluride, Colorado | [37700:37749](https://www.loc.gov/item/2017687641/) |
+| trout-lake.jpg | home or About page composition | Fall view of Trout Lake, near Telluride in San Miguel, Colorado | [35100:35102](https://www.loc.gov/item/2017685585/) |
+| sunset-valley.jpg | home or About page composition | Spectacular Rocky Mountain valley outside Telluride, Colorado | [34500:34594](https://www.loc.gov/item/2017685077/) |
+| fall-valley.jpg | home or About page composition | Fall splendor in a valley outside Telluride, Colorado | [35100:35137](https://www.loc.gov/item/2017685620/) |
+| aspen-trunks.jpg | home or About page composition | Aspen trees along the high dirt road leading to Crested Butte, Colorado, from the distant Crystal River Valley | [33700:33779](https://www.loc.gov/item/2015633795/) |
+| peaks.jpg | home or About page composition | Some of the high Rocky Mountains that surround Telluride, Colorado | [37800:37867](https://www.loc.gov/item/2017687759/) |
+| meadows.jpg | home or About page composition | Meadows and Rocky Mountain foothills outside the town of Steamboat Springs, Colorado | [33700:33703](https://www.loc.gov/item/2015633719/) |
+| winter-fence.jpg | home or About page composition | Winter scene in mountainous Ouray County, Colorado, near Telluride and the town of Ouray | [36300:36312](https://www.loc.gov/item/2017686795/) |
+| alpenglow.jpg | article: The valley at dusk | Mountain-sunset view from Telluride, once a mining boomtown and now a popular skiing destination in Colorado | [35800:35833](https://www.loc.gov/item/2017686316/) |
+| elk.jpg | article: Elk are back in the lower meadows | Some elk cows graze while others keep a watchful eye on their recently born calves near the San Miguel River, below Telluride in San Miguel County, Colorado | [37700:37789](https://www.loc.gov/item/2017687681/) |
+| lupines.jpg | article: Lupine season on the mesa | Purple lupines -- a sure sign of Spring in Colorado -- pop up in Ridgway, Colorado. Lupine plants are legumes, with small, edible, pea-type seed pods. Lupine, sometime spelled "lupin," is pronounced "LOOP-in" | [37800:37870](https://www.loc.gov/item/2017687762/) |
+| cottonwoods.jpg | home or About page composition | Cottonwoods are ablaze with fall colors along the Colorado River, near Parshall, Colorado | [35000:35018](https://www.loc.gov/item/2017685501/) |
+| aspens-cliff.jpg | article: Where the aspens turn first | Fall aspens in San Juan County, Colorado | [34500:34562](https://www.loc.gov/item/2017685045/) |
+| coffee-cart.jpg | place: Kettle Coffee Cart | Coffee kiosk in a small trailer on a day when heavy snow covers the main street of Telluride, Colorado | [37100:37152](https://www.loc.gov/item/2017687310/) |
+| mercantile.jpg | place: Hollis Mercantile | The general store in Aladdin, Wyoming | [34100:34149](https://www.loc.gov/item/2015634165/) |
+| bookshop.jpg | place: Riverstone Books | [Buildings in Ouray, Colorado] | [32300:32364](https://www.loc.gov/item/2015632379/) |
+| bike-shop.jpg | place: Spoke & Saddle Bicycles | Lots of bicycles, a common sight in health-conscious Colorado, lie outside a cottage in Crested Butte, a town heavily populated during ski season located high in the Rocky Mountains in Gunnison County, Colorado | [33400:33495](https://www.loc.gov/item/2015633510/) |
+| fly-shop.jpg | place: Cutbank Anglers | The Crested Butte Angler shop in Crested Butte, a town heavily populated during ski season located high in the Rocky Mountains in Gunnison County, Colorado | [33500:33511](https://www.loc.gov/item/2015633526/) |
+| hot-springs-pool.jpg | place: Cedar Bend Hot Springs Pool | [Ouray Hot Springs, Pool. Ouray, Colorado] | [32300:32390](https://www.loc.gov/item/2015632405/) |
+| inn-pool.jpg | place: The Sulphur Creek Inn | Pool at the Wiesbaden Hot Springs Hotel, a small spa in Ouray, Colorado, an old mining community high in the San Juan Mountains of southwestern Colorado. A number of hot springs bubble to the surface in and near Ouray | [32300:32316](https://www.loc.gov/item/2015632331/) |
+| cabins.jpg | place: Timberline Cabins | Cabins in the snow west of Ridgway in Ouray County, Colorado | [36200:36237](https://www.loc.gov/item/2017686720/) |
+| library.jpg | place: Cedar Bend Public Library | [Walsh Library, Ouray, Colorado] | [32300:32368](https://www.loc.gov/item/2015632383/) |
+| park-pavilion.jpg | place: Town Park Pavilion | A stone building at Willow Creek Park, developed in 1933 as Colorado's first Works Progress Administration (WPA) depression-era work project in Lamar, Colorado | [32200:32214](https://www.loc.gov/item/2015632229/) |
+| mill-museum.jpg | place: Old Mill Museum | The old Mayflower Gold Mill above Silverton, Colorado. The mill, which today (in 2015) offers seasonal tours, began to take shape in the summer of 1925 as the dream of Charles A. Chase, who was a successful mine manager at the Liberty Bell Mine near Telluride, Colorado | [34800:34825](https://www.loc.gov/item/2017685308/) |
+| depot.jpg | place: Depot Visitor Centre | The 1891 Rio Grande Southern Depot, with a new roof, in the town of Ridgway, which was named for Robert Ridgway, the railroad's superintendent. Ridgway, Colorado | [32400:32434](https://www.loc.gov/item/2015632449/) |
+| gallery.jpg | place: Bend Gallery | A former bank and drug store turned art gallery in Crested Butte, a town heavily populated during ski season located high in the Rocky Mountains in Gunnison County, Colorado | [33500:33512](https://www.loc.gov/item/2015633527/) |
+| carvers-yard.jpg | place: Carver's Yard | Woodcarvings for sale outside a shop in Aspen, once a mining boomtown that became a prominent ski resort and hangout of prominent Hollywood stars, in Pitkin County, Colorado | [36400:36426](https://www.loc.gov/item/2017686909/) |
+| church-hall.jpg | place: Community Church Hall | Marble Community Church in in the tiny mountain town Marble, Colorado, in the Crystal River Valley of Colorado | [33700:33753](https://www.loc.gov/item/2015633769/) |
+| falls-trail.jpg | place: Bear Creek Falls Trail; event: Fall Trail Work Morning | [Bear Creek Falls in the San Juan Mountains, Telluride, Colorado] | [32300:32349](https://www.loc.gov/item/2015632364/) |
+| ranch.jpg | place: Highland Ranch Stays | Longhaired highland cattle graze near Ridgway in Ouray County, Colorado | [32400:32443](https://www.loc.gov/item/2015632458/) |
+| rafting.jpg | place: Riverbend Rafting | Rafters on Clear Creek, outside Idaho Falls, Colorado | [48500:48560](https://www.loc.gov/item/2017885190/) |
+| reservoir-path.jpg | place: Reservoir Path; event: Reservoir Ride | A cyclist approaches on the bike trail along Dillon Reservoir, outside Frisco, Colorado | [48700:48778](https://www.loc.gov/item/2017885408/) |
+| plaza-market.jpg | event: Harvest Market on the Plaza | Riders walk their bicycles through Blue River Plaza in downtown Breckenridge, Colorado | [33600:33628](https://www.loc.gov/item/2015633643/) |
+| balloon-glow.jpg | event: Balloon Glow Night | The post-sunset "glow" of tethered hot air balloons at the annual Telluride Balloon Festival in the former mining town turned ski resort, but not when the Spring festival is in full swing | [37700:37751](https://www.loc.gov/item/2017687643/) |
+| rodeo.jpg | article: Rodeo weekend, in pictures | Contestant at the Cattlemen's Days rodeo in Gunnison, Colorado | [48800:48852](https://www.loc.gov/item/2017885482/) |
+| snowy-main.jpg | event: Holiday Lights on Main | Scene on a day when heavy snow covers the main street of Telluride, Colorado | [37100:37132](https://www.loc.gov/item/2017687290/) |
+
+### Bookcliff Farm Markets (`src/server/demo/proof/photos/bookcliff/`, 21 photographs)
+
+| File | Used for | Library of Congress title | Record |
+|---|---|---|---|
+| orchards-mesa.jpg | hero image; share image | Orchards below Mount Garfield in the agricultural town of Palisade, in Colorado's "Grand Valley" outside Grand Junction | [48800:48898](https://www.loc.gov/item/2017885528/) |
+| peach-trees.jpg | home or About page composition | Young peach trees in the orchard-filled town of Palisade, outside Grand Junction, Colorado. In the distance is the area's famous Grand Mesa, which, at 40 miles in length, is reputed to be the world's largest mesa, an elevated, flat-topped area of land | [33500:33518](https://www.loc.gov/item/2015633533/) |
+| fruit-trucks.jpg | home or About page composition | Old trucks, used to haul fruit from nearby orchards in Grand Junction, Colorado. The vehicles are displayed at the Museum of Western Colorado's Cross Orchards Historic Site | [48700:48711](https://www.loc.gov/item/2017885341/) |
+| palisade-market.jpg | store: Palisade Market | Farm market all decked out for fall in Moultonborough, New Hampshire | [48200:48251](https://www.loc.gov/item/2017884882/) |
+| orchard-mesa-market.jpg | store: Orchard Mesa Market | A fully stocked produce stand in Grandy, North Carolina | [44600:44645](https://www.loc.gov/item/2017881460/) |
+| fruita-stand.jpg | store: Fruita Stand | A farmers' produce stand, specializing in seasonal fruit, jellies, and jams, in Silverthorne, Colorado | [33600:33675](https://www.loc.gov/item/2015633691/) |
+| market-aisle.jpg | home or About page composition | A colorful array of produce options at the South Bend Farmers' Market in South Bend, Indiana | [41100:41142](https://www.loc.gov/item/2016631960/) |
+| sweet-corn.jpg | home or About page composition | The arrival of autumn is evident in the array of foods and decorations offered for sale at the South Bend Farmers' Market in South Bend, Indiana | [41100:41141](https://www.loc.gov/item/2016631959/) |
+| produce-display.jpg | service: Harvest boxes | The arrival of autumn is evident in the array of foods and decorations from which customers can choose at the South Bend Farmers' Market in South Bend, Indiana | [41100:41143](https://www.loc.gov/item/2016631961/) |
+| tomatoes.jpg | service: Wholesale for restaurants and grocers | Jersey tomatoes at The Corn Stop Farmer's Market in Mount Holly, New Jersey | [45500:45594](https://www.loc.gov/item/2017882343/) |
+| apple-orchard.jpg | service: Pick your own and orchard tours | Scene at fall apple-harvest time at Shelburne Orchards in Shelburne, Vermont | [45900:45995](https://www.loc.gov/item/2017882743/) |
+| apples-trailer.jpg | home or About page composition | Roadside trailer offering bags of apples for sale near Brunswick, Maine | [45800:45864](https://www.loc.gov/item/2017882612/) |
+| hayride.jpg | service: Autumn weekends on the farm | A horse-drawn wagon carries visitors into the pumpkin patch each autumn at Hershberger's Farm and Bakery, a greatly expanded produce stand near the town of Berlin in central Ohio's "Amish Country" | [41500:41525](https://www.loc.gov/item/2016632343/) |
+| pumpkin-patch.jpg | home or About page composition | Pumpkin patch in Vineland, Colorado, near Pueblo | [48600:48693](https://www.loc.gov/item/2017885323/) |
+| barn-pumpkins.jpg | home or About page composition | Pumpkins by the dozens, harvested from the fields behind this barn in Richmond, Vermont | [46100:46169](https://www.loc.gov/item/2017882917/) |
+| dried-corn.jpg | home or About page composition | Decorative ears of dried corn at Hershberger's Farm and Bakery, a greatly expanded produce stand near the town of Berlin in central Ohio's "Amish Country" | [41500:41517](https://www.loc.gov/item/2016632335/) |
+| fields-sunset.jpg | home or About page composition | Crops at sunset near Longmont in Colorado's "Front Range" of the Rocky Mountains | [33900:33901](https://www.loc.gov/item/2015633917/) |
+| river-bluff.jpg | home or About page composition | Bluff above the Colorado River near Palisade in Mesa County, Colorado | [35100:35141](https://www.loc.gov/item/2017685624/) |
+| pumpkin-truck.jpg | home or About page composition | Flatbed truck loaded with pumpkins for sale in the early fall season at Harvest Farm in Valle Crucis, North Carolina | [46700:46761](https://www.loc.gov/item/2017883483/) |
+| stand-counter.jpg | service: Orders for holidays and events | A view inside The Farm flower and vegetable stand in Cape Elizabeth, Maine | [45700:45703](https://www.loc.gov/item/2017882451/) |
+| apple-trees.jpg | home or About page composition | Apple trees such as these in the orchards above Gays Mills, Wisconsin, which range over a thousand acres, are not the sort one sits under as in the old song, "Don't Sit Under the Apple Tree" | [40600:40677](https://www.loc.gov/item/2016631495/) |
+
 ## Favicon
 
 `src/app/icon.svg` is an original two-letter mark drawn for this project.

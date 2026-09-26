@@ -13,6 +13,8 @@
     "db:migrate": "tsx scripts/db-migrate.ts",
     "db:reset": "tsx scripts/db-reset.ts",
     "seed:demo": "tsx scripts/seed-demo.ts",
+    "proof:package": "tsx scripts/proof-package.ts",
+    "proof:photos": "tsx scripts/fetch-proof-photos.ts",
     "dev": "tsx scripts/dev.ts",
     "worker:dev": "tsx scripts/worker.ts",
     "lint": "eslint .",

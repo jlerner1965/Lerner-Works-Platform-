@@ -20,6 +20,7 @@ Resume point for the build. Update after every milestone and before any context 
 | B1 Publish in one step, navigate by task (`docs/SITE-BUILDING-PLAN.md`) | DONE (2026-09-26, on production: pull request #10 merged by the owner as `167c9d1`, migration `20260926000400_review_policy.sql` applied at 20:32 UTC, live checks in `docs/evidence/production/d2-b1-2026-09-26-live-checks.txt`) | Per-site review policy with approval on save for people who may publish (migration `20260926000400_review_policy.sql`, D-020); Publish page computing the next release without writing and publishing it in one action; sidebar grouped by task, overview built around content, look and publish with a checklist of actual missing data; Look page with brand, design and the preview together; Settings without the design cards and with a section index; editor labels following the policy. SB-01 to SB-03 PASS (integration and browser tests, screenshots in `docs/evidence/dashboard/`); SB-06 measured by `tests/e2e/walkthrough.spec.ts` (create, brand, five places, publish: 19 screens, 30 fields, 25 actions after B1; 4 empty-state notices on the published fresh home, for B2 to remove). |
 | B2 From empty to launch (`docs/SITE-BUILDING-PLAN.md`) | BUILT (2026-09-26, verified in the repository; production on the owner's go: pull request; its migration `20260926000500_onboarding_package.sql` is already on production, applied with the D2 and B1 ones; live checks) | A section with nothing to show is left out of the public page by one rule shared by the four compositions and the validator (D-021); starter pages whose slots fill themselves, with a new `category_list` section; the onboarding package (template, dry run, one-transaction apply of images, rows and settings; migration `20260926000500_onboarding_package.sql`); CSV imports for articles and services with body text and featured images; multi-file upload with an alternative-text pass; quick add, duplicate, category suggestions and site defaults in the editor; imports approved on save under the review policy. SB-04 and SB-05 PASS, SB-06 re-measured (`docs/ACCEPTANCE.md`). |
 | B3 Design richness inside the boundary (`docs/SITE-BUILDING-PLAN.md`) | BUILT (2026-09-26, verified in the repository; production on the owner's go with B2, no migration) | Richer section vocabulary as typed sections and enumerated options (D-022): people, logo strip, image-and-text rows, photo band, portraits on quotations, hero collage/offset/statement, gallery lightbox drawn by CSS, click-to-load map (D-013 extended), rich text divider/callout/button; shared renderers used by all six compositions; the almanac (guide) and practice (location business) compositions; both pilots re-composed; snapshot schema version 5 with the earlier eight frozen releases unchanged and version-5 fixtures added; `scripts/set-demo-theme.ts`. SB-07 PASS; DES-13 and DES-14 re-measured (144 KiB script, +1 KiB for the map); screenshots per composition. Open: the owner's judgement on two sample sites with real photography (B4). |
+| B4 The proof (`docs/SITE-BUILDING-PLAN.md`) | BUILT (2026-09-26, verified in the repository; the owner's judgement and own timing pending; production on the owner's go with B2 and B3, no migration) | Two realistic client sites with public-domain photography (Library of Congress, Carol M. Highsmith Archive; D-023) written as onboarding packages in `src/server/demo/proof/` (`pnpm proof:package`): Cedar Bend Guide (19 places, 7 events, 6 articles, 40 photographs) and Bookcliff Farm Markets (3 markets, 5 services, 21 photographs). Built end to end through the dashboard by `tests/e2e/proof.spec.ts`, counted per task and timed, captured under every composition of each preset (`docs/evidence/proof/`). Three defects found by the build and fixed: the proxy's 10 MB body buffer truncating a larger package, the settings sheet's opening picture ignored on a text-only home, colours failing contrast passing the dry run. Open: the owner's judgement on the captures and their own timed build on production with the packages (SB-08). |
 
 ## Environment blockers (precise)
 
@@ -32,6 +33,27 @@ Resume point for the build. Update after every milestone and before any context 
 
 ## Last verified results
 
+- 2026-09-26 (site-building phase B4) `PROOF_EVIDENCE=1 pnpm verify` on the final code: GATE
+  PASSED in 620 s (setup check 1 s, lint 17 s, typecheck 3 s, unit 5 s, integration 72 s,
+  browser 513 s, production build 9 s): 133 unit tests in the gate run, 136 on the unit suite
+  re-run after `proof.test` (the proof sites' pictures, sheets, settings and rights) was added
+  to the same commit; 70 integration tests (adds `proof.test`: both packages dry-run clean,
+  import in one step, publish with no blocker and render under every composition;
+  `onboarding.test` extended: the dry run refuses colours that fail the contrast pairings);
+  37 browser tests against a production build (adds `proof.spec`: Cedar Bend Guide built end
+  to end in 12 screens, 83 fields and 43 actions, 36 s scripted, 25 s of it the package import
+  of 50 pictures; Bookcliff Farm Markets in 8 screens, 52 fields and 26 actions, 18 s; 85
+  captures under six compositions, all 200 with no overflow and no console error, written
+  into `docs/evidence/proof/` by the evidence switch). The rendering hashes of the ten frozen
+  releases are unchanged (no renderer change). Four defects found by the proof build and
+  fixed on the way: the proxy's default 10 MB request-body buffer silently truncated the 14 MB
+  package (the import then failed to parse it; `proxyClientMaxBodySize` is 64 MB now, the
+  size the import promises); the settings sheet's opening picture had no effect on the
+  location business's text-only starter hero (it becomes a picture hero when the composition
+  offers one); colours that fail the publication gate's contrast pairings passed the dry run
+  and blocked the first publish (the dry run refuses them, naming the pairing); the quick-add
+  form said "Add a event". The proof's own scripted time is not a person's: the person's
+  timing is the owner's, on production, with the same packages (SB-09).
 - 2026-09-26 (site-building phase B3) `pnpm verify` on the final code: GATE PASSED in 426 s
   (setup check 2 s, lint 18 s, typecheck 16 s, unit 5 s, integration 39 s, browser 337 s,
   production build 9 s): 133 unit tests (adds `rich-sections.test`: the capabilities of every
@@ -319,28 +341,34 @@ organization, site or hostname exists yet.
 
 ## Next action
 
-Site-building programme phase B4 (the proof site, `docs/SITE-BUILDING-PLAN.md` section 3)
-is next on the branch; it needs photography (the owner's licensed images, or public-domain
-photographs with the attribution recorded), and B3's exit still wants the owner's judgement
-on two sample sites built with that photography. Owner: give the go for B2 and B3 on
-production when wanted: pull request from `claude/lucid-darwin-cif2y6` into `main` (the B2
-migration `20260926000500_onboarding_package.sql` is already applied to the production
-project; B3 has no migration), deployment, live checks (a version-1 release still renders;
-the onboarding template downloads for the test site), then look at the B3 additions on the
-production test site: Look → Theme lists the third composition (almanac or practice) with the
-preview beside it, the page editor's Add section offers People, Logo strip, Image and text
-rows and Photo band, the image hero's style list the Collage, Offset and Statement
-treatments, a gallery its lightbox switch, a quotation its portrait, the map section its
-"Offer the map" switch with coordinates, and the body editor's formatting help the `---`,
-`!note` and `!button` lines; and the B2 controls: Import & export
-→ the onboarding package, Media → a multi-file upload and its alternative-text pass, a content
-list's quick add and the editor's Duplicate, the overview's checklist naming the home
-introduction and the About page. On the production test site the D2 and B1 controls are there
-to look at now: Look → Theme with the compatible compositions and the preview beside it, the
-Publish page with "Publish now", Settings → Publishing → review policy, the delegation switch,
-the header button and the dark logo. Open points: the default of the review policy for
-organizations with editors; photography for the proof site; further video providers; whether
-D3 happens at all (after the site-building programme, D-017).
+Site-building programme phase B4 (the proof, `docs/SITE-BUILDING-PLAN.md` section 3) is
+built on the branch (D-023): two realistic client sites with public-domain photography, written
+as the onboarding packages a client fills in (`src/server/demo/proof/`), built end to end
+through the dashboard by `tests/e2e/proof.spec.ts`, counted per task and timed, and captured
+under every composition of each preset in `docs/evidence/proof/`. What remains is the owner's:
+(1) the go for B2, B3 and B4 on production: pull request from `claude/lucid-darwin-cif2y6`
+into `main` (the B2 migration `20260926000500_onboarding_package.sql` is already applied to
+the production project; B3 and B4 have none), deployment, then live checks (a version-1
+release still renders; the onboarding template downloads for the test site; a package of more
+than 10 MB uploads whole, the proxy's body limit being 64 MB now); (2) the owner's own timed
+build of a client site on production with the packages (`pnpm proof:package --site cedar-bend`
+and `--site bookcliff`, each imported on a fresh site of its preset through Import & export,
+then Look → composition, the home page composed as wanted, Publish now; the steps and the
+counts of the scripted build are in `docs/evidence/proof/README.md` and `latest.json`), the
+time recorded in the SB-08 row of `docs/ACCEPTANCE.md`; (3) the owner's judgement of the
+captures in `docs/evidence/proof/` and of the sites on production against the bar: would they
+choose the platform over building the site by hand, and does the result look launch-ready
+rather than templated? On the production test site the B3 additions are there to look at:
+Look → Theme lists the third composition (almanac or practice) with the preview beside it,
+the page editor's Add section offers People, Logo strip, Image and text rows and Photo band,
+the image hero's style list the Collage, Offset and Statement treatments, a gallery its
+lightbox switch, a quotation its portrait, the map section its "Offer the map" switch with
+coordinates, and the body editor's formatting help the `---`, `!note` and `!button` lines; and
+the B2 controls: Import & export → the onboarding package, Media → a multi-file upload and its
+alternative-text pass, a content list's quick add and the editor's Duplicate, the overview's
+checklist naming the home introduction and the About page. Open points: the default of the
+review policy for organizations with editors; further video providers; whether D3 happens at
+all (after the site-building programme, D-017).
 
 Owner: accept the pending invitation from its email (the last owner-session check of
 `docs/LAUNCH-CHECKLIST.md` section 6); decide the backup routine (the free tier has no

@@ -1,0 +1,656 @@
+{
+  "measure": "B4 proof: two client sites built end to end through the dashboard from their onboarding packages, counted per task and timed (scripted), then captured under every composition of the preset",
+  "recordedAt": "2026-09-26T23:31:24.448Z",
+  "note": "Screens, fields and actions are what a person does; the time is the script's, which types instantly and never reads. A person's own timing uses the same packages (pnpm proof:package) on production.",
+  "capturesIn": "docs/evidence/proof",
+  "sites": [
+    {
+      "key": "cedar-bend",
+      "name": "Cedar Bend Guide",
+      "siteId": "c684bac4-a9c8-44ce-be92-e8f5f5046972",
+      "composition": "magazine",
+      "tasks": [
+        {
+          "task": "Create the site",
+          "screens": 2,
+          "fields": 2,
+          "actions": 1,
+          "ms": 562
+        },
+        {
+          "task": "Import the package (brand, contact details, 19 places, 7 events, 6 articles, 50 pictures, the home and About text)",
+          "screens": 2,
+          "fields": 1,
+          "actions": 3,
+          "ms": 24597
+        },
+        {
+          "task": "Choose the composition",
+          "screens": 1,
+          "fields": 1,
+          "actions": 2,
+          "ms": 1309
+        },
+        {
+          "task": "Compose the home page (collage hero, two picture rows, a photo band, two quotations, the editors, the members)",
+          "screens": 2,
+          "fields": 53,
+          "actions": 22,
+          "ms": 5513
+        },
+        {
+          "task": "Compose the About page (offset hero, gallery with the lightbox)",
+          "screens": 2,
+          "fields": 20,
+          "actions": 10,
+          "ms": 1925
+        },
+        {
+          "task": "Add an event from the list",
+          "screens": 2,
+          "fields": 6,
+          "actions": 3,
+          "ms": 757
+        },
+        {
+          "task": "Publish",
+          "screens": 1,
+          "fields": 0,
+          "actions": 2,
+          "ms": 1273
+        }
+      ],
+      "totals": {
+        "screens": 12,
+        "fields": 83,
+        "actions": 43,
+        "ms": 35936
+      },
+      "captures": {
+        "magazine": [
+          {
+            "page": "home",
+            "width": 390,
+            "file": "cedar-bend/magazine/home-390.jpg",
+            "status": 200
+          },
+          {
+            "page": "home",
+            "width": 768,
+            "file": "cedar-bend/magazine/home-768.jpg",
+            "status": 200
+          },
+          {
+            "page": "home",
+            "width": 1440,
+            "file": "cedar-bend/magazine/home-1440.jpg",
+            "status": 200
+          },
+          {
+            "page": "about",
+            "width": 390,
+            "file": "cedar-bend/magazine/about-390.jpg",
+            "status": 200
+          },
+          {
+            "page": "about",
+            "width": 768,
+            "file": "cedar-bend/magazine/about-768.jpg",
+            "status": 200
+          },
+          {
+            "page": "about",
+            "width": 1440,
+            "file": "cedar-bend/magazine/about-1440.jpg",
+            "status": 200
+          },
+          {
+            "page": "directory",
+            "width": 390,
+            "file": "cedar-bend/magazine/directory-390.jpg",
+            "status": 200
+          },
+          {
+            "page": "directory",
+            "width": 768,
+            "file": "cedar-bend/magazine/directory-768.jpg",
+            "status": 200
+          },
+          {
+            "page": "directory",
+            "width": 1440,
+            "file": "cedar-bend/magazine/directory-1440.jpg",
+            "status": 200
+          },
+          {
+            "page": "place",
+            "width": 390,
+            "file": "cedar-bend/magazine/place-390.jpg",
+            "status": 200
+          },
+          {
+            "page": "place",
+            "width": 768,
+            "file": "cedar-bend/magazine/place-768.jpg",
+            "status": 200
+          },
+          {
+            "page": "place",
+            "width": 1440,
+            "file": "cedar-bend/magazine/place-1440.jpg",
+            "status": 200
+          },
+          {
+            "page": "events",
+            "width": 390,
+            "file": "cedar-bend/magazine/events-390.jpg",
+            "status": 200
+          },
+          {
+            "page": "events",
+            "width": 768,
+            "file": "cedar-bend/magazine/events-768.jpg",
+            "status": 200
+          },
+          {
+            "page": "events",
+            "width": 1440,
+            "file": "cedar-bend/magazine/events-1440.jpg",
+            "status": 200
+          },
+          {
+            "page": "event",
+            "width": 390,
+            "file": "cedar-bend/magazine/event-390.jpg",
+            "status": 200
+          },
+          {
+            "page": "event",
+            "width": 768,
+            "file": "cedar-bend/magazine/event-768.jpg",
+            "status": 200
+          },
+          {
+            "page": "event",
+            "width": 1440,
+            "file": "cedar-bend/magazine/event-1440.jpg",
+            "status": 200
+          },
+          {
+            "page": "article",
+            "width": 390,
+            "file": "cedar-bend/magazine/article-390.jpg",
+            "status": 200
+          },
+          {
+            "page": "article",
+            "width": 768,
+            "file": "cedar-bend/magazine/article-768.jpg",
+            "status": 200
+          },
+          {
+            "page": "article",
+            "width": 1440,
+            "file": "cedar-bend/magazine/article-1440.jpg",
+            "status": 200
+          },
+          {
+            "page": "contact",
+            "width": 390,
+            "file": "cedar-bend/magazine/contact-390.jpg",
+            "status": 200
+          },
+          {
+            "page": "contact",
+            "width": 768,
+            "file": "cedar-bend/magazine/contact-768.jpg",
+            "status": 200
+          },
+          {
+            "page": "contact",
+            "width": 1440,
+            "file": "cedar-bend/magazine/contact-1440.jpg",
+            "status": 200
+          }
+        ],
+        "almanac": [
+          {
+            "page": "home",
+            "width": 390,
+            "file": "cedar-bend/almanac/home-390.jpg",
+            "status": 200
+          },
+          {
+            "page": "home",
+            "width": 1440,
+            "file": "cedar-bend/almanac/home-1440.jpg",
+            "status": 200
+          },
+          {
+            "page": "about",
+            "width": 390,
+            "file": "cedar-bend/almanac/about-390.jpg",
+            "status": 200
+          },
+          {
+            "page": "about",
+            "width": 1440,
+            "file": "cedar-bend/almanac/about-1440.jpg",
+            "status": 200
+          },
+          {
+            "page": "directory",
+            "width": 390,
+            "file": "cedar-bend/almanac/directory-390.jpg",
+            "status": 200
+          },
+          {
+            "page": "directory",
+            "width": 1440,
+            "file": "cedar-bend/almanac/directory-1440.jpg",
+            "status": 200
+          },
+          {
+            "page": "place",
+            "width": 390,
+            "file": "cedar-bend/almanac/place-390.jpg",
+            "status": 200
+          },
+          {
+            "page": "place",
+            "width": 1440,
+            "file": "cedar-bend/almanac/place-1440.jpg",
+            "status": 200
+          },
+          {
+            "page": "article",
+            "width": 390,
+            "file": "cedar-bend/almanac/article-390.jpg",
+            "status": 200
+          },
+          {
+            "page": "article",
+            "width": 1440,
+            "file": "cedar-bend/almanac/article-1440.jpg",
+            "status": 200
+          }
+        ],
+        "guide": [
+          {
+            "page": "home",
+            "width": 390,
+            "file": "cedar-bend/guide/home-390.jpg",
+            "status": 200
+          },
+          {
+            "page": "home",
+            "width": 1440,
+            "file": "cedar-bend/guide/home-1440.jpg",
+            "status": 200
+          },
+          {
+            "page": "about",
+            "width": 390,
+            "file": "cedar-bend/guide/about-390.jpg",
+            "status": 200
+          },
+          {
+            "page": "about",
+            "width": 1440,
+            "file": "cedar-bend/guide/about-1440.jpg",
+            "status": 200
+          },
+          {
+            "page": "directory",
+            "width": 390,
+            "file": "cedar-bend/guide/directory-390.jpg",
+            "status": 200
+          },
+          {
+            "page": "directory",
+            "width": 1440,
+            "file": "cedar-bend/guide/directory-1440.jpg",
+            "status": 200
+          },
+          {
+            "page": "place",
+            "width": 390,
+            "file": "cedar-bend/guide/place-390.jpg",
+            "status": 200
+          },
+          {
+            "page": "place",
+            "width": 1440,
+            "file": "cedar-bend/guide/place-1440.jpg",
+            "status": 200
+          },
+          {
+            "page": "article",
+            "width": 390,
+            "file": "cedar-bend/guide/article-390.jpg",
+            "status": 200
+          },
+          {
+            "page": "article",
+            "width": 1440,
+            "file": "cedar-bend/guide/article-1440.jpg",
+            "status": 200
+          }
+        ]
+      },
+      "releases": [
+        "v1 magazine",
+        "v2 almanac",
+        "v3 guide"
+      ]
+    },
+    {
+      "key": "bookcliff",
+      "name": "Bookcliff Farm Markets",
+      "siteId": "3640dcdf-437d-40e5-bf05-a21b62f7e285",
+      "composition": "storefront",
+      "tasks": [
+        {
+          "task": "Create the site",
+          "screens": 2,
+          "fields": 3,
+          "actions": 1,
+          "ms": 428
+        },
+        {
+          "task": "Import the package (brand, contact details, 5 services, 3 markets, 30 pictures, the home and About text)",
+          "screens": 2,
+          "fields": 1,
+          "actions": 3,
+          "ms": 13262
+        },
+        {
+          "task": "Choose the composition",
+          "screens": 1,
+          "fields": 1,
+          "actions": 2,
+          "ms": 298
+        },
+        {
+          "task": "Compose the home page (two picture rows, a photo band, two quotations, the people, the members)",
+          "screens": 2,
+          "fields": 47,
+          "actions": 18,
+          "ms": 3935
+        },
+        {
+          "task": "Publish",
+          "screens": 1,
+          "fields": 0,
+          "actions": 2,
+          "ms": 479
+        }
+      ],
+      "totals": {
+        "screens": 8,
+        "fields": 52,
+        "actions": 26,
+        "ms": 18402
+      },
+      "captures": {
+        "storefront": [
+          {
+            "page": "home",
+            "width": 390,
+            "file": "bookcliff/storefront/home-390.jpg",
+            "status": 200
+          },
+          {
+            "page": "home",
+            "width": 768,
+            "file": "bookcliff/storefront/home-768.jpg",
+            "status": 200
+          },
+          {
+            "page": "home",
+            "width": 1440,
+            "file": "bookcliff/storefront/home-1440.jpg",
+            "status": 200
+          },
+          {
+            "page": "about",
+            "width": 390,
+            "file": "bookcliff/storefront/about-390.jpg",
+            "status": 200
+          },
+          {
+            "page": "about",
+            "width": 768,
+            "file": "bookcliff/storefront/about-768.jpg",
+            "status": 200
+          },
+          {
+            "page": "about",
+            "width": 1440,
+            "file": "bookcliff/storefront/about-1440.jpg",
+            "status": 200
+          },
+          {
+            "page": "locations",
+            "width": 390,
+            "file": "bookcliff/storefront/locations-390.jpg",
+            "status": 200
+          },
+          {
+            "page": "locations",
+            "width": 768,
+            "file": "bookcliff/storefront/locations-768.jpg",
+            "status": 200
+          },
+          {
+            "page": "locations",
+            "width": 1440,
+            "file": "bookcliff/storefront/locations-1440.jpg",
+            "status": 200
+          },
+          {
+            "page": "store",
+            "width": 390,
+            "file": "bookcliff/storefront/store-390.jpg",
+            "status": 200
+          },
+          {
+            "page": "store",
+            "width": 768,
+            "file": "bookcliff/storefront/store-768.jpg",
+            "status": 200
+          },
+          {
+            "page": "store",
+            "width": 1440,
+            "file": "bookcliff/storefront/store-1440.jpg",
+            "status": 200
+          },
+          {
+            "page": "services",
+            "width": 390,
+            "file": "bookcliff/storefront/services-390.jpg",
+            "status": 200
+          },
+          {
+            "page": "services",
+            "width": 768,
+            "file": "bookcliff/storefront/services-768.jpg",
+            "status": 200
+          },
+          {
+            "page": "services",
+            "width": 1440,
+            "file": "bookcliff/storefront/services-1440.jpg",
+            "status": 200
+          },
+          {
+            "page": "service",
+            "width": 390,
+            "file": "bookcliff/storefront/service-390.jpg",
+            "status": 200
+          },
+          {
+            "page": "service",
+            "width": 768,
+            "file": "bookcliff/storefront/service-768.jpg",
+            "status": 200
+          },
+          {
+            "page": "service",
+            "width": 1440,
+            "file": "bookcliff/storefront/service-1440.jpg",
+            "status": 200
+          },
+          {
+            "page": "contact",
+            "width": 390,
+            "file": "bookcliff/storefront/contact-390.jpg",
+            "status": 200
+          },
+          {
+            "page": "contact",
+            "width": 768,
+            "file": "bookcliff/storefront/contact-768.jpg",
+            "status": 200
+          },
+          {
+            "page": "contact",
+            "width": 1440,
+            "file": "bookcliff/storefront/contact-1440.jpg",
+            "status": 200
+          }
+        ],
+        "practice": [
+          {
+            "page": "home",
+            "width": 390,
+            "file": "bookcliff/practice/home-390.jpg",
+            "status": 200
+          },
+          {
+            "page": "home",
+            "width": 1440,
+            "file": "bookcliff/practice/home-1440.jpg",
+            "status": 200
+          },
+          {
+            "page": "about",
+            "width": 390,
+            "file": "bookcliff/practice/about-390.jpg",
+            "status": 200
+          },
+          {
+            "page": "about",
+            "width": 1440,
+            "file": "bookcliff/practice/about-1440.jpg",
+            "status": 200
+          },
+          {
+            "page": "locations",
+            "width": 390,
+            "file": "bookcliff/practice/locations-390.jpg",
+            "status": 200
+          },
+          {
+            "page": "locations",
+            "width": 1440,
+            "file": "bookcliff/practice/locations-1440.jpg",
+            "status": 200
+          },
+          {
+            "page": "store",
+            "width": 390,
+            "file": "bookcliff/practice/store-390.jpg",
+            "status": 200
+          },
+          {
+            "page": "store",
+            "width": 1440,
+            "file": "bookcliff/practice/store-1440.jpg",
+            "status": 200
+          },
+          {
+            "page": "service",
+            "width": 390,
+            "file": "bookcliff/practice/service-390.jpg",
+            "status": 200
+          },
+          {
+            "page": "service",
+            "width": 1440,
+            "file": "bookcliff/practice/service-1440.jpg",
+            "status": 200
+          }
+        ],
+        "locations": [
+          {
+            "page": "home",
+            "width": 390,
+            "file": "bookcliff/locations/home-390.jpg",
+            "status": 200
+          },
+          {
+            "page": "home",
+            "width": 1440,
+            "file": "bookcliff/locations/home-1440.jpg",
+            "status": 200
+          },
+          {
+            "page": "about",
+            "width": 390,
+            "file": "bookcliff/locations/about-390.jpg",
+            "status": 200
+          },
+          {
+            "page": "about",
+            "width": 1440,
+            "file": "bookcliff/locations/about-1440.jpg",
+            "status": 200
+          },
+          {
+            "page": "locations",
+            "width": 390,
+            "file": "bookcliff/locations/locations-390.jpg",
+            "status": 200
+          },
+          {
+            "page": "locations",
+            "width": 1440,
+            "file": "bookcliff/locations/locations-1440.jpg",
+            "status": 200
+          },
+          {
+            "page": "store",
+            "width": 390,
+            "file": "bookcliff/locations/store-390.jpg",
+            "status": 200
+          },
+          {
+            "page": "store",
+            "width": 1440,
+            "file": "bookcliff/locations/store-1440.jpg",
+            "status": 200
+          },
+          {
+            "page": "service",
+            "width": 390,
+            "file": "bookcliff/locations/service-390.jpg",
+            "status": 200
+          },
+          {
+            "page": "service",
+            "width": 1440,
+            "file": "bookcliff/locations/service-1440.jpg",
+            "status": 200
+          }
+        ]
+      },
+      "releases": [
+        "v1 storefront",
+        "v2 practice",
+        "v3 locations"
+      ]
+    }
+  ]
+}

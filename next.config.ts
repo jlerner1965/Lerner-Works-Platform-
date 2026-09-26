@@ -11,9 +11,16 @@ const nextConfig: NextConfig = {
   // Public media is served from our own asset routes as pre-sized derivatives; the
   // built-in optimizer is not used, so plain <img> elements with explicit sizes are intended.
   images: { unoptimized: true },
-  // The stylesheets are small (Tailwind, ~9 KB in total); inlining them removes a
-  // render-blocking round trip on first visits to the public sites.
-  experimental: { inlineCss: true },
+  experimental: {
+    // The stylesheets are small (Tailwind, ~9 KB in total); inlining them removes a
+    // render-blocking round trip on first visits to the public sites.
+    inlineCss: true,
+    // The proxy (src/proxy.ts) buffers request bodies on its matched routes, 10 MB by
+    // default, which silently truncated an onboarding package or a two-file media upload
+    // larger than that (found by the B4 proof build). The import routes accept packages up
+    // to 64 MB (MAX_ONBOARDING_BYTES, MAX_PACKAGE_BYTES) and check the size themselves.
+    proxyClientMaxBodySize: "64mb",
+  },
   async headers() {
     return [
       {

@@ -53,9 +53,11 @@ export function NewItemForm({ siteId, kinds, initialKind, categories }: { siteId
 export function QuickAddForm({ siteId, kind, label, categories }: { siteId: string; kind: string; label: string; categories: string[] }) {
   const [state, action, pending] = useActionState<CreateItemState, FormData>(createItemAction, {});
   const id = useId();
+  const noun = label.toLowerCase();
+  const article = /^[aeiou]/.test(noun) ? "an" : "a";
   return (
     <form action={action} className="mb-4 rounded border border-line bg-surface p-3 text-sm" aria-labelledby={`${id}-legend`}>
-      <p id={`${id}-legend`} className="mb-2 font-medium">Add a {label.toLowerCase()}</p>
+      <p id={`${id}-legend`} className="mb-2 font-medium">Add {article} {noun}</p>
       {state.error ? <p role="alert" className="mb-2 rounded bg-danger-soft px-3 py-2 text-danger">{state.error}</p> : null}
       <input type="hidden" name="siteId" value={siteId} />
       <input type="hidden" name="kind" value={kind} />

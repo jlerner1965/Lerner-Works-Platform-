@@ -338,3 +338,29 @@ fixtures of the pilots on the new compositions join the rendering-hash test. (5)
 demonstration fixtures, image keys share the "@" reference namespace with item ids and the
 loader resolves items first; the pictures of the stores were renamed so no key repeats an id,
 and the rule is noted in the fixtures.
+
+## D-023 · 2026-09-26 · The proof is two client sites built through the dashboard with public-domain photography, from the package a client fills in
+
+Phase B4 of the site-building programme needed realistic client sites with real photography,
+built the way a client's site would be, to judge the programme's bar. Decided: (1) the
+photography is public domain: photographs from the Carol M. Highsmith Archive at the Library
+of Congress ("no known restrictions on publication"), chosen by subject for a fictional
+mountain town and a fictional family of farm markets, fetched by a reproducible script that
+records each photograph's archive id, catalogue record and title, reduced to web size, and
+committed with the attribution on every asset row and in `docs/evidence/ASSETS.md`. No
+photograph is presented as the real place or business it shows, no business named on the
+sites appears in a photograph, and no real person's likeness stands in for a fictional one:
+the people and the members' marks stay stylised artwork, to be replaced by a client's own. (2)
+The sites are written as onboarding packages (`src/server/demo/proof/`): typed content that
+builds the ZIP a client would upload, so the proof exercises the client's own path (dry run,
+import, compose, publish), the packages can be imported on production for the owner's
+judgement, and the integration test imports and publishes them on every gate. (3) The measure
+is the counted, timed dashboard build (`tests/e2e/proof.spec.ts`, `docs/evidence/proof/`):
+screens, fields and actions per task are what a person does; the scripted time is recorded as
+such, and the person's own timing on production is the number the bar is judged by. (4) What
+the build found is fixed in the product, not worked around in the script: the proxy's default
+10 MB body buffer truncated a package larger than that (raised to the 64 MB the import
+promises); the settings sheet's opening picture had no effect on a home that opens with words
+alone (it now becomes a picture hero when the composition offers one); and colours that would
+fail the publication gate's contrast pairings passed the dry run (the dry run now refuses
+them, naming the pairing).

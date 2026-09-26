@@ -10,6 +10,9 @@ import { ingestImage, sniffImageType, MAX_UPLOAD_BYTES } from "@/server/media/in
 import { getCurrentSiteConfig, saveSiteConfig } from "@/server/data/sites";
 import { getItem, saveRevision, approveOnSave, validatePayload } from "@/server/data/content";
 import { parseStructuredText } from "@/lib/richtext";
+import { failingPairings } from "@/lib/brand-tokens";
+import { formatRatio } from "@/lib/contrast";
+import { capabilitiesFor } from "@/themes/capabilities";
 
 /**
  * The onboarding package (site-building programme B2-2): a ZIP a client or the agency fills
@@ -53,7 +56,7 @@ export const siteSheetKeys: SiteSheetKey[] = [
   { key: "typography", description: `The type pairing: one of ${typographyPresetKeys.join(", ")}.`, example: "editorial-serif" },
   { key: "logo", description: "File name in images/ of the logo (a wide image with a transparent background works best); shown instead of the wordmark.", example: "logo.png" },
   { key: "share_image", description: "File name in images/ of the picture shown when a page of the site is shared.", example: "share.jpg" },
-  { key: "hero_image", description: "File name in images/ of the home page's opening picture.", example: "hero.jpg" },
+  { key: "hero_image", description: "File name in images/ of the home page's opening picture (a home that opens with words alone opens with the picture instead).", example: "hero.jpg" },
   { key: "home_subheading", description: "The sentence under the home page heading (up to 400 characters).", example: "Everything worth knowing about Cedar Bend, in one place." },
   { key: "home_intro", description: "The home page introduction: paragraphs separated by a blank line.", example: "" },
   { key: "about_text", description: "The About page text: paragraphs separated by a blank line; \"## \" starts a heading, \"- \" a list item.", example: "" },
@@ -263,6 +266,18 @@ export async function dryRunOnboarding(db: Db, site: SiteRow, bytes: Uint8Array,
     if (v.tagline && v.tagline.length > 120) out.settings.problems.push("tagline: at most 120 characters.");
     if (v.description && v.description.length > 200) out.settings.problems.push("description: at most 200 characters.");
     if (v.home_subheading && v.home_subheading.length > 400) out.settings.problems.push("home_subheading: at most 400 characters.");
+    // The colours the sheet would leave the site with are checked against every pairing the
+    // compositions render, as publication checks them, so the client fixes the sheet rather
+    // than finding the first release blocked.
+    const colourKeys = { primary_color: "primary", accent_color: "accent", background_color: "background", text_color: "text" } as const;
+    if (Object.keys(colourKeys).some((k) => v[k] && HEX.test(v[k]))) {
+      const current = await getCurrentSiteConfig(db, site.id);
+      if (current) {
+        const colors = { ...current.config.branding.colors };
+        for (const [k, c] of Object.entries(colourKeys)) if (v[k] && HEX.test(v[k])) colors[c] = v[k].toLowerCase();
+        for (const p of failingPairings(colors, current.config.design.overrides)) out.settings.problems.push(`colours: ${p.label} (${p.fg} on ${p.bg}) reads at ${formatRatio(p.ratio)}; the minimum is ${p.minimum}:1, so publication would be blocked. Choose a darker or lighter colour.`);
+      }
+    }
     out.errors.push(...out.settings.problems.map((p) => `site.csv: ${p}`));
     out.summary.settings = Object.keys(v).length;
     if (out.summary.settings && !opts.canApplySettings) out.warnings.push("The settings sheet (brand, contact details, page text) needs an organization owner; a publisher's or editor's import brings the content and images only.");
@@ -358,14 +373,21 @@ export async function applyOnboarding(db: Db, site: SiteRow, userId: string, dry
         const sections = structuredClone((current.revision.payload.sections as Array<Record<string, unknown>>) ?? []);
         let changed = false;
         if (p.slug === "home") {
-          const hero = sections.find((s) => s.type === "image_hero" || s.type === "text_hero");
+          const heroIndex = sections.findIndex((s) => s.type === "image_hero" || s.type === "text_hero");
+          const hero = heroIndex >= 0 ? sections[heroIndex] : undefined;
           if (hero && v.home_subheading !== undefined) {
             hero.subheading = v.home_subheading;
             changed = true;
           }
-          if (hero && hero.type === "image_hero" && v.hero_image !== undefined && assets.get(v.hero_image)) {
-            hero.imageAssetId = assets.get(v.hero_image);
-            changed = true;
+          if (hero && v.hero_image !== undefined && assets.get(v.hero_image)) {
+            if (hero.type === "image_hero") {
+              hero.imageAssetId = assets.get(v.hero_image);
+              changed = true;
+            } else if (capabilitiesFor(site.preset, (await getCurrentSiteConfig(db, site.id))?.config.design).sectionTypes.includes("image_hero")) {
+              // A starter home that opens with words alone (the location business) opens with the picture instead, keeping its words and button.
+              sections[heroIndex] = { id: hero.id, type: "image_hero", heading: hero.heading, subheading: hero.subheading, imageAssetId: assets.get(v.hero_image), ctaLabel: hero.ctaLabel, ctaPath: hero.ctaPath, appearance: hero.appearance };
+              changed = true;
+            }
           }
           const intro = sections.find((s) => s.type === "rich_text");
           if (intro && v.home_intro !== undefined) {
