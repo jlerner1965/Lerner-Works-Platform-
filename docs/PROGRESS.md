@@ -144,9 +144,11 @@ deployment until the smoke tests in `docs/LAUNCH-CHECKLIST.md` run.
   recovery did not complete. Fix shipped: `/auth/recovery` also accepts the provider's
   `token_hash` link, which works from any browser; a one-time link generated through the
   admin API replaces the rate-limited email for the owner's first sign-in.
-- Pending: owner sets the password through the one-time link; custom SMTP (Resend) entered in
-  the Supabase dashboard; paid Supabase plan before customer content; production project;
-  long-lived Vercel token; PR #3 merge so `main` carries the hosted tooling.
+- 2026-09-26 Owner set a password through the one-time token-hash link and signed in to
+  staging (reported by the owner; provider shows the password update and a live session).
+- Pending: custom SMTP (Resend) entered in the Supabase dashboard; paid Supabase plan before
+  customer content; production project; long-lived Vercel token; PR #3 merge so `main`
+  carries the hosted tooling; revocation of the credentials shared during setup.
 
 ## Feature ledger
 
