@@ -80,11 +80,10 @@ password?" (Resend SMTP). No customer organization, site or hostname exists yet.
 
 ## Next action
 
-Owner: sign in at `https://app.lernerworksplatform.dev/sign-in` through "Forgot your
-password?" (the recovery email is the first delivery through Resend SMTP; report if it does
-not arrive), then the production checks of `docs/LAUNCH-CHECKLIST.md` section 6 that need
-an owner session (a test site published and served on the demo route, an inquiry delivered
-to the inbox, an invitation); decide the backup routine (the free tier has no provider
+Owner (signed in to production on 2026-09-26): run the production checks of
+`docs/LAUNCH-CHECKLIST.md` section 6 that need an owner session (a test site published and
+served on the demo route, an inquiry delivered to the inbox, an invitation); decide the
+backup routine (the free tier has no provider
 backups: `pnpm backup:local` on a schedule from a workstation, or an accepted gap recorded
 here); decide whether the paused staging project stays or is deleted; revoke the pasted
 Supabase access token in the Supabase dashboard; confirm the sending domain status at
@@ -336,10 +335,13 @@ deployment until the smoke tests in `docs/LAUNCH-CHECKLIST.md` run.
   hostname still answered 200 for under a minute after removal (edge propagation), then 404.
   Production domains: `app.lernerworksplatform.dev` and the vercel.app host only. From now on
   every push to `main` deploys to production.
-- Pending (owner): first production sign-in through "Forgot your password?" (also the first
-  Resend SMTP delivery); owner-session checks (test site, inquiry, invitation); backup
-  routine decision; keep or delete the paused staging project; revocation of the pasted
-  Supabase token; sending domain status confirmed at Resend; pull request for this branch.
+- 2026-09-26 First production sign-in: the owner set a password through "Forgot your
+  password?" and signed in (reported by the owner; the project shows one Auth user with a
+  sign-in at 11:10 UTC, one platform session, one owner membership, no sites). The recovery
+  email was the first delivery through Resend SMTP on production, so the relay works.
+- Pending (owner): owner-session checks (test site, inquiry, invitation); backup routine
+  decision; keep or delete the paused staging project; revocation of the pasted Supabase
+  token; sending domain status confirmed at Resend; pull request for this branch.
 
 ## Feature ledger
 

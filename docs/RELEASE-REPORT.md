@@ -106,10 +106,10 @@ on the free tier in the slot of the paused staging project; readiness report
 `docs/evidence/production/launch-check-2026-09-26.txt`; first owner created), with these
 open items before "live pilot ready":
 
-- The owner's first production sign-in through "Forgot your password?", which is also the
-  first delivery through Resend SMTP (set on production and verified by read-back), and the
-  owner-session checks of the checklist: a test site published and served, an inquiry
-  delivered to the inbox, an invitation.
+- The owner-session checks of the checklist: a test site published and served, an inquiry
+  delivered to the inbox, an invitation. The owner's first production sign-in happened on
+  2026-09-26 through "Forgot your password?", which was also the first delivery through
+  Resend SMTP on production.
 - The backup routine. The free tier has no provider backups and no point-in-time recovery,
   and idle pausing is kept at bay only by the five-minute delivery cron; the owner schedules
   `pnpm backup:local` from a workstation or records the accepted gap. The published free-tier
