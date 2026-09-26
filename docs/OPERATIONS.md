@@ -72,13 +72,15 @@ Auth (`AUTH_PROVIDER=supabase`), which is not verified in this environment.
 The full runbook is `docs/LAUNCH-CHECKLIST.md`. In short: separate staging and production
 Supabase and Vercel projects; `supabase/hosted/0001_application_roles.sql` once per project,
 then `supabase db push` for `supabase/migrations/` (never `supabase/local/`); Supabase Auth
-with sign-ups disabled and `APP_URL/auth/recovery` allowed as a redirect; buckets `private`
-and `public-assets`; Resend with a verified sending domain; the Vercel project with the
-variables in `.env.example`, `CRON_SECRET` for the job endpoints and the Vercel API token for
-domain verification. `pnpm launch:check --env-file <file>` reports readiness without
-printing secrets; `pnpm bootstrap:owner` creates the first owner; the staging smoke tests in
-the checklist are the evidence that the hosted providers work. Outside `APP_ENV=local` the
-application refuses to start unless the hosted providers, https and the job secret are set.
+with sign-ups disabled, `APP_URL/auth/recovery` allowed as a redirect and Resend as the auth
+email sender (`pnpm hosted:auth --project-ref <ref>` sets these through the Management API
+and reads them back); buckets `private` and `public-assets`; Resend with a verified sending
+domain; the Vercel project with the variables in `.env.example`, `CRON_SECRET` for the job
+endpoints and the Vercel API token for domain verification. `pnpm launch:check --env-file
+<file>` reports readiness without printing secrets; `pnpm bootstrap:owner` creates the first
+owner; the staging smoke tests in the checklist are the evidence that the hosted providers
+work. Outside `APP_ENV=local` the application refuses to start unless the hosted providers,
+https and the job secret are set.
 
 ### Hosted authentication
 

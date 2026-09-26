@@ -24,6 +24,9 @@ Resume point for the build. Update after every milestone and before any context 
 
 ## Last verified results
 
+- 2026-09-26 (hosted auth tool) `pnpm lint`, `pnpm typecheck` clean; `pnpm test` 51 passed
+  (adds `pnpm hosted:auth` argument parsing, change-set validation, Management API calls
+  with an injected fetch, redaction and read-back verification).
 - 2026-09-26 (launch readiness) `pnpm test` 44 passed (adds GoTrue, Supabase Storage, Vercel
   and Resend adapter tests with an injected fetch, hosted configuration validation, job
   authorization); `pnpm test:integration` 42 passed (adds platform sessions, domain workflow
@@ -67,22 +70,29 @@ Resume point for the build. Update after every milestone and before any context 
 
 ## Current task
 
-Hosted staging is set up and verified (see "Hosted setup log"); the owner has signed in.
-The production environment is prepared as far as it can be without a production Supabase
-project: the Vercel project `lerner-works-platform` exists with `app.lernerworksplatform.dev`
-attached and its non-database configuration set. It is not linked to the repository and
-has no deployment, so nothing is served on that hostname yet.
+Production is live. The Vercel project `lerner-works-platform` is linked to the repository
+with `main` as production branch and serves `main` (commit `7f4caf7`, the commit staging's
+smoke tests passed) at `https://app.lernerworksplatform.dev` against the Supabase project
+`lerner-works-platform-production` (`fvpooyxkuvltjzjbevxf`, free tier, in the slot of the
+paused and retired staging project). The first owner account (the owner's address,
+organization "Lerner Works") exists; the owner sets a password through "Forgot your
+password?" (Resend SMTP). No customer organization, site or hostname exists yet.
 
 ## Next action
 
-Owner: create the production Supabase project in the Supabase dashboard (the access token
-shared during setup can neither list organizations nor create projects), enter the Supabase
-Auth SMTP settings for staging, choose the Supabase plan, make `main` the default branch and
-provide long-lived provider tokens through the build environment's secrets, never in chat.
-Then: `pnpm db:migrate --project-ref <prod>`, `pnpm hosted:roles --project-ref <prod>`, auth
-settings and buckets, the remaining production variables, repository link, deployment,
-`pnpm launch:check`, `pnpm bootstrap:owner`, and the smoke tests against production
-(`docs/LAUNCH-CHECKLIST.md` section 7).
+Owner (signed in to production on 2026-09-26; test site published, invitation sent): finish
+the production checks of `docs/LAUNCH-CHECKLIST.md` section 6: add your address as an
+inquiry recipient on the test site (Settings → Contact), submit the public contact form at
+`/demo/aragosan/contact` and confirm the inbox shows it delivered, and accept the pending
+invitation from its email; decide the
+backup routine (the free tier has no provider
+backups: `pnpm backup:local` on a schedule from a workstation, or an accepted gap recorded
+here); decide whether the paused staging project stays or is deleted; revoke the pasted
+Supabase access token in the Supabase dashboard; confirm the sending domain status at
+Resend; open or approve the pull request that brings this branch's documentation and
+tooling into `main` (a push to `main` deploys to production; the branch changes docs and
+scripts only). Then the customer work of section 7: organization and site with approved real
+content, the customer's hostname and DNS, activation and go-live, one pilot at a time.
 
 ## Restore rehearsal (OPS-02) — 2026-09-26
 
@@ -174,9 +184,176 @@ deployment until the smoke tests in `docs/LAUNCH-CHECKLIST.md` run.
   recovery fix and the later log entries were pushed; those commits and this entry go to
   `main` through a follow-up pull request. `main` is not yet the default branch (a
   repository setting the owner changes).
-- Pending (owner): Supabase Auth SMTP through Resend entered in the dashboard (a Resend key
-  the owner creates there); Supabase plan; production Supabase project; long-lived Vercel
-  token on both projects; revocation of the pasted Supabase token; default branch `main`.
+- 2026-09-26 Long-lived Vercel token: the session started to set `VERCEL_API_TOKEN` on both
+  Vercel projects and redeploy staging, but no token variable was present in the build
+  environment (`VERCEL_API_TOKEN` and `VERCEL_TOKEN` were both unset/empty), so nothing
+  was sent to Vercel: no environment variable was written on either project, no deployment
+  was created, and the domain check (`tokencheck.lernerworksplatform.dev`) was not run. The
+  staging project's `VERCEL_API_TOKEN` still holds the owner's 24-hour token, which was
+  revoked earlier the same day, so registering a hostname from the staging dashboard fails
+  until it is replaced. The session's own environment ("Aragonite Soil 2") is one of three
+  the owner has; the token must be saved in that one, under exactly that name, and the
+  step is repeated from a fresh session.
+- 2026-09-26 Long-lived Vercel token set (05:09–05:11 UTC). The owner saved a manual,
+  team-scoped Vercel token (team ARProject, no expiry) in the build environment as
+  `VERCEL_API_TOKEN`; the session verified it read-only first (`/v5/user/tokens/current`,
+  `/v2/teams`). The staging project's existing `VERCEL_API_TOKEN` variable was updated in
+  place (sensitive, production + preview targets; its previous value had last been changed
+  from the owner's account at 04:48 UTC) and `VERCEL_API_TOKEN` was created on the
+  production project (sensitive, production target only, matching its other variables).
+  Staging was redeployed from `main` (commit `7f4caf7`, deployment
+  `dpl_6Z8ZtGJfF1kVbgRLo16K8Dv1wTwK`, READY after 32 s, now the project's production
+  deployment behind `staging.lernerworksplatform.dev`); `/healthz` answers
+  `{"ok":true,"database":"reachable"}` and `/app` redirects to sign-in. Domain check with
+  the new token through the application's own Vercel adapter (`VercelDomainProvider` with
+  the staging project and team ids, run from the build environment):
+  `tokencheck.lernerworksplatform.dev` was registered and reported verified and configured
+  (`configuredBy: A`; the zone is on Vercel DNS), served `/healthz` 200 from the new
+  deployment, was removed, and was then reported as not registered; the hostname answers
+  404 again. Not run: the same workflow from the staging dashboard, which needs an owner
+  session (smoke test 6 covers it with owner credentials). The production project remains
+  unlinked and without a deployment. No token value was printed, logged or committed.
+- 2026-09-26 The remaining owner items were attempted from the build environment later the
+  same day; all five are BLOCKED here. The environment holds no Supabase or Resend
+  credential (only `VERCEL_API_TOKEN`), so Supabase Auth SMTP, the production Supabase
+  project and the Supabase plan could not be touched; the plan is a billing decision (no
+  price is quoted here); the pasted Supabase access token can only be revoked in the
+  Supabase dashboard; the repository's default branch is still `claude/new-session-ywlx40`
+  (remote HEAD) and the session's GitHub tools cannot change repository settings, so the
+  owner sets it in GitHub → Settings → General → Default branch. Prepared instead:
+  `pnpm hosted:auth --project-ref <ref>` sets Supabase Auth's site URL, redirect
+  allow-list, sign-ups and Resend SMTP (`smtp.resend.com:465`, user `resend`, key from
+  `AUTH_SMTP_RESEND_API_KEY`) through the Management API, reads the settings back and
+  verifies them (`--show`, `--dry-run`), and `pnpm launch:check --project-ref` reports
+  the auth email sender. Field names were checked against the published OpenAPI document
+  of `api.supabase.com`; lint, typecheck and 51 unit tests pass (6 new, injected fetch);
+  the command has not run against a live project. A next run needs, in the cloud
+  environment's secrets: `SUPABASE_ACCESS_TOKEN` (a personal access token of an owner of
+  the Supabase organization, able to list organizations and create projects) and
+  `AUTH_SMTP_RESEND_API_KEY` (a sending-only Resend key restricted to
+  `lernerworksplatform.dev`). Staging then takes `pnpm hosted:auth --project-ref
+  pgnffhnlgxqpsvgloshz --smtp-resend --sender notifications@lernerworksplatform.dev`;
+  production takes project creation, `pnpm db:migrate`, `pnpm hosted:roles`,
+  `pnpm hosted:auth --site-url https://app.lernerworksplatform.dev --redirect
+  https://app.lernerworksplatform.dev/auth/recovery --disable-signups --smtp-resend …`,
+  the buckets, the remaining variables, the repository link and the deployment.
+- 2026-09-26 With `SUPABASE_ACCESS_TOKEN` and a sending-only Resend key (saved by the owner
+  as `ResendToken`) in the build environment, both verified read-only first: the Supabase
+  token lists the organization "jlerner1965's Org" on the **free** plan with three projects
+  (the AragoCor site project, a paused unrelated project and the staging project; the
+  AragoCor project was only listed, never touched); the Resend key is restricted to
+  sending. Staging Auth settings as read back: site URL and redirect allow-list set,
+  sign-ups disabled, no custom SMTP, 2 emails per hour. Then: (1) `pnpm hosted:auth
+  --project-ref pgnffhnlgxqpsvgloshz --smtp-resend --sender
+  notifications@lernerworksplatform.dev --sender-name "Lerner Works Platform"
+  --rate-limit-email-sent 30` was refused by the session's safety check (secret-store
+  writes), so Auth SMTP on staging is **unchanged**; the owner runs that command from a
+  workstation with the two tokens in the environment, or enters the same values in the
+  Supabase dashboard (host `smtp.resend.com`, port 465, user `resend`, password = the
+  Resend key, sender `notifications@lernerworksplatform.dev`). (2) Creating the production
+  project (`POST /v1/projects`, name `lerner-works-platform-production`, region us-east-1)
+  was refused by Supabase: "maximum limits for the number of active free projects …
+  jlerner1965 (2 project limit)"; nothing was created and the generated database password
+  was discarded. The production project therefore waits for the organization's plan (the
+  two free slots are the AragoCor site and staging), a decision and payment the owner makes
+  in the Supabase dashboard.
+- 2026-09-26 The owner made `main` the repository's default branch (remote HEAD now
+  `refs/heads/main`, at `7f4caf7`); the work of this session is on
+  `claude/lucid-darwin-cif2y6`, ahead of `main`, and reaches it through a pull request
+  the owner opens or approves.
+- 2026-09-26 Decision by the owner: no Supabase plan upgrade for now; production takes the
+  staging project's free slot ("Option A": pause staging, create production fresh, retire
+  staging; pre-production checks rely on the local environment and `pnpm verify`; free-tier
+  caveats recorded in the session: idle pausing kept at bay only by the five-minute delivery
+  cron, no provider backups, published size and compute limits). Pausing the staging project
+  through the Management API was refused by the session's safety check (it refuses changes
+  to shared resources), so the owner pauses `Lerner-Works-Platform-`
+  (`pgnffhnlgxqpsvgloshz`) in the Supabase dashboard (Project Settings → General → Pause
+  project). Prepared and waiting for the free slot: creation of `lerner-works-platform-production`
+  (us-east-1) with generated database passwords kept in 0600 files only, then
+  `pnpm db:migrate`, `pnpm hosted:roles`, `pnpm hosted:auth --site-url
+  https://app.lernerworksplatform.dev --redirect …/auth/recovery --redirect …/** --disable-signups`,
+  buckets through the Storage API, the five database and Supabase variables on the
+  production Vercel project, and `pnpm launch:check --env-file --project-ref`. Auth SMTP on
+  production will need the owner's hand as on staging. The first production deployment and
+  the repository link wait for the owner's explicit go-ahead.
+- 2026-09-26 The owner paused the staging project in the dashboard (status INACTIVE). The
+  production Supabase project was then created through the Management API:
+  `lerner-works-platform-production`, ref `fvpooyxkuvltjzjbevxf`, us-east-1, organization
+  "jlerner1965's Org" (free plan), HTTP 201, status ACTIVE_HEALTHY. Its database password
+  was generated in the session and exists only in a 0600 file of the session's scratchpad;
+  if the session ends before it is written into `DATABASE_ADMIN_URL`, the owner resets it
+  in the Supabase dashboard. The build sequence that followed (migrations, `lw_app` role,
+  Auth site URL/redirects/sign-ups, buckets, the five database and Supabase variables on
+  the production Vercel project) was refused as a whole by the session's safety check
+  without a stated reason, so **none of it has run**: the production database is empty, no
+  role, no buckets, Auth at provider defaults, and the production Vercel project still lacks
+  `DATABASE_URL`, `DATABASE_ADMIN_URL`, `SUPABASE_URL`, `SUPABASE_ANON_KEY` and
+  `SUPABASE_SERVICE_ROLE_KEY`. The owner decides how to proceed: allow the action for the
+  session (a permission rule, or a permission mode that asks per action) so the prepared
+  sequence runs, or run `pnpm db:migrate --project-ref fvpooyxkuvltjzjbevxf`,
+  `pnpm hosted:roles --project-ref fvpooyxkuvltjzjbevxf` (with `LW_APP_PASSWORD`) and
+  `pnpm hosted:auth --project-ref fvpooyxkuvltjzjbevxf --site-url
+  https://app.lernerworksplatform.dev --redirect https://app.lernerworksplatform.dev/auth/recovery
+  --redirect 'https://app.lernerworksplatform.dev/**' --disable-signups` from a workstation
+  and create the buckets and variables in the dashboards. `pnpm launch:check` now reports
+  a sending-only Resend key as WARN (the domain status is confirmed at Resend) instead of a
+  false FAIL, since both deployments use sending-only keys by design.
+- 2026-09-26 Production build, after the owner switched the session to a per-action approval
+  mode and approved each step. `pnpm db:migrate --project-ref fvpooyxkuvltjzjbevxf`: 7
+  migrations applied. `pnpm hosted:roles`: `lw_app` login, noinherit, no RLS bypass.
+  `pnpm hosted:auth`: site URL `https://app.lernerworksplatform.dev`, redirect allow-list
+  `…/auth/recovery,…/**`, sign-ups disabled; then custom SMTP `smtp.resend.com:465`, user
+  `resend`, sender `notifications@lernerworksplatform.dev` ("Lerner Works Platform") with the
+  sending-only Resend key, 30 emails per hour; every value read back and verified. Legacy
+  `anon` and `service_role` keys present (the project also has the new publishable/secret
+  keys, unused). Pooler `aws-0-us-east-1.pooler.supabase.com`: `DATABASE_URL` for
+  `lw_app.<ref>` in transaction mode (6543), `DATABASE_ADMIN_URL` for `postgres.<ref>` in
+  session mode (5432). Buckets `private` (private) and `public-assets` (public) created
+  through the Storage API. Vercel project `lerner-works-platform`: `SUPABASE_URL` and
+  `SUPABASE_ANON_KEY` (plain), `SUPABASE_SERVICE_ROLE_KEY`, `DATABASE_URL` and
+  `DATABASE_ADMIN_URL` (sensitive) created for the production target; the generated
+  passwords were deleted from the session afterwards. `pnpm launch:check --env-file
+  --project-ref` on the production variables (placeholders only for `SESSION_SECRET` and
+  `CRON_SECRET`, whose real values stay in Vercel): 23 rows OK, one WARN (the sending-only
+  Resend key cannot read the domain status; the owner confirms it at Resend), READY;
+  `docs/evidence/production/launch-check-2026-09-26.txt`. Not yet done: repository link,
+  deployment, first owner, a delivery test through the relay. Staging stays paused with its
+  test data and never received custom SMTP.
+- 2026-09-26 Production deployed, on the owner's explicit go-ahead. The repository was
+  linked to the Vercel project `lerner-works-platform` (production branch `main`) and `main`
+  (commit `7f4caf7`, the commit staging's smoke tests passed) was deployed:
+  `dpl_BuGsbLzt4HCw1VxD9E446wZRkpgz`, READY within a minute, aliased to
+  `app.lernerworksplatform.dev`; `/healthz` answers `{"ok":true,"database":"reachable"}`
+  through the pooler as the application role, `/` and `/app` redirect to sign-in,
+  `/api/jobs/deliver` answers 401 without and with a wrong secret, both crons registered and
+  enabled. First owner created with `pnpm bootstrap:owner --email … --organization "Lerner
+  Works" --project-ref fvpooyxkuvltjzjbevxf --confirm-hosted`: Supabase Auth account and
+  organization "Lerner Works" (`220f62f3-6ad7-4e8e-a8c8-66b00cff28a1`) with owner membership
+  and audit event; the bootstrap password was random and discarded, the owner sets one
+  through "Forgot your password?". Domain workflow on the production project through the
+  application's Vercel adapter: `launchcheck.lernerworksplatform.dev` registered, reported
+  verified and configured, served `/healthz` 200, removed, reported not registered; the
+  hostname still answered 200 for under a minute after removal (edge propagation), then 404.
+  Production domains: `app.lernerworksplatform.dev` and the vercel.app host only. From now on
+  every push to `main` deploys to production.
+- 2026-09-26 First production sign-in: the owner set a password through "Forgot your
+  password?" and signed in (reported by the owner; the project shows one Auth user with a
+  sign-in at 11:10 UTC, one platform session, one owner membership, no sites). The recovery
+  email was the first delivery through Resend SMTP on production, so the relay works.
+- 2026-09-26 Owner-session checks on production, reported by the owner and verified from the
+  provider without reading personal data: site "Aragosan" (`aragosan`, community guide
+  preset) created, contact settings updated, pages self-approved, candidates built and a
+  release activated; `/demo/aragosan` and its contact page answer 200. One invitation
+  (member role) created and its email received; not yet accepted (one Auth user, one
+  membership). No inquiry exists: zero rows in `inquiries`, `delivery_jobs` and
+  `rate_limit_events`, so no public form submission reached the endpoint, and the site has
+  no inquiry recipients configured (the empty inbox was exported six times). The inquiry
+  check is redone by the owner with a recipient set and then verified here.
+- Pending (owner): inquiry check on production (recipient configured, public form submitted,
+  delivery verified) and acceptance of the pending invitation; backup routine decision; keep
+  or delete the paused staging project; revocation of the pasted Supabase token; sending
+  domain status confirmed at Resend; pull request for this branch.
 
 ## Feature ledger
 
