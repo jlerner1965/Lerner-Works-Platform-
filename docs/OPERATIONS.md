@@ -70,12 +70,61 @@ Auth (`AUTH_PROVIDER=supabase`), which is not verified in this environment.
 6. Check current plan eligibility and prices (Vercel, Supabase, email provider) and report
    them for approval. No free-tier promise is made.
 
+## Notification worker and delivery queue
+
+`pnpm worker:dev` claims due `delivery_jobs` with a two-minute lease (`FOR UPDATE SKIP LOCKED`,
+so two workers never send the same job), sends through the configured provider, and records
+the outcome. Transient failures retry after 1, 5 and 30 minutes (four attempts in total); then
+the job is `failed` and a publisher can re-queue it from the inquiry's detail page. `--once`
+processes a single batch and exits.
+
+- `NOTIFY_PROVIDER=local-sink` writes each message to `NOTIFY_LOCAL_DIR` (`.data/mail`). That
+  proves job processing, not internet email delivery.
+- `NOTIFY_PROVIDER=resend` needs `NOTIFY_RESEND_API_KEY`; provider acceptance is recorded as
+  `provider_accepted`, which is not confirmed delivery (no delivery webhook is configured).
+  Without provider idempotency a network timeout can produce a duplicate notification email;
+  inquiry storage itself is deduplicated by the form token.
+- Hosted mode: run `scripts/worker.ts --once` from an authenticated scheduled endpoint or a
+  job service; verify the platform's scheduler limits before choosing a cadence. A missing
+  worker shows up as jobs stuck in `pending` on the inquiry detail page.
+
+## Retention
+
+`pnpm retention` purges rate-limit counters older than one day and inquiries older than 90
+days (`--days=N` to change). It refuses non-local targets without `--confirm-hosted`. The
+90-day default is a product default that the owner must review before real collection; it is
+not a legal compliance claim.
+
+## Invitations
+
+Owners invite people from Site → Access. The invitation binds the email address and the
+organization, expires after seven days and can be used once; no password is generated or
+sent. Locally the message goes to the notification sink and the link is also shown to the
+owner (local mode only). With Supabase Auth the invitee signs in through the hosted provider
+and then accepts at `/invite/<token>`; that path is unverified in this environment.
+
+## Imports and exports
+
+- CSV import (stores, places, events): upload → automatic column mapping (editable) → dry run
+  with per-row findings and create/update/skip/error counts → confirm. 500 rows / 5 MB caps.
+  Records are matched by `external_id` per site and type; repeated identical imports do not
+  duplicate anything. Imported items are drafts.
+- Site package: owners download a ZIP with content, configuration, redirects, and image
+  derivatives with rights metadata (never passwords, members, inquiries, recipients or
+  domains). Importing validates paths, sizes, checksums and schemas, then creates drafts with
+  new ids; same-slug starter pages are replaced.
+
 ## Backups and restore rehearsal
 
-Site export (Settings → Export) is portability, not disaster recovery. Database backups:
-`pg_dump` of the database (or the provider's backups); storage backups: copy of the
-`.data/storage` tree (or the bucket). The restore rehearsal procedure and its result are
-recorded in `docs/PROGRESS.md` once executed (OPS-02).
+Site export is portability, not disaster recovery.
+
+- `pnpm backup:local` writes `.data/backups/<timestamp>/database.dump` (`pg_dump` custom
+  format) and `storage.tar` (the local storage tree).
+- `pnpm restore:rehearsal .data/backups/<timestamp>` restores the dump into a new local
+  database `lernerworks_restore_test`, unpacks the storage copy, and verifies that every ready
+  asset's derivatives exist. The result is recorded in `docs/PROGRESS.md` (OPS-02).
+- Hosted: use the provider's database backups and bucket versioning; what remains provider
+  dependent is listed in the release report.
 
 ## Content rollback vs application rollback
 

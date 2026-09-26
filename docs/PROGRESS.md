@@ -9,8 +9,8 @@ Resume point for the build. Update after every milestone and before any context 
 | M0 Foundation and setup | DONE (2026-09-25) | App runs, local PostgreSQL bootstrapped, 5 migrations + local auth shim applied, seeded accounts/orgs/sites, sign-in verified over HTTP, unauthorized site read returns 404 with no data. |
 | M1 First complete publishing workflow | DONE (2026-09-26) | Edit → draft → approve → frozen candidate → preview → atomic activation → public demo route, verified by 28 unit, 21 integration and 2 browser tests. |
 | M2 Complete editing and public experiences | DONE (2026-09-26) | All six content kinds editable and rendered; media pipeline with validation and derivatives; two fully populated fictional pilots with original generated artwork; search/filters; settings; site creation; responsive screenshots at 390/768/1440 with no overflow; 28 unit, 25 integration, 6 browser tests. |
-| M3 Operational completion | IN PROGRESS | |
-| M4 Verification and refinement | NOT STARTED | |
+| M3 Operational completion | DONE (2026-09-26) | Review queue, release restore, inquiry inbox + durable notification queue with worker, owner access management with local invitation flow, CSV import with dry run, portable site package export/import, audit log, retention job, backup + restore rehearsal. |
+| M4 Verification and refinement | IN PROGRESS | |
 
 ## Environment blockers (precise)
 
@@ -23,6 +23,10 @@ Resume point for the build. Update after every milestone and before any context 
 
 ## Last verified results
 
+- 2026-09-26 (M3) `pnpm test:integration` 33 passed (adds delivery queue with failing provider
+  and lease exclusivity, invitations, CSV dry run/idempotency, package export→import into a
+  fresh site with matching counts and asset hashes). Worker run against the dev database
+  delivered 2 queued notifications to `.data/mail/`. Invitation flow verified in a browser.
 - 2026-09-26 (M2) `pnpm test` 28 passed; `pnpm test:integration` 25 passed (adds media
   validation); `pnpm test:e2e` 6 passed (publishing loop, access denial, directory filters and
   search, events/hours truthfulness, public inquiry form to inbox, upload rejection/acceptance).
@@ -41,14 +45,23 @@ Resume point for the build. Update after every milestone and before any context 
 
 ## Current task
 
-M3: access management and invitations (local mail sink), notification worker and delivery
-queue, CSV import with dry run, portable site package export/import, audit trail view,
-backup/restore rehearsal, `pnpm verify`.
+M4: full acceptance matrix run with evidence, remaining automated checks (AUTH-06, ROUTE-01,
+META-01, UX-01), 200% zoom review, production build and secret inspection (OPS-03), fresh
+install rehearsal (OPS-01), demonstration script run, release report.
 
 ## Next action
 
-Implement `src/server/inquiries/worker.ts` + `scripts/worker.ts`, then Access management,
-then import/export.
+Write the remaining e2e checks, run `pnpm verify`, then the fresh-install rehearsal.
+
+## Restore rehearsal (OPS-02) — 2026-09-26
+
+`pnpm backup:local` produced `.data/backups/2026-09-26T01-10-47-599Z/` (pg_dump custom
+format + storage tar). `pnpm restore:rehearsal` restored it into a new local database
+`lernerworks_restore_test` with copied storage: 2 sites, 39 items, 4 releases, 26 media
+assets, 2 inquiries restored; 78 of 78 derivatives present, 0 missing. Provider-dependent
+parts before a hosted launch: managed database backups, bucket versioning, and the identity
+provider's user store (local auth users are included in the dump; Supabase Auth users would
+not be).
 
 ## Feature ledger
 
@@ -74,10 +87,12 @@ Columns: working UI · persistent backend · permission checks · tests · exter
 | Inquiry inbox (filters, detail, status, CSV export, delivery status) | yes | tables | RLS (owner/publisher) | e2e LEAD-01 | email provider unconfigured |
 | Media upload / library / metadata / withdraw | yes | ingestion + local storage | RLS + owner withdraw | integration + e2e MEDIA-01 | Supabase Storage adapter unverified |
 | Site settings (brand + contrast, navigation, modules, metadata, contact, domains) | yes | config revisions | publisher/owner; domains owner | integration (config save) | domain verification needs hosting |
-| Access management + invitations UI | no | SQL functions | owner-only | integration AUTH-05/07 | invitation email via local sink |
-| Import/export | no | tables | RLS | — | — |
-| Audit trail | events written | yes | RLS | — | — |
-| Notification worker | no | tables | — | — | local sink |
+| Access management + invitations UI | yes | SQL functions | owner-only | integration AUTH-05/07 + invitations, e2e access.spec | invitation email via local sink; Supabase invite flow unverified |
+| CSV import (templates, mapping, dry run, confirm) | yes | import_jobs + transactions | editor+ | integration PORT-01/02 | — |
+| Site package export/import | yes | ZIP with checksums | owner-only | integration PORT-03 | — |
+| Audit trail view | yes | append-only table | owner/publisher | manual | — |
+| Notification worker + retry + publisher re-queue | inquiry detail | lease-based queue | publisher retry | integration LEAD-02 | local sink; Resend adapter unverified |
+| Retention job, local backup, restore rehearsal | scripts | yes | local-target guard | OPS-02 executed | provider backups for hosted |
 
 ## Usage
 

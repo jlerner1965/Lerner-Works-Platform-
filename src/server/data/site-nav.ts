@@ -11,6 +11,9 @@ export function siteNavSections(ctx: SiteContext): NavSection[] {
   if (cap.canReview || cap.canEdit) items.push({ label: "Reviews", href: `${base}/reviews` });
   if (cap.canViewInquiries) items.push({ label: "Inquiries", href: `${base}/inquiries` });
   if (cap.canPublish) items.push({ label: "Publishing", href: `${base}/publishing` });
+  if (cap.canEdit) items.push({ label: "Import / export", href: `${base}/import` });
   if (cap.canManageSettings) items.push({ label: "Settings", href: `${base}/settings` });
+  if (cap.canManageAccess) items.push({ label: "Access", href: `${base}/access` });
+  if (cap.canPublish) items.push({ label: "Audit log", href: `${base}/audit` });
   return [{ title: ctx.site.name, items }];
 }

@@ -37,7 +37,9 @@ feature ledger; `docs/ACCEPTANCE.md` for the acceptance matrix.
 | `pnpm lint` / `pnpm typecheck` | ESLint / TypeScript |
 | `pnpm test` / `pnpm test:integration` / `pnpm test:e2e` | Unit / database + policy / browser workflows |
 | `pnpm build` / `pnpm start` | Production build / production-mode server |
-| `pnpm verify` | Release gate: runs the documented checks and fails on unmet required ones |
+| `pnpm verify` | Release gate: setup check, lint, typecheck, unit, integration, e2e, build (`--skip-e2e`, `--skip-build` for partial runs) |
+| `pnpm retention` | Purges rate-limit counters (1 day) and inquiries (90 days); refuses non-local targets without `--confirm-hosted` |
+| `pnpm backup:local` / `pnpm restore:rehearsal <dir>` | Local backup and restore rehearsal into a new local database |
 
 All demonstration content is fictional. Pine Hollow Guide and Range Athletics are not real
 businesses, and no live Lerner Works property is touched by this repository.

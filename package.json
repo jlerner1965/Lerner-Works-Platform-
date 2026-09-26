@@ -22,7 +22,10 @@
     "test:e2e": "playwright test",
     "build": "next build",
     "start": "next start",
-    "verify": "tsx scripts/verify.ts"
+    "verify": "tsx scripts/verify.ts",
+    "retention": "tsx scripts/retention.ts",
+    "backup:local": "tsx scripts/backup-local.ts",
+    "restore:rehearsal": "tsx scripts/restore-rehearsal.ts"
   },
   "dependencies": {
     "csv-parse": "7.0.3",
