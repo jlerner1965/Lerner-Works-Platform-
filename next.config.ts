@@ -11,6 +11,9 @@ const nextConfig: NextConfig = {
   // Public media is served from our own asset routes as pre-sized derivatives; the
   // built-in optimizer is not used, so plain <img> elements with explicit sizes are intended.
   images: { unoptimized: true },
+  // The stylesheets are small (Tailwind, ~9 KB in total); inlining them removes a
+  // render-blocking round trip on first visits to the public sites.
+  experimental: { inlineCss: true },
   async headers() {
     return [
       {

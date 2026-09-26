@@ -26,6 +26,8 @@ architecture. Resume from `docs/PROGRESS.md`.
 `pnpm setup:check`, `pnpm db:start`, `pnpm db:migrate`, `pnpm seed:demo`, `pnpm dev`,
 `pnpm worker:dev`, `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm test:integration`,
 `pnpm test:e2e`, `pnpm build`, `pnpm start`, `pnpm verify`. See `docs/OPERATIONS.md`.
+Browser tests build and serve a production bundle in `.next-e2e` (`docs/DECISIONS.md` D-009);
+`E2E_USE_BUILD=0` uses `next dev` for iteration only.
 
 ## Layout
 

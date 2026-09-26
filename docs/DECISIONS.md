@@ -97,3 +97,15 @@ every build depend on network access to Google Fonts. The three OFL typefaces (S
 Source Sans 3, Public Sans) are now bundled as woff2 latin subsets in `src/themes/fonts/` and
 loaded through `next/font/local`, which self-hosts and preloads them. Licenses are recorded in
 `src/themes/fonts/LICENSE.md`.
+
+## D-009 · 2026-09-26 · Browser tests run against a production build
+
+`pnpm test:e2e` builds the application into `.next-e2e` and serves it with `next start`
+(`scripts/e2e-server.ts`). Under `next dev` (Turbopack, on-demand compilation) the ten-step
+demonstration spec failed on two nested dynamic routes (`content/[itemId]/history` and
+`media/[assetId]/file/[variant]`): when such a route was first requested while another route
+was still compiling, the dev router answered 404 without invoking the page or handler and
+kept doing so for the life of that process. The same requests succeed against a fresh
+process and against the production build, whose route table is fixed. The production build
+is also the artifact a release gate should exercise. `E2E_USE_BUILD=0` restores the dev
+server for quick iteration on a single spec; results from that mode are not release evidence.

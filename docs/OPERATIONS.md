@@ -44,6 +44,21 @@ Local demonstration routes: `/demo/pine-hollow` and `/demo/range-athletics`. Das
   `APP_ENV` other than `local`. Seeds never run implicitly; application startup never resets.
 - `pnpm test:integration` and `pnpm test:e2e` reset only the `_test` database.
 
+## Test suites
+
+- `pnpm test` — unit tests (pure functions: hours, events, structured text, canonical JSON,
+  contrast, slugs, host normalization).
+- `pnpm test:integration` — Vitest against the isolated `_test` database: the global setup
+  resets and seeds it, then policies, SQL functions and services are exercised as real users.
+- `pnpm test:e2e` — Playwright. The global setup resets and seeds the `_test` database and
+  clears `.data/test-storage` and `.data/test-mail`; `scripts/e2e-server.ts` then builds the
+  application into `.next-e2e` and serves it with `next start` on port 3100 (see
+  `docs/DECISIONS.md` D-009). `E2E_USE_BUILD=0 pnpm test:e2e` uses `next dev` instead for
+  faster iteration; it is not release evidence. Screenshots written by the demonstration
+  spec land in `docs/evidence/demo/`.
+- `pnpm verify` — the release gate, in order: setup check, lint, typecheck, unit,
+  integration, e2e, production build.
+
 ## Local auth provider
 
 `AUTH_PROVIDER=local` stores bcrypt password hashes and opaque session tokens in the

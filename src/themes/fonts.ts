@@ -3,6 +3,11 @@ import localFont from "next/font/local";
 /**
  * Self-hosted open-licensed typefaces (SIL Open Font License 1.1; see fonts/LICENSE.md).
  * Files are the Google Fonts latin subsets; variable-weight files cover the listed range.
+ *
+ * Fonts are not preloaded: both themes are part of the same public route, and a preload would
+ * make every page download all three families (the retailer pages never use the serif).
+ * Each theme's stylesheet references only its own faces, so the browser fetches them on
+ * first use; metric-adjusted fallbacks keep the swap from shifting layout.
  */
 export const guideSerif = localFont({
   src: [
@@ -11,7 +16,8 @@ export const guideSerif = localFont({
   ],
   variable: "--font-guide-serif",
   display: "swap",
-  preload: true,
+  preload: false,
+  adjustFontFallback: "Times New Roman",
 });
 
 export const guideSans = localFont({
@@ -20,7 +26,8 @@ export const guideSans = localFont({
   ],
   variable: "--font-guide-sans",
   display: "swap",
-  preload: true,
+  preload: false,
+  adjustFontFallback: "Arial",
 });
 
 export const locationsSans = localFont({
@@ -29,5 +36,6 @@ export const locationsSans = localFont({
   ],
   variable: "--font-locations-sans",
   display: "swap",
-  preload: true,
+  preload: false,
+  adjustFontFallback: "Arial",
 });

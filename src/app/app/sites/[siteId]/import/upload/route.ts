@@ -9,18 +9,28 @@ import { dryRunPackage, MAX_PACKAGE_BYTES } from "@/server/import/package";
 
 export const dynamic = "force-dynamic";
 
+/**
+ * Redirects with a relative Location so the browser stays on the origin it used. Building an
+ * absolute URL from `request.url` is wrong here: in production `request.url` carries the
+ * server's own hostname (or an internal proxy hostname), not the host the visitor typed, and
+ * the session cookie would not follow a cross-origin redirect.
+ */
+function redirectTo(path: string): Response {
+  return new Response(null, { status: 303, headers: { Location: path, "Cache-Control": "no-store" } });
+}
+
 /** Uploads a CSV or site package, stores it privately, runs the dry run, and creates the job. */
 export async function POST(request: Request, { params }: { params: Promise<{ siteId: string }> }) {
   const { siteId } = await params;
   const user = await getSessionUser();
-  if (!user) return Response.redirect(new URL("/sign-in", request.url), 303);
+  if (!user) return redirectTo(`/sign-in?next=${encodeURIComponent(`/app/sites/${siteId}/import`)}`);
   const site = request.headers.get("sec-fetch-site");
   if (site && site !== "same-origin") return new Response("Forbidden", { status: 403 });
   const form = await request.formData();
   const file = form.get("file");
   const kind = String(form.get("kind") ?? "");
   const type = String(form.get("type") ?? "csv");
-  const back = (msg: string) => Response.redirect(new URL(`/app/sites/${siteId}/import?error=${encodeURIComponent(msg)}`, request.url), 303);
+  const back = (msg: string) => redirectTo(`/app/sites/${siteId}/import?error=${encodeURIComponent(msg)}`);
   if (!(file instanceof File) || file.size === 0) return back("Choose a file to upload.");
   try {
     const jobId = await withUser(user.id, async (db) => {
@@ -48,7 +58,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ sit
       await getStorage().putPrivate(`${ctx.site.organizationId}/${siteId}/imports/${job!.id}.csv`, new TextEncoder().encode(text), "text/csv");
       return job!.id;
     });
-    return Response.redirect(new URL(`/app/sites/${siteId}/import/${jobId}`, request.url), 303);
+    return redirectTo(`/app/sites/${siteId}/import/${jobId}`);
   } catch (err) {
     return back(err instanceof Error ? err.message : describeDbError(err).message);
   }

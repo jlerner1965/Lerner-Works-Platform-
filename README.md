@@ -20,9 +20,15 @@ pnpm dev             # http://localhost:3000
 pnpm worker:dev      # notification jobs (local sink) in a second terminal
 ```
 
+Local URLs after `pnpm dev`: dashboard `http://localhost:3000/app`, demonstration sites
+`http://localhost:3000/demo/pine-hollow` and `http://localhost:3000/demo/range-athletics`.
+Accounts and their local passwords are written to `docs/local-accounts.md` (git-ignored).
+
 See `docs/OPERATIONS.md` for boundaries, resets, hosting steps and backups;
 `docs/DECISIONS.md` for architecture; `docs/PROGRESS.md` for milestone state and the
-feature ledger; `docs/ACCEPTANCE.md` for the acceptance matrix.
+feature ledger; `docs/ACCEPTANCE.md` for the acceptance matrix; `docs/DEMO.md` for the
+ten-minute demonstration; `docs/RELEASE-REPORT.md` for what is verified locally and what
+hosted readiness still requires. Evidence (screenshots, asset register) is in `docs/evidence/`.
 
 ## Commands
 

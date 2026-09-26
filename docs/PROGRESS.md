@@ -10,7 +10,7 @@ Resume point for the build. Update after every milestone and before any context 
 | M1 First complete publishing workflow | DONE (2026-09-26) | Edit → draft → approve → frozen candidate → preview → atomic activation → public demo route, verified by 28 unit, 21 integration and 2 browser tests. |
 | M2 Complete editing and public experiences | DONE (2026-09-26) | All six content kinds editable and rendered; media pipeline with validation and derivatives; two fully populated fictional pilots with original generated artwork; search/filters; settings; site creation; responsive screenshots at 390/768/1440 with no overflow; 28 unit, 25 integration, 6 browser tests. |
 | M3 Operational completion | DONE (2026-09-26) | Review queue, release restore, inquiry inbox + durable notification queue with worker, owner access management with local invitation flow, CSV import with dry run, portable site package export/import, audit log, retention job, backup + restore rehearsal. |
-| M4 Verification and refinement | IN PROGRESS | |
+| M4 Verification and refinement | DONE (2026-09-26) | Acceptance matrix complete with evidence (38 PASS, 0 FAIL, 0 BLOCKED); ten-step demonstration automated with screenshots; browser suite moved to the production build; production build + secret inspection; Lighthouse lab runs; fresh-install rehearsal; release report in `docs/RELEASE-REPORT.md`. |
 
 ## Environment blockers (precise)
 
@@ -22,6 +22,19 @@ Resume point for the build. Update after every milestone and before any context 
   account or credential exists in this environment. Nothing was faked.
 
 ## Last verified results
+
+- 2026-09-26 (M4) `pnpm test:e2e` 17 passed against the production build (adds the ten-step
+  demonstration in three serial tests with screenshots, keyboard/focus checks, 200% zoom
+  overflow check, host routing/metadata/sitemap and cross-site asset denial). `pnpm lint`,
+  `pnpm typecheck` clean. Two defects found and fixed by the new tests: the upload handler
+  redirected to an absolute URL built from `request.url` (wrong origin under `next start`),
+  and the demo banner was read from the frozen snapshot instead of the render context.
+  Lighthouse 13.5.0 (mobile, simulated throttling, 3 runs each, production build): guide home
+  median performance 96 / accessibility 100 / CLS 0.026 / LCP 2.69 s; store detail 99 / 100 /
+  0.01 / 1.97 s (`docs/evidence/LIGHTHOUSE.md`). Production build clean; client bundle secret
+  scan 0 hits; production headers verified (OPS-03). `pnpm verify` GATE PASSED in 205 s
+  (setup check 1 s, lint 8 s, typecheck 3 s, unit 2 s, integration 21 s, browser 152 s,
+  build 18 s).
 
 - 2026-09-26 (M3) `pnpm test:integration` 33 passed (adds delivery queue with failing provider
   and lease exclusivity, invitations, CSV dry run/idempotency, package export→import into a
@@ -45,13 +58,14 @@ Resume point for the build. Update after every milestone and before any context 
 
 ## Current task
 
-M4: full acceptance matrix run with evidence, remaining automated checks (AUTH-06, ROUTE-01,
-META-01, UX-01), 200% zoom review, production build and secret inspection (OPS-03), fresh
-install rehearsal (OPS-01), demonstration script run, release report.
+All four milestones are done for the local release. Hosted staging remains blocked on
+owner-provided accounts (see "Environment blockers" and `docs/RELEASE-REPORT.md` §5).
 
 ## Next action
 
-Write the remaining e2e checks, run `pnpm verify`, then the fresh-install rehearsal.
+With the owner: create the staging Supabase and Vercel projects and an email provider
+account, then follow `docs/OPERATIONS.md` → "Hosted deployment" and verify the Supabase
+Auth/Storage adapters and the email provider against staging before any customer data.
 
 ## Restore rehearsal (OPS-02) — 2026-09-26
 
@@ -71,25 +85,25 @@ Columns: working UI · persistent backend · permission checks · tests · exter
 |---|---|---|---|---|---|
 | Sign in / sign out (local provider) | yes | yes (local_auth shim) | n/a | e2e AUTH-01 | Supabase Auth adapter unverified |
 | Organization overview + site switcher | yes | yes | RLS | e2e | — |
-| Site overview with real counts, setup checklist | yes | yes | RLS + capability nav | manual | — |
-| Site creation from preset (UI + seed) | yes | yes (`create_site`) | owner-only function | manual | — |
+| Site overview with real counts, setup checklist | yes | yes | RLS + capability nav | e2e demo.spec step 1 | — |
+| Site creation from preset (UI + seed) | yes | yes (`create_site`) | owner-only function | e2e demo.spec step 10 | — |
 | Content list (filters, search, pagination, bulk archive) | yes | yes | RLS | manual | — |
 | Content editor, all six kinds, explicit save, conflicts | yes | yes | RLS | integration DATA-02, e2e | — |
 | Demonstration fixtures: 12 places/6 events/3 articles, 3 stores/4 services, pages, images, draft + pending review + two releases + fixture inquiry | seed + "Load demo content" | yes (normal services) | owner-only, demo sites only | e2e public specs | — |
-| Draft preview and revision history | yes | yes | RLS | manual | — |
+| Draft preview and revision history | yes | yes | RLS | e2e demo.spec step 4 | — |
 | Review submit / comment / request changes / approve; review queue | editor panel + queue | immutable reviews | policy per state | e2e (approve) | — |
 | Candidate build, findings, waivers, frozen preview | yes | yes | publisher-only | integration PUB-01..05, e2e | — |
 | Atomic activation with CAS + idempotency | yes | SQL function | function checks | integration PUB-03/05 | — |
-| Release history and restore | yes | SQL function | function checks | integration PUB-06 | — |
+| Release history and restore | yes | SQL function | function checks | integration PUB-06, e2e demo.spec step 9 | — |
 | Public demo rendering (both themes, all kinds, index/detail/search/filters) | yes | read function | anon grants | e2e UX-03/TIME, integration PUB-08 | — |
-| Live host routing, sitemap, robots | code | read function | anon grants | unit (host normalization) | no verified domain exists |
+| Live host routing, sitemap, robots | code | read function | anon grants | unit (host normalization), e2e routing.spec (test hostnames) | no real verified domain exists |
 | Public inquiry intake (form + endpoint) | yes | `submit_inquiry` | function + RLS | integration LEAD-01/03/04/05 | — |
 | Inquiry inbox (filters, detail, status, CSV export, delivery status) | yes | tables | RLS (owner/publisher) | e2e LEAD-01 | email provider unconfigured |
 | Media upload / library / metadata / withdraw | yes | ingestion + local storage | RLS + owner withdraw | integration + e2e MEDIA-01 | Supabase Storage adapter unverified |
 | Site settings (brand + contrast, navigation, modules, metadata, contact, domains) | yes | config revisions | publisher/owner; domains owner | integration (config save) | domain verification needs hosting |
 | Access management + invitations UI | yes | SQL functions | owner-only | integration AUTH-05/07 + invitations, e2e access.spec | invitation email via local sink; Supabase invite flow unverified |
 | CSV import (templates, mapping, dry run, confirm) | yes | import_jobs + transactions | editor+ | integration PORT-01/02 | — |
-| Site package export/import | yes | ZIP with checksums | owner-only | integration PORT-03 | — |
+| Site package export/import | yes | ZIP with checksums | owner-only | integration PORT-03, e2e demo.spec step 10 | — |
 | Audit trail view | yes | append-only table | owner/publisher | manual | — |
 | Notification worker + retry + publisher re-queue | inquiry detail | lease-based queue | publisher retry | integration LEAD-02 | local sink; Resend adapter unverified |
 | Retention job, local backup, restore rehearsal | scripts | yes | local-target guard | OPS-02 executed | provider backups for hosted |

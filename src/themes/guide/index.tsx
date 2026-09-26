@@ -20,7 +20,7 @@ const formStyles = {
   button: "inline-block bg-(--brand-primary) px-5 py-2.5 font-semibold text-white hover:opacity-90 disabled:opacity-60",
   error: "text-sm text-[#8a2b16]",
   success: "text-base",
-  legend: "text-sm text-(--brand-text)/70",
+  legend: "text-sm text-(--brand-text)/80",
 };
 
 export function GuideLayout({ ctx, children, title }: { ctx: RenderContext; children: ReactNode; title?: string }) {
@@ -33,7 +33,7 @@ export function GuideLayout({ ctx, children, title }: { ctx: RenderContext; chil
       style={{ "--brand-primary": c.primary, "--brand-accent": c.accent, "--brand-bg": c.background, "--brand-text": c.text } as React.CSSProperties}
     >
       <a href="#content" className="skip-link">Skip to content</a>
-      {site.mode === "demo" ? (
+      {ctx.mode === "demo" ? (
         <p className="bg-(--brand-text) px-4 py-1.5 text-center text-xs text-white/90">Demonstration site · {site.name} is fictional; places, events and people are not real.</p>
       ) : null}
       <header className="border-b border-(--brand-text)/15">
@@ -42,7 +42,7 @@ export function GuideLayout({ ctx, children, title }: { ctx: RenderContext; chil
             <a href={href(ctx, "/")} className="font-(family-name:--font-guide-serif) text-3xl font-bold tracking-tight text-(--brand-primary)">
               {config.branding.wordmark}
             </a>
-            {config.branding.tagline ? <p className="mt-0.5 text-sm italic text-(--brand-text)/70">{config.branding.tagline}</p> : null}
+            {config.branding.tagline ? <p className="mt-0.5 text-sm italic text-(--brand-text)/80">{config.branding.tagline}</p> : null}
           </div>
           <nav aria-label="Primary">
             <ul className="flex flex-wrap gap-x-5 gap-y-1 text-[13px] font-semibold uppercase tracking-[0.12em]">
@@ -72,20 +72,20 @@ export function GuideLayout({ ctx, children, title }: { ctx: RenderContext; chil
           </div>
           {config.footer.showContactDetails ? (
             <div className="text-sm">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-white/70">Contact</p>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-white/85">Contact</p>
               {site.contact.email ? <p><a href={`mailto:${site.contact.email}`} className="underline">{site.contact.email}</a></p> : null}
               {site.contact.phone ? <p>{site.contact.phone}</p> : null}
               {site.contact.address ? <p className="mt-1 whitespace-pre-line">{site.contact.address}</p> : null}
             </div>
           ) : null}
           <div className="text-sm">
-            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-white/70">More</p>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-white/85">More</p>
             <ul className="space-y-1">
               {config.footer.links.map((l) => (
                 <li key={l.path}><a href={href(ctx, l.path)} className="underline">{l.label}</a></li>
               ))}
             </ul>
-            <p className="mt-4 text-xs text-white/60">© {year} {config.branding.wordmark}. Release {ctx.releaseVersion}.</p>
+            <p className="mt-4 text-xs text-white/80">© {year} {config.branding.wordmark}. Release {ctx.releaseVersion}.</p>
           </div>
         </div>
       </footer>
@@ -134,7 +134,7 @@ function GuideSection({ ctx, section, first }: { ctx: RenderContext; section: Pa
           {media ? (
             <Picture ctx={ctx} media={media} sizes="(min-width: 768px) 55vw, 100vw" className="aspect-[4/3] w-full object-cover" loading="eager" fetchPriority="high" />
           ) : (
-            <div className="aspect-[4/3] border border-dashed border-(--brand-text)/30 p-6 text-sm text-(--brand-text)/60">No hero image selected yet.</div>
+            <div className="aspect-[4/3] border border-dashed border-(--brand-text)/30 p-6 text-sm text-(--brand-text)/75">No hero image selected yet.</div>
           )}
         </section>
       );
@@ -151,7 +151,7 @@ function GuideSection({ ctx, section, first }: { ctx: RenderContext; section: Pa
       return (
         <section className="mx-auto max-w-3xl">
           {section.heading ? (first ? <h1 className="mb-6 font-(family-name:--font-guide-serif) text-4xl font-bold text-(--brand-primary)">{section.heading}</h1> : <GuideSectionHeading>{section.heading}</GuideSectionHeading>) : null}
-          {section.body.length ? <RichText ctx={ctx} blocks={section.body as Block[]} className="guide-prose" /> : <p className="text-(--brand-text)/60">This section has no text yet.</p>}
+          {section.body.length ? <RichText ctx={ctx} blocks={section.body as Block[]} className="guide-prose" /> : <p className="text-(--brand-text)/75">This section has no text yet.</p>}
         </section>
       );
     case "feature_list":
@@ -159,7 +159,7 @@ function GuideSection({ ctx, section, first }: { ctx: RenderContext; section: Pa
         <section>
           {section.heading ? <GuideSectionHeading>{section.heading}</GuideSectionHeading> : null}
           {section.items.length === 0 ? (
-            <p className="text-(--brand-text)/60">No categories have been added yet.</p>
+            <p className="text-(--brand-text)/75">No categories have been added yet.</p>
           ) : (
             <ul className="grid gap-x-8 sm:grid-cols-2 lg:grid-cols-4">
               {section.items.map((item) => (
@@ -225,7 +225,7 @@ function GuideSection({ ctx, section, first }: { ctx: RenderContext; section: Pa
 export function GuideCollection({ ctx, kind, items, mode }: { ctx: RenderContext; kind: string; items: SnapshotItem[]; mode: string }) {
   if (items.length === 0) {
     const label = kind === "event" ? (mode === "upcoming" ? "No upcoming events are scheduled right now." : "No events have been published yet.") : kind === "place" ? "No places have been published yet." : kind === "article" ? "No articles have been published yet." : "Nothing has been published here yet.";
-    return <p className="text-(--brand-text)/60">{label}</p>;
+    return <p className="text-(--brand-text)/75">{label}</p>;
   }
   if (kind === "event") {
     return (
@@ -268,7 +268,7 @@ export function GuideCollection({ ctx, kind, items, mode }: { ctx: RenderContext
           <p className="text-xs font-semibold uppercase tracking-wider text-(--brand-accent)">Feature</p>
           <h3 className="mt-1 font-(family-name:--font-guide-serif) text-3xl font-bold leading-tight">{leadPath ? <a href={href(ctx, leadPath)} className="hover:underline">{lead.title}</a> : lead.title}</h3>
           <p className="mt-2 text-(--brand-text)/80">{String(lead.payload.summary ?? "")}</p>
-          <p className="mt-2 text-sm text-(--brand-text)/60">By {String(lead.payload.authorName)} · {formatDateOnly(String(lead.payload.publishedOn))}</p>
+          <p className="mt-2 text-sm text-(--brand-text)/75">By {String(lead.payload.authorName)} · {formatDateOnly(String(lead.payload.publishedOn))}</p>
         </article>
         {rest.length ? (
           <ul className="space-y-4 border-t border-(--brand-text)/15 pt-4 md:border-t-0 md:border-l md:pl-8 md:pt-0">
@@ -277,7 +277,7 @@ export function GuideCollection({ ctx, kind, items, mode }: { ctx: RenderContext
               return (
                 <li key={a.id}>
                   <h3 className="font-(family-name:--font-guide-serif) text-lg font-semibold">{p ? <a href={href(ctx, p)} className="hover:underline">{a.title}</a> : a.title}</h3>
-                  <p className="text-sm text-(--brand-text)/70">{formatDateOnly(String(a.payload.publishedOn))}</p>
+                  <p className="text-sm text-(--brand-text)/80">{formatDateOnly(String(a.payload.publishedOn))}</p>
                 </li>
               );
             })}

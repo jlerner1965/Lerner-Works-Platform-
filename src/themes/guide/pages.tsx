@@ -19,7 +19,7 @@ function Facts({ items }: { items: Array<{ term: string; value: React.ReactNode 
     <dl className="grid grid-cols-[max-content_1fr] gap-x-4 gap-y-2 border-y border-(--brand-text)/15 py-4 text-sm">
       {shown.map((i) => (
         <div key={i.term} className="contents">
-          <dt className="font-semibold uppercase tracking-wider text-(--brand-text)/60 text-xs pt-0.5">{i.term}</dt>
+          <dt className="font-semibold uppercase tracking-wider text-(--brand-text)/75 text-xs pt-0.5">{i.term}</dt>
           <dd>{i.value}</dd>
         </div>
       ))}
@@ -122,14 +122,14 @@ export function GuideArticleDetail({ ctx, item }: { ctx: RenderContext; item: Sn
     <article className="mx-auto max-w-3xl">
       <h1 className="font-(family-name:--font-guide-serif) text-4xl font-bold leading-tight text-(--brand-primary)">{item.title}</h1>
       {p.summary ? <p className="mt-3 text-xl text-(--brand-text)/80">{String(p.summary)}</p> : null}
-      <p className="mt-3 text-sm text-(--brand-text)/60">
+      <p className="mt-3 text-sm text-(--brand-text)/75">
         By {String(p.authorName)} · Published {formatDateOnly(String(p.publishedOn))}
         {p.updatedOn ? ` · Updated ${formatDateOnly(String(p.updatedOn))}` : ""}
       </p>
       {img ? (
         <figure className="mt-6">
           <Picture ctx={ctx} media={img} sizes="(min-width: 768px) 720px, 100vw" className="aspect-[16/9] w-full object-cover" loading="eager" fetchPriority="high" />
-          {img.attribution ? <figcaption className="mt-1 text-xs text-(--brand-text)/60">{img.attribution}</figcaption> : null}
+          {img.attribution ? <figcaption className="mt-1 text-xs text-(--brand-text)/75">{img.attribution}</figcaption> : null}
         </figure>
       ) : null}
       <RichText ctx={ctx} blocks={(p.body as Block[]) ?? []} className="guide-prose mt-6" />
@@ -241,7 +241,7 @@ export function GuideSearch({ ctx }: { ctx: RenderContext }) {
             ))}
           </ol>
         ) : null}
-        {q ? <p className="mt-3 text-xs text-(--brand-text)/60">{results.length} result{results.length === 1 ? "" : "s"}</p> : null}
+        {q ? <p className="mt-3 text-xs text-(--brand-text)/75">{results.length} result{results.length === 1 ? "" : "s"}</p> : null}
       </div>
     </div>
   );

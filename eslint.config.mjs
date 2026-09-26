@@ -5,7 +5,7 @@ const config = [
   {
     ignores: [
       ".next/**",
-      ".next-e2e/**",
+      ".next-*/**",
       "node_modules/**",
       ".data/**",
       "test-results/**",

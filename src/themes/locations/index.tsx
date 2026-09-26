@@ -33,7 +33,7 @@ export function LocationsLayout({ ctx, children }: { ctx: RenderContext; childre
       style={{ "--brand-primary": c.primary, "--brand-accent": c.accent, "--brand-bg": c.background, "--brand-text": c.text } as React.CSSProperties}
     >
       <a href="#content" className="skip-link">Skip to content</a>
-      {site.mode === "demo" ? <p className="bg-(--brand-accent) px-4 py-1.5 text-center text-xs font-bold uppercase tracking-wide text-white">Demonstration site · fictional retailer, stores and addresses</p> : null}
+      {ctx.mode === "demo" ? <p className="bg-(--brand-accent) px-4 py-1.5 text-center text-xs font-bold uppercase tracking-wide text-white">Demonstration site · fictional retailer, stores and addresses</p> : null}
       <header className="border-b-4 border-(--brand-primary)">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-8 gap-y-3 px-4 py-4">
           <a href={href(ctx, "/")} className="text-2xl font-extrabold uppercase tracking-tight text-(--brand-primary)">

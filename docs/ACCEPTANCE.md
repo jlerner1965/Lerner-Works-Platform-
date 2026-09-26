@@ -12,7 +12,7 @@ state the evidence was produced at; re-run the suites listed in `pnpm verify` fo
 | AUTH-03 | Editor calls publish endpoint manually | PASS | integration isolation.test: editor activate → denied, pointer update → 42501 | M1 |
 | AUTH-04 | Change tenant/site IDs in create and relationship payloads | PASS | integration isolation.test: mismatched organization/site ids rejected by policy | M1 |
 | AUTH-05 | Revoke an active user's membership | PASS | integration isolation.test + e2e access.spec: removed membership → 404 on the next request of a live session | M3 |
-| AUTH-06 | Request another site's private upload or preview asset | NOT RUN | | |
+| AUTH-06 | Request another site's private upload or preview asset | PASS | e2e routing.spec: anonymous → 401; editor A → 404 for site B's private derivative, preview asset and preview render (no bytes); owner → 200 `image/webp` with `Cache-Control: private` | M4 |
 | AUTH-07 | Attempt self-promotion or last-owner removal | PASS | integration isolation.test + e2e access.spec (last-owner controls disabled and explained) | M3 |
 | DATA-01 | Save content and restart application | PASS | integration publishing.test: revision persists; demo flow re-read after restart of dev server (manual) | M1 |
 | DATA-02 | Two editors save from the same original version | PASS | integration publishing.test: stale save → conflict with latest payload, no write | M1 |
@@ -25,11 +25,11 @@ state the evidence was produced at; re-run the suites listed in `pnpm verify` fo
 | PUB-06 | Restore historical release | PASS | integration publishing.test: restore creates new release; drafts and inquiries survive | M1 |
 | PUB-07 | Fail asset preparation or transactional activation | PASS | integration media-releases.test: missing derivative → assets_failed, prior release active, candidate stays ready, retry succeeds after repair | M3 |
 | PUB-08 | Try public read of candidate/revision tables | PASS | integration isolation.test: anon select on revisions/candidates/releases → 42501 | M1 |
-| ROUTE-01 | Unknown host or unverified live domain | PASS | manual curl: unknown Host → 404; /host/* on app host → 404 (proxy) | M1 |
+| ROUTE-01 | Unknown host or unverified live domain | PASS | e2e routing.spec: unknown Host → 404 without site names; `/host/*` on the app host → 404; pending (unverified) domain → 404; verified canonical domain serves the site, alias host → 308 to canonical | M4 |
 | ROUTE-02 | Alternate identical paths across sites and sessions | PASS | integration publishing.test: same slug resolves to each site's own item | M1 |
 | ROUTE-03 | Change a slug then publish | PASS | integration publishing.test: slug change publishes redirect without loop | M1 |
-| UX-01 | Keyboard through menus, dialog, form, and editor | NOT RUN | | |
-| UX-02 | Render at 390, 768, and 1440 pixels and 200% zoom | PASS | screenshot pass at 390/768/1440 (docs/evidence/screenshots), scrollWidth check: no overflow; 200% zoom check pending (M4) | M2 |
+| UX-01 | Keyboard through menus, dialog, form, and editor | PASS | e2e keyboard.spec: mobile navigation drawer opens with Enter, focus moves inside, Escape closes and returns focus to the Menu button; public form error summary receives focus; skip link is the first tab stop; editor sections reorder with Move up/Move down via keyboard | M4 |
+| UX-02 | Render at 390, 768, and 1440 pixels and 200% zoom | PASS | screenshot pass at 390/768/1440 (docs/evidence/screenshots), scrollWidth check: no overflow (M2); e2e keyboard.spec: 200% zoom equivalent (720 CSS px viewport, DPR 2) shows no horizontal overflow on 6 public and 4 dashboard pages (M4) | M4 |
 | UX-03 | Search with no matches and clear filters | PASS | e2e public.spec: category filter survives reload, back restores, no-results state, Clear resets | M2 |
 | TIME-01 | Holiday, overnight hours, unknown hours, closure | PASS | unit hours.test + e2e public.spec (temporarily closed store shows no Open now; unknown hours shown as not published; hours table) | M2 |
 | TIME-02 | Event at midnight and daylight-saving boundary | PASS | unit events.test + e2e public.spec (cancelled label, zone abbreviation, past filter, overnight event range) | M2 |
@@ -45,5 +45,5 @@ state the evidence was produced at; re-run the suites listed in `pnpm verify` fo
 | PORT-03 | Export A and import into blank C | PASS | integration import-export.test: export A → import into fresh site C; counts, venue reference, text and asset SHA-256 match; no users/secrets; tampered package refused | M3 |
 | OPS-01 | Fresh install from README and lockfile | NOT RUN | | |
 | OPS-02 | Database/storage restore rehearsal | PASS | pnpm backup:local + pnpm restore:rehearsal: 2 sites/39 items/4 releases/26 media/2 inquiries restored; 78/78 derivatives present (see PROGRESS.md) | M3 |
-| OPS-03 | Production build and secret inspection | NOT RUN | | |
-| META-01 | Inspect preview, demo, canonical pages, sitemap, and 404 | NOT RUN | | |
+| OPS-03 | Production build and secret inspection | PASS | `next build` succeeds (2 benign tracing warnings); 37 client files scanned for all `.env` secret values and privileged literals: 0 hits; production headers verified (`docs/RELEASE-REPORT.md` §4); Lighthouse lab runs recorded in `docs/evidence/LIGHTHOUSE.md` | M4 |
+| META-01 | Inspect preview, demo, canonical pages, sitemap, and 404 | PASS | e2e routing.spec: demo pages carry `X-Robots-Tag: noindex` and `<meta name="robots" content="noindex">`, no demo sitemap, app robots.txt disallows all, dashboard responses noindex; live domain: canonical link to `https://<canonical>/…`, `index, follow`, sitemap lists content routes but not `/search`, robots.txt names the sitemap; unknown demo path → 404 | M4 |

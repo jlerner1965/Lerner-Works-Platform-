@@ -35,7 +35,7 @@ export default defineConfig({
     command: "pnpm exec tsx scripts/e2e-server.ts",
     url: `${baseURL}/healthz`,
     reuseExistingServer: !process.env.CI,
-    timeout: 180_000,
+    timeout: 420_000,
     stdout: "pipe",
     stderr: "pipe",
   },
