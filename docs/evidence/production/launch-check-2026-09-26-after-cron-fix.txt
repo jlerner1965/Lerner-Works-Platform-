@@ -1,0 +1,38 @@
+pnpm launch:check --env-file <production variables> --project-ref fvpooyxkuvltjzjbevxf
+Run on 2026-09-26 at about 13:09 UTC from the build environment, after pull request #6
+(job endpoints exempt from host routing; Deployment Protection limited to preview
+deployments) was merged and production redeployed (deployment
+lerner-works-platform-bpnw1ldik-arp-roject.vercel.app, commit 9b72435). The env file held
+the production values from Vercel plus the Supabase keys; DATABASE_URL, DATABASE_ADMIN_URL,
+SESSION_SECRET and CRON_SECRET were check-only placeholders (their real values stay in
+Vercel; the database checks run through the Management API), and NOTIFY_RESEND_API_KEY was
+the sending-only Resend key. The file was deleted after the run. The same report run before
+the fix showed the "Cron target" row as FAIL with a 404. Output verbatim:
+
+Launch readiness
+OK    Environment             APP_ENV=production
+OK    Configuration           valid for production: auth=supabase, storage=supabase, notify=resend
+OK    Application URL         https://app.lernerworksplatform.dev
+OK    Application host        app.lernerworksplatform.dev
+OK    Database (managed)      fvpooyxkuvltjzjbevxf: PostgreSQL 17.6 on x86_64-pc-linux-gnu
+OK    Elevated role           postgres bypasses row-level security
+OK    Migrations              7 applied
+OK    Local auth shim         absent, as required
+OK    Row-level security      enabled on every public table
+OK    Session table           not reachable by anon/authenticated
+OK    Application role        lw_app: login, no inheritance, no RLS bypass, member of anon/authenticated, no direct table access
+OK    Session functions       executable by the application role
+OK    Demonstration accounts  none
+OK    Sites                   1 active, 0 live
+OK    Auth email sender       custom SMTP through smtp.resend.com:465 as notifications@lernerworksplatform.dev (Lerner Works Platform); 30 emails/hour
+OK    Identity provider       Supabase Auth reachable
+OK    Public sign-ups         disabled (invite-only onboarding)
+OK    Service role key        present (server only)
+OK    Private bucket          private private
+OK    Public bucket           public-assets public
+WARN  Notifications           the key is sending-only, so the status of the sending domain lernerworksplatform.dev cannot be read from here; confirm it at Resend (a read needs a full-access key)
+OK    Scheduled jobs          job secret configured for /api/jobs/deliver and /api/jobs/retention
+OK    Cron schedule           /api/jobs/deliver (*/5 * * * *); /api/jobs/retention (17 3 * * *) — plan limits decide the effective cadence
+OK    Domain provider         Vercel project lerner-works-platform reachable
+OK    Cron target             lerner-works-platform-bpnw1ldik-arp-roject.vercel.app/api/jobs/deliver answers 401 without the secret: reachable for Vercel Cron
+READY on these checks. Complete the smoke tests in docs/LAUNCH-CHECKLIST.md before announcing.
