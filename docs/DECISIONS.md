@@ -142,3 +142,24 @@ the job secret, and it rejects the development-only providers. A hosted deployme
 local disk store or the local mail sink would look healthy while losing uploads and sending
 no email; failing fast at startup and reporting it in `pnpm launch:check` keeps that from
 being mistaken for a working launch.
+
+## D-013 · 2026-09-26 · Embeds: click-to-load video, map links, nothing else
+
+Third-party embeds load scripts and cookies before a visitor has done anything, which costs
+performance and privacy and widens the security surface. The platform therefore offers two
+curated section types and no general embed: a **video** section for YouTube (privacy-enhanced
+host) and Vimeo (do-not-track) that renders a poster from the platform's own media pipeline
+and injects the player iframe only after the visitor activates it; and a **map link** section
+that renders a directions button to the map provider built from an owner-approved address, with
+no tiles or iframe on the page. Social embeds, arbitrary iframes and scripts stay unsupported.
+
+## D-014 · 2026-09-26 · Design is agency-operated content, expressed in fixed vocabularies
+
+Design settings (tokens, theme, section variants, focal points) are part of the immutable
+site configuration revisions, frozen into release snapshots and rendered only from releases,
+so a design change is published, checked and restorable like content. Design controls are
+available to organization owners (the agency) and, per site and only when the agency switches
+it on, to site publishers; editors and reviewers never see them. Flexibility comes from
+enumerated tokens, variants and section types validated on write and before publication, never
+from user-supplied HTML, CSS or scripts (D-006 stands). Every schema change bumps the snapshot
+version and keeps earlier releases rendering unchanged. See `docs/DESIGN-PLAN.md`.

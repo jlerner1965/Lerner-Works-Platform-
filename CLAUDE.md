@@ -1,7 +1,8 @@
 # Lerner Works Platform — working notes for Claude Code
 
 The full specification is `docs/Lerner-Works-Platform-Build-Guide.md`. Read it before changing
-architecture. Resume from `docs/PROGRESS.md`.
+architecture. Resume from `docs/PROGRESS.md`. The design flexibility programme (phases D0–D3)
+is planned in `docs/DESIGN-PLAN.md`.
 
 ## Non-negotiable boundaries
 

@@ -12,6 +12,11 @@ Resume point for the build. Update after every milestone and before any context 
 | M3 Operational completion | DONE (2026-09-26) | Review queue, release restore, inquiry inbox + durable notification queue with worker, owner access management with local invitation flow, CSV import with dry run, portable site package export/import, audit log, retention job, backup + restore rehearsal. |
 | Launch readiness (post-M4) | DONE (2026-09-26); staging verified the same day (see the hosted setup log) | Supabase Auth provider with platform sessions, invitations and password recovery; Supabase Storage provider; scheduled job endpoints + `vercel.json`; domain registration/verification/activation via the Vercel API and explicit go-live; hosted configuration enforcement; `pnpm launch:check`; `pnpm bootstrap:owner`; `docs/LAUNCH-CHECKLIST.md`. Provider adapters are unit-tested against recorded API shapes only. |
 | M4 Verification and refinement | DONE (2026-09-26) | Acceptance matrix complete with evidence (38 PASS, 0 FAIL, 0 BLOCKED); ten-step demonstration automated with screenshots; browser suite moved to the production build; production build + secret inspection; Lighthouse lab runs; fresh-install rehearsal; release report in `docs/RELEASE-REPORT.md`. |
+| Production (hosted) | DONE (2026-09-26) | Production Supabase and Vercel projects configured and deployed; owner signed in; inquiries stored and delivered by Vercel Cron after the routing fix; readiness report green (see the hosted setup log). |
+| D0 Identity completeness | PLANNED | Design programme phase 0 (`docs/DESIGN-PLAN.md`): logo, typography preset, tokenised colours with a complete contrast gate, per-site favicon/share image/title/language, editable index copy, inquiries switch enforced. |
+| D1 Bounded design options | PLANNED | Site-level design options, section variants and appearance, new section types (FAQ, quotes, CTA, gallery, facts, video, map link), media focal point, rich text emphasis, snapshot version bump with rendering-hash test. |
+| D2 Theme catalogue and design preview | PLANNED | Theme registry with capability declarations, one more composition per preset, theme switching per site, design preview of the draft configuration, more typography presets. |
+| D3 Visual in-context editing | PLANNED | Editable preview with keyboard-equivalent reordering, side-panel forms on the same schemas, live tokens, explicit save; same review and publication path. |
 
 ## Environment blockers (precise)
 
@@ -85,6 +90,12 @@ Vercel Cron on their own (verified 13:10 UTC after the cron fix). The readiness 
 green on the live deployment. No customer organization, site or hostname exists yet.
 
 ## Next action
+
+Next build stage: the design flexibility programme in `docs/DESIGN-PLAN.md` (decided
+2026-09-26: design first, to full depth, agency-operated; embeds per D-013). Start with phase
+D0 on the owner's go, on a branch, with `pnpm verify`, screenshots and the acceptance rows
+DES-01 to DES-05; the plan's open points (fonts, video providers, delegation default) can be
+answered along the way.
 
 Owner: accept the pending invitation from its email (the last owner-session check of
 `docs/LAUNCH-CHECKLIST.md` section 6); decide the backup routine (the free tier has no
