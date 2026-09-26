@@ -1,0 +1,215 @@
+import { kindRegistry, routeFor, type ContentKind } from "@/modules/registry";
+import { collectLinkTargets, type Block } from "@/lib/richtext";
+import { contrastRatio, formatRatio } from "@/lib/contrast";
+import type { ReleaseSnapshot, SnapshotItem } from "@/server/publishing/snapshot";
+import type { BuiltManifest } from "@/server/publishing/manifest";
+
+export interface Finding {
+  severity: "blocker" | "warning";
+  code: string;
+  message: string;
+  itemId?: string;
+  itemTitle?: string;
+  field?: string;
+  /** Dashboard link to fix the finding. */
+  href: string;
+}
+
+export interface ValidationResult {
+  blockers: Finding[];
+  warnings: Finding[];
+}
+
+const MAX_IMAGE_WIDTH = 4000;
+const MAX_IMAGE_BYTES = 2_500_000;
+const VERIFICATION_STALE_DAYS = 365;
+
+/**
+ * Validates the entire resulting site, not only edited records. Blockers prevent activation;
+ * warnings may be waived with a stored reason.
+ */
+export function validateManifest(built: BuiltManifest, opts: { now: Date }): ValidationResult {
+  const { manifest, mediaRows, missingMedia } = built;
+  const siteBase = `/app/sites/${manifest.site.id}`;
+  const blockers: Finding[] = [];
+  const warnings: Finding[] = [];
+  const itemHref = (itemId: string) => `${siteBase}/content/${itemId}`;
+  const settingsHref = `${siteBase}/settings`;
+  const items = Object.values(manifest.items);
+  const routePaths = new Set(manifest.routes.map((r) => r.path));
+  const itemById = manifest.items;
+
+  const push = (f: Finding) => (f.severity === "blocker" ? blockers : warnings).push(f);
+
+  // Schema errors and cross-site references.
+  for (const item of items) {
+    const parsed = kindRegistry[item.kind].schema.safeParse(item.payload);
+    if (!parsed.success) {
+      for (const issue of parsed.error.issues.slice(0, 5)) {
+        push({ severity: "blocker", code: "schema", message: `${issue.path.join(".") || "payload"}: ${issue.message}`, itemId: item.id, itemTitle: item.title, field: issue.path.join("."), href: itemHref(item.id) });
+      }
+    }
+  }
+
+  // Required content: a home page.
+  const home = items.find((i) => i.kind === "page" && i.slug === "home");
+  if (!home) push({ severity: "blocker", code: "missing_home", message: "The site has no published home page (a page with slug \"home\").", href: `${siteBase}/content?kind=page` });
+
+  // Duplicate routes.
+  const seen = new Map<string, string>();
+  for (const r of manifest.routes) {
+    const prev = seen.get(r.path);
+    if (prev !== undefined) {
+      const item = r.itemId ? itemById[r.itemId] : undefined;
+      push({ severity: "blocker", code: "duplicate_route", message: `Route ${r.path} is used more than once (${prev} and ${describeRoute(r, itemById)}).`, itemId: r.itemId, itemTitle: item?.title, field: "slug", href: r.itemId ? itemHref(r.itemId) : settingsHref });
+    } else {
+      seen.set(r.path, describeRoute(r, itemById));
+    }
+  }
+
+  // Navigation and footer targets must exist.
+  const navTargets = [...manifest.config.navigation.items.map((n) => ({ ...n, where: "navigation" })), ...manifest.config.footer.links.map((n) => ({ ...n, where: "footer" }))];
+  for (const n of navTargets) {
+    if (!routePaths.has(normalizePath(n.path))) {
+      push({ severity: "blocker", code: "missing_nav_target", message: `${n.where} link "${n.label}" points to ${n.path}, which is not a published route.`, field: n.where, href: settingsHref });
+    }
+  }
+
+  // Redirect loops and collisions.
+  for (const red of manifest.redirects) {
+    if (routePaths.has(red.from)) push({ severity: "blocker", code: "redirect_collision", message: `Redirect from ${red.from} collides with a published route.`, href: `${siteBase}/publishing` });
+    if (!routePaths.has(red.to)) push({ severity: "blocker", code: "redirect_target_missing", message: `Redirect ${red.from} → ${red.to} points to a missing route.`, href: `${siteBase}/publishing` });
+    if (red.from === red.to) push({ severity: "blocker", code: "redirect_loop", message: `Redirect ${red.from} points to itself.`, href: `${siteBase}/publishing` });
+  }
+
+  // Links inside bodies and sections; item references; collections; module dependencies.
+  for (const item of items) {
+    const payload = item.payload;
+    const bodies: Array<{ field: string; blocks: Block[] }> = [];
+    if (Array.isArray(payload.body)) bodies.push({ field: "body", blocks: payload.body as Block[] });
+    if (item.kind === "page") {
+      const sections = (payload.sections as Array<Record<string, unknown>>) ?? [];
+      sections.forEach((s, i) => {
+        const type = s.type as string;
+        const field = `sections.${i}`;
+        if (type === "rich_text" && Array.isArray(s.body)) bodies.push({ field: `${field}.body`, blocks: s.body as Block[] });
+        for (const key of ["ctaPath"]) {
+          const p = s[key];
+          if (typeof p === "string" && p && !routePaths.has(normalizePath(p))) {
+            push({ severity: "blocker", code: "broken_link", message: `Section ${i + 1} links to ${p}, which is not a published route.`, itemId: item.id, itemTitle: item.title, field: `${field}.${key}`, href: itemHref(item.id) });
+          }
+        }
+        if (type === "feature_list") {
+          for (const [j, fi] of ((s.items as Array<{ path?: string; title?: string }>) ?? []).entries()) {
+            if (fi.path && !routePaths.has(normalizePath(fi.path))) {
+              push({ severity: "blocker", code: "broken_link", message: `Feature "${fi.title ?? j + 1}" links to ${fi.path}, which is not a published route.`, itemId: item.id, itemTitle: item.title, field: `${field}.items.${j}.path`, href: itemHref(item.id) });
+            }
+          }
+        }
+        if (type === "content_collection" || type === "location_collection") {
+          const kind: ContentKind = type === "location_collection" ? "store" : (s.kind as ContentKind);
+          const mod = kindRegistry[kind]?.module;
+          if (mod && !manifest.config.modules[mod]) {
+            push({ severity: "blocker", code: "module_disabled_dependency", message: `Section ${i + 1} shows ${kindRegistry[kind].plural.toLowerCase()}, but the ${kindRegistry[kind].plural} module is disabled. Enable the module or remove the section.`, itemId: item.id, itemTitle: item.title, field, href: itemHref(item.id) });
+          }
+          for (const id of (s.itemIds as string[]) ?? []) {
+            const target = itemById[id];
+            if (!target) {
+              push({ severity: "blocker", code: "missing_reference", message: `Section ${i + 1} references an item that is not part of this release (archived, unpublished or from another site).`, itemId: item.id, itemTitle: item.title, field: `${field}.itemIds`, href: itemHref(item.id) });
+            } else if (target.kind !== kind) {
+              push({ severity: "blocker", code: "wrong_kind_reference", message: `Section ${i + 1} references "${target.title}", which is a ${target.kind}, not a ${kind}.`, itemId: item.id, itemTitle: item.title, field: `${field}.itemIds`, href: itemHref(item.id) });
+            }
+          }
+          const mode = s.mode as string;
+          if (mode === "selected" && (((s.itemIds as string[]) ?? []).length === 0)) {
+            push({ severity: "warning", code: "empty_collection", message: `Section ${i + 1} is a selected-items collection with no items chosen.`, itemId: item.id, itemTitle: item.title, field, href: itemHref(item.id) });
+          }
+        }
+        if (type === "inquiry_form" && !manifest.config.modules.inquiries) {
+          push({ severity: "blocker", code: "module_disabled_dependency", message: `Section ${i + 1} is an inquiry form, but the Inquiries module is disabled.`, itemId: item.id, itemTitle: item.title, field, href: itemHref(item.id) });
+        }
+      });
+    }
+    if (item.kind === "event") {
+      const venue = payload.venueItemId as string | null;
+      if (venue && !itemById[venue]) push({ severity: "blocker", code: "missing_reference", message: "The venue references a place that is not part of this release.", itemId: item.id, itemTitle: item.title, field: "venueItemId", href: itemHref(item.id) });
+    }
+    if (item.kind === "store") {
+      for (const sid of (payload.serviceItemIds as string[]) ?? []) {
+        if (!itemById[sid]) push({ severity: "blocker", code: "missing_reference", message: "A listed service is not part of this release (archived or unpublished).", itemId: item.id, itemTitle: item.title, field: "serviceItemIds", href: itemHref(item.id) });
+      }
+      if (payload.weeklyHours === null) push({ severity: "warning", code: "hours_unknown", message: "Weekly hours are unknown; visitors will see \"Hours not published\".", itemId: item.id, itemTitle: item.title, field: "weeklyHours", href: itemHref(item.id) });
+    }
+    for (const body of bodies) {
+      for (const target of collectLinkTargets(body.blocks)) {
+        if (target.startsWith("item:")) {
+          if (!itemById[target.slice(5)]) push({ severity: "blocker", code: "broken_link", message: `A link references an item that is not part of this release.`, itemId: item.id, itemTitle: item.title, field: body.field, href: itemHref(item.id) });
+        } else if (target.startsWith("/")) {
+          if (!routePaths.has(normalizePath(target.split(/[?#]/)[0] ?? target))) push({ severity: "blocker", code: "broken_link", message: `A link points to ${target}, which is not a published route.`, itemId: item.id, itemTitle: item.title, field: body.field, href: itemHref(item.id) });
+        } else if (!/^https:\/\//i.test(target)) {
+          push({ severity: "blocker", code: "unsafe_link", message: `A link uses an unsupported target (${target.slice(0, 40)}). Only same-site paths, item references and https URLs are allowed.`, itemId: item.id, itemTitle: item.title, field: body.field, href: itemHref(item.id) });
+        }
+      }
+    }
+
+    // Metadata and freshness warnings.
+    if (!(payload.metaDescription as string) && !(payload.summary as string)) {
+      push({ severity: "warning", code: "missing_description", message: "No summary or meta description; search engines and listings will show nothing.", itemId: item.id, itemTitle: item.title, field: "summary", href: itemHref(item.id) });
+    } else if (typeof payload.summary === "string" && payload.summary.length > 0 && payload.summary.length < 40) {
+      push({ severity: "warning", code: "short_description", message: "The summary is very short (under 40 characters).", itemId: item.id, itemTitle: item.title, field: "summary", href: itemHref(item.id) });
+    }
+    if ((item.kind === "place" || item.kind === "store") && typeof payload.lastVerifiedOn === "string" && payload.lastVerifiedOn) {
+      const ageDays = (opts.now.getTime() - Date.parse(payload.lastVerifiedOn)) / 86_400_000;
+      if (ageDays > VERIFICATION_STALE_DAYS) push({ severity: "warning", code: "stale_verification", message: `Last verified ${Math.floor(ageDays)} days ago.`, itemId: item.id, itemTitle: item.title, field: "lastVerifiedOn", href: itemHref(item.id) });
+    }
+  }
+
+  // Media: missing/withdrawn assets, required alternative text, licensing, oversized images.
+  for (const m of missingMedia) {
+    const item = m.itemId ? itemById[m.itemId] : undefined;
+    const row = mediaRows.get(m.assetId);
+    const why = !row ? "does not exist in this site" : row.status === "withdrawn" ? "was withdrawn" : "is still processing";
+    push({ severity: "blocker", code: "missing_media", message: `A referenced image ${why}.`, itemId: m.itemId ?? undefined, itemTitle: item?.title, field: m.field, href: m.itemId ? itemHref(m.itemId) : settingsHref });
+  }
+  for (const media of Object.values(manifest.media)) {
+    const href = `${siteBase}/media/${media.id}`;
+    if (!media.decorative && !media.alt.trim()) push({ severity: "blocker", code: "missing_alt", message: `Image "${media.title || media.id.slice(0, 8)}" has no alternative text and is not marked decorative.`, field: "altText", href });
+    if (!media.license.trim()) push({ severity: "blocker", code: "unlicensed_asset", message: `Image "${media.title || media.id.slice(0, 8)}" has no recorded license or rights statement.`, field: "license", href });
+    const w1600 = media.variants.w1600;
+    if (media.width > MAX_IMAGE_WIDTH || (w1600 && w1600.bytes > MAX_IMAGE_BYTES)) push({ severity: "warning", code: "large_image", message: `Image "${media.title || media.id.slice(0, 8)}" is unusually large (${media.width}px wide).`, href });
+  }
+
+  // Brand contrast requirements (text/control contrast per WCAG 2.2 AA, 4.5:1).
+  const c = manifest.config.branding.colors;
+  const checks: Array<{ label: string; fg: string; bg: string }> = [
+    { label: "body text on background", fg: c.text, bg: c.background },
+    { label: "white text on primary buttons", fg: "#ffffff", bg: c.primary },
+    { label: "accent links on background", fg: c.accent, bg: c.background },
+  ];
+  for (const ch of checks) {
+    const ratio = contrastRatio(ch.fg, ch.bg);
+    if (ratio < 4.5) push({ severity: "blocker", code: "contrast", message: `Brand colors fail contrast for ${ch.label}: ${formatRatio(ratio)} (minimum 4.5:1).`, field: "branding.colors", href: settingsHref });
+  }
+  if (!manifest.config.metadata.defaultDescription) push({ severity: "warning", code: "missing_site_description", message: "The site has no default description for search results.", field: "metadata.defaultDescription", href: settingsHref });
+
+  return { blockers, warnings };
+}
+
+function normalizePath(p: string): string {
+  const s = p.split(/[?#]/)[0] ?? "";
+  if (s.length > 1 && s.endsWith("/")) return s.slice(0, -1);
+  return s || "/";
+}
+
+function describeRoute(r: ReleaseSnapshot["routes"][number], items: Record<string, SnapshotItem>): string {
+  if (r.itemId) {
+    const it = items[r.itemId];
+    return it ? `${it.kind} "${it.title}"` : r.itemId;
+  }
+  return r.kind === "index" ? `${r.module} index` : r.kind;
+}
+
+/** Route path for an item in a manifest (helper for UI). */
+export function manifestRouteFor(item: SnapshotItem): string {
+  return routeFor(item.kind, item.slug);
+}
