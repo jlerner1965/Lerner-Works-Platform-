@@ -80,8 +80,8 @@ has no deployment, so nothing is served on that hostname yet.
 
 Owner: upgrade the Supabase organization's plan (the free plan's two active projects are
 the AragoCor site and staging, so the production project cannot be created until then),
-make `main` the default branch (GitHub → Settings → General), revoke the pasted Supabase
-access token in the Supabase dashboard, and set the staging Auth SMTP either by running
+revoke the pasted Supabase access token in the Supabase dashboard, and set the staging
+Auth SMTP either by running
 `AUTH_SMTP_RESEND_API_KEY=… SUPABASE_ACCESS_TOKEN=… pnpm hosted:auth --project-ref
 pgnffhnlgxqpsvgloshz --smtp-resend --sender notifications@lernerworksplatform.dev
 --sender-name "Lerner Works Platform" --rate-limit-email-sent 30` from a workstation (the
@@ -256,10 +256,14 @@ deployment until the smoke tests in `docs/LAUNCH-CHECKLIST.md` run.
   was discarded. The production project therefore waits for the organization's plan (the
   two free slots are the AragoCor site and staging), a decision and payment the owner makes
   in the Supabase dashboard.
+- 2026-09-26 The owner made `main` the repository's default branch (remote HEAD now
+  `refs/heads/main`, at `7f4caf7`); the work of this session is on
+  `claude/lucid-darwin-cif2y6`, ahead of `main`, and reaches it through a pull request
+  the owner opens or approves.
 - Pending (owner): Supabase Auth SMTP through Resend (the prepared command, run from a
   workstation, or the dashboard); Supabase plan (the free plan's two active projects are in
   use, so production needs an upgrade); production Supabase project; revocation of the
-  pasted Supabase token; default branch `main`.
+  pasted Supabase token.
 
 ## Feature ledger
 
