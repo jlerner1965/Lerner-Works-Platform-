@@ -20,6 +20,8 @@ export interface EditorContext {
   related: Partial<Record<"place" | "event" | "article" | "store" | "service" | "page", RelatedItem[]>>;
   assets: AssetOption[];
   routes: string[];
+  /** Theme rendering this site; decides which section types and styles the editor offers. */
+  themeKey: "guide" | "locations";
 }
 
 export type Issues = Record<string, string>;

@@ -14,9 +14,11 @@ import type { HoursException, WeeklyHours } from "@/modules/common";
 import { searchSnapshot } from "@/server/publishing/search";
 import type { Block } from "@/lib/richtext";
 
-const eyebrow = "text-xs font-bold uppercase tracking-wide text-(--brand-muted)";
-const select = "mt-1 rounded-none border border-(--brand-border-strong) bg-(--brand-bg) px-2 py-2 font-normal normal-case tracking-normal text-(--brand-text)";
-const emptyBox = "border border-dashed border-(--brand-border-strong) p-6";
+const h1 = "text-4xl font-extrabold uppercase tracking-tight text-(--section-heading)";
+const eyebrow = "text-xs font-bold uppercase tracking-wide text-(--section-muted)";
+const select = "mt-1 rounded-(--radius) border border-(--brand-border-strong) bg-(--brand-bg) px-2 py-2 font-normal normal-case tracking-normal text-(--brand-text)";
+const emptyBox = "rounded-(--radius) border border-dashed border-(--brand-border-strong) p-6";
+const rule = "border-t-4 border-(--section-heading)";
 
 export function LocationsStoreDetail({ ctx, item }: { ctx: RenderContext; item: SnapshotItem }) {
   const p = item.payload as Record<string, unknown>;
@@ -34,27 +36,27 @@ export function LocationsStoreDetail({ ctx, item }: { ctx: RenderContext; item: 
     <article>
       <div className="grid gap-8 md:grid-cols-[3fr_2fr]">
         <div>
-          <p className="text-xs font-bold uppercase tracking-wide text-(--brand-accent)">Store</p>
-          <h1 className="mt-1 text-4xl font-extrabold uppercase tracking-tight text-(--brand-primary)">{item.title}</h1>
+          <p className="text-xs font-bold uppercase tracking-wide text-(--section-accent)">Store</p>
+          <h1 className={`mt-1 ${h1}`}>{item.title}</h1>
           {status !== "open" ? (
-            <p role="status" className="mt-3 border-l-4 border-(--brand-danger) bg-(--brand-danger-soft) px-4 py-2 font-bold text-(--brand-danger)">
+            <p role="status" className="mt-3 rounded-(--radius) border-l-4 border-(--brand-danger) bg-(--brand-danger-soft) px-4 py-2 font-bold text-(--brand-danger)">
               {status === "temporarily_closed" ? "Temporarily closed" : "Permanently closed"}{p.statusNote ? ` — ${String(p.statusNote)}` : ""}
             </p>
           ) : null}
-          <div className="mt-4 border-t-4 border-(--brand-primary) pt-4">
+          <div className={`mt-4 ${rule} pt-4`}>
             <p className={eyebrow}>Address</p>
             <p className="mt-1 text-lg">{addressLine}<br />{cityLine}</p>
             {canDirections ? (
               <a href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(`${addressLine}, ${cityLine}`)}`} rel="noreferrer" className={`mt-2 ${outlineButton}`}>Directions</a>
             ) : (
-              <p className="mt-2 text-sm text-(--brand-muted)">
-                <span className="inline-block border border-(--brand-border-strong) px-3 py-1 text-(--brand-muted)" aria-disabled="true">Directions unavailable</span>{" "}
+              <p className="mt-2 text-sm text-(--section-muted)">
+                <span className="inline-block rounded-(--radius) border border-(--brand-border-strong) px-3 py-1 text-(--section-muted)" aria-disabled="true">Directions unavailable</span>{" "}
                 {ctx.mode !== "live" ? "This is a demonstration address; directions are disabled because the location is fictional." : "Directions are enabled once the owner approves this address."}
               </p>
             )}
             {p.phone ? <p className="mt-3"><span className={eyebrow}>Phone</span><br /><a href={`tel:${String(p.phone).replace(/[^\d+]/g, "")}`} className="text-lg underline">{String(p.phone)}</a></p> : null}
           </div>
-          <div className="mt-6 border-t-4 border-(--brand-primary) pt-4">
+          <div className={`mt-6 ${rule} pt-4`}>
             <p className={eyebrow}>Hours</p>
             <div className="mt-1"><StoreStatus ctx={ctx} item={item} /></div>
             {hours ? (
@@ -62,7 +64,7 @@ export function LocationsStoreDetail({ ctx, item }: { ctx: RenderContext; item: 
                 <caption className="sr-only">Regular weekly hours</caption>
                 <tbody>
                   {formatWeeklyHours(hours).map((row) => (
-                    <tr key={row.day} className="border-b border-(--brand-border)"><th scope="row" className="py-1 pr-4 text-left font-semibold">{row.day}</th><td className="py-1">{row.text}</td></tr>
+                    <tr key={row.day} className="border-b border-(--section-border)"><th scope="row" className="py-1 pr-4 text-left font-semibold">{row.day}</th><td className="py-1">{row.text}</td></tr>
                   ))}
                 </tbody>
               </table>
@@ -81,12 +83,12 @@ export function LocationsStoreDetail({ ctx, item }: { ctx: RenderContext; item: 
             ) : null}
           </div>
           {services.length ? (
-            <div className="mt-6 border-t-4 border-(--brand-primary) pt-4">
+            <div className={`mt-6 ${rule} pt-4`}>
               <p className={eyebrow}>Services at this store</p>
               <ul className="mt-2 grid gap-2 sm:grid-cols-2">
                 {services.map((s) => {
                   const sp = itemPath(ctx, s);
-                  return <li key={s.id} className="border border-(--brand-border) p-3"><p className="font-bold uppercase tracking-wide">{sp ? <a href={href(ctx, sp)} className="hover:underline">{s.title}</a> : s.title}</p>{s.payload.summary ? <p className="mt-1 text-sm">{String(s.payload.summary)}</p> : null}</li>;
+                  return <li key={s.id} className="rounded-(--radius) border border-(--section-border) p-3"><p className="font-bold uppercase tracking-wide">{sp ? <a href={href(ctx, sp)} className="hover:underline">{s.title}</a> : s.title}</p>{s.payload.summary ? <p className="mt-1 text-sm">{String(s.payload.summary)}</p> : null}</li>;
                 })}
               </ul>
             </div>
@@ -94,7 +96,7 @@ export function LocationsStoreDetail({ ctx, item }: { ctx: RenderContext; item: 
           <RichText ctx={ctx} blocks={(p.body as Block[]) ?? []} className="loc-prose mt-6" />
         </div>
         <div>
-          {img ? <Picture ctx={ctx} media={img} sizes="(min-width: 768px) 40vw, 100vw" className="aspect-[4/3] w-full object-cover" loading="eager" fetchPriority="high" /> : null}
+          {img ? <Picture ctx={ctx} media={img} sizes="(min-width: 768px) 40vw, 100vw" className="aspect-[4/3] w-full rounded-(--radius) object-cover" loading="eager" fetchPriority="high" /> : null}
           {inquiriesEnabled(ctx) ? (
             <div className="mt-6">
               <InquiryForm endpoint={ctx.inquiryEndpoint} heading={`Ask ${item.title}`} intro="" sourcePath={ctx.path} locations={[{ id: item.id, label: item.title }]} locationId={item.id} styles={locFormStyles} />
@@ -113,18 +115,18 @@ export function LocationsServiceDetail({ ctx, item }: { ctx: RenderContext; item
   const img = featuredImage(ctx, item);
   return (
     <article>
-      <p className="text-xs font-bold uppercase tracking-wide text-(--brand-accent)">Service</p>
-      <h1 className="mt-1 text-4xl font-extrabold uppercase tracking-tight text-(--brand-primary)">{item.title}</h1>
+      <p className="text-xs font-bold uppercase tracking-wide text-(--section-accent)">Service</p>
+      <h1 className={`mt-1 ${h1}`}>{item.title}</h1>
       {p.summary ? <p className="mt-3 max-w-2xl text-lg">{String(p.summary)}</p> : null}
-      {img ? <Picture ctx={ctx} media={img} sizes="(min-width: 768px) 720px, 100vw" className="mt-6 aspect-[16/9] w-full max-w-3xl object-cover" /> : null}
+      {img ? <Picture ctx={ctx} media={img} sizes="(min-width: 768px) 720px, 100vw" className="mt-6 aspect-[16/9] w-full max-w-3xl rounded-(--radius) object-cover" /> : null}
       <RichText ctx={ctx} blocks={(p.body as Block[]) ?? []} className="loc-prose mt-6 max-w-3xl" />
       <section className="mt-10">
         <LocRule>Available at</LocRule>
-        {stores.length === 0 ? <p className="text-(--brand-muted)">No published store currently lists this service.</p> : (
+        {stores.length === 0 ? <p className="text-(--section-muted)">No published store currently lists this service.</p> : (
           <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{stores.map((s) => <li key={s.id}><StoreCard ctx={ctx} item={s} /></li>)}</ul>
         )}
       </section>
-      {p.inquiryPrompt && inquiriesEnabled(ctx) ? <p className="mt-8 border-l-4 border-(--brand-accent) bg-(--brand-surface) px-4 py-3">{String(p.inquiryPrompt)} <a href={href(ctx, "/contact")} className="font-bold underline">Send an inquiry</a>.</p> : null}
+      {p.inquiryPrompt && inquiriesEnabled(ctx) ? <p className="mt-8 rounded-(--radius) border-l-4 border-(--section-accent) bg-(--section-panel) px-4 py-3 text-(--section-panel-fg)">{String(p.inquiryPrompt)} <a href={href(ctx, "/contact")} className="font-bold underline">Send an inquiry</a>.</p> : null}
       <p className="mt-8 text-sm"><a href={href(ctx, "/services")} className="underline">← All services</a></p>
     </article>
   );
@@ -144,9 +146,9 @@ export function LocationsIndex({ ctx, kind }: { ctx: RenderContext; kind: Conten
     const copy = indexCopy(ctx, "store", { title: "Locations", intro: `${total} store${total === 1 ? "" : "s"}. Filter by city or by the service you need.` });
     return (
       <div>
-        <h1 className="text-4xl font-extrabold uppercase tracking-tight text-(--brand-primary)">{copy.title}</h1>
+        <h1 className={h1}>{copy.title}</h1>
         <p className="mt-2 max-w-2xl text-lg">{copy.intro}</p>
-        <form method="get" action={href(ctx, "/locations")} className="mt-6 flex flex-wrap items-end gap-3 border-y-4 border-(--brand-primary) py-4 text-sm">
+        <form method="get" action={href(ctx, "/locations")} className="mt-6 flex flex-wrap items-end gap-3 border-y-4 border-(--section-heading) py-4 text-sm">
           <label className="flex flex-col font-bold uppercase tracking-wide">City
             <select name="locality" defaultValue={q.locality ?? ""} className={select}>
               <option value="">All cities</option>
@@ -159,7 +161,7 @@ export function LocationsIndex({ ctx, kind }: { ctx: RenderContext; kind: Conten
               {services.map((s) => <option key={s.id} value={s.id}>{s.title}</option>)}
             </select>
           </label>
-          <button type="submit" className="rounded-none bg-(--brand-primary) px-4 py-2 font-bold uppercase tracking-wide text-(--brand-on-primary)">Filter</button>
+          <button type="submit" className="rounded-(--radius) bg-(--brand-primary) px-4 py-2 font-bold uppercase tracking-wide text-(--brand-on-primary)">Filter</button>
           {active ? <a href={href(ctx, "/locations")} className="underline">Reset</a> : null}
         </form>
         <div className="mt-6" aria-live="polite">
@@ -169,30 +171,32 @@ export function LocationsIndex({ ctx, kind }: { ctx: RenderContext; kind: Conten
             <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{items.map((s) => <li key={s.id}><StoreCard ctx={ctx} item={s} /></li>)}</ul>
           )}
         </div>
-        <p className="mt-6 text-sm text-(--brand-muted)">Looking for a store by distance? Use the city filter; distance sorting is not offered because addresses are only shown, not geocoded.</p>
+        <p className="mt-6 text-sm text-(--section-muted)">Looking for a store by distance? Use the city filter; distance sorting is not offered because addresses are only shown, not geocoded.</p>
       </div>
     );
   }
   const copy = indexCopy(ctx, kind, { title: "Services", intro: "What our stores can do for you. Availability varies by location; each service lists the stores that offer it." });
   return (
     <div>
-      <h1 className="text-4xl font-extrabold uppercase tracking-tight text-(--brand-primary)">{copy.title}</h1>
+      <h1 className={h1}>{copy.title}</h1>
       {copy.intro ? <p className="mt-2 max-w-2xl text-lg">{copy.intro}</p> : null}
-      {items.length === 0 ? <p className={`mt-6 ${emptyBox} text-(--brand-muted)`}>No services have been published yet.</p> : (
-        <ul className="mt-6 grid gap-px bg-(--brand-border) sm:grid-cols-2">
-          {items.map((it) => {
-            const p = itemPath(ctx, it);
-            const count = Object.values(ctx.snapshot.items).filter((s) => s.kind === "store" && ((s.payload.serviceItemIds as string[]) ?? []).includes(it.id)).length;
-            return (
-              <li key={it.id} className="bg-(--brand-bg) p-5">
-                <h2 className="text-lg font-extrabold uppercase tracking-wide">{p ? <a href={href(ctx, p)} className="hover:underline">{it.title}</a> : it.title}</h2>
-                {it.payload.summary ? <p className="mt-2">{String(it.payload.summary)}</p> : null}
-                <p className={`mt-2 ${eyebrow}`}>{count === 0 ? "Not currently offered at a published store" : `${count} store${count === 1 ? "" : "s"}`}</p>
-              </li>
-            );
-          })}
-        </ul>
-      )}
+      <div className="mt-6">
+        {items.length === 0 ? <p className={`${emptyBox} text-(--section-muted)`}>No services have been published yet.</p> : (
+          <ul className="grid gap-px rounded-(--radius) bg-(--section-border) sm:grid-cols-2">
+            {items.map((it) => {
+              const p = itemPath(ctx, it);
+              const count = Object.values(ctx.snapshot.items).filter((s) => s.kind === "store" && ((s.payload.serviceItemIds as string[]) ?? []).includes(it.id)).length;
+              return (
+                <li key={it.id} className="bg-(--section-bg) p-5">
+                  <h2 className="text-lg font-extrabold uppercase tracking-wide">{p ? <a href={href(ctx, p)} className="hover:underline">{it.title}</a> : it.title}</h2>
+                  {it.payload.summary ? <p className="mt-2">{String(it.payload.summary)}</p> : null}
+                  <p className={`mt-2 ${eyebrow}`}>{count === 0 ? "Not currently offered at a published store" : `${count} store${count === 1 ? "" : "s"}`}</p>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
     </div>
   );
 }
@@ -202,27 +206,27 @@ export function LocationsSearch({ ctx }: { ctx: RenderContext }) {
   const results = q ? searchSnapshot(ctx.snapshot, { query: q, now: ctx.now }) : [];
   return (
     <div className="max-w-3xl">
-      <h1 className="text-4xl font-extrabold uppercase tracking-tight text-(--brand-primary)">Search</h1>
+      <h1 className={h1}>Search</h1>
       <form method="get" action={href(ctx, "/search")} role="search" className="mt-4 flex gap-2">
         <label htmlFor="q" className="sr-only">Search stores and services</label>
-        <input id="q" name="q" type="search" defaultValue={q} placeholder="Store, city or service" className="min-w-0 flex-1 rounded-none border border-(--brand-border-strong) bg-(--brand-bg) px-3 py-2 text-(--brand-text)" />
-        <button type="submit" className="rounded-none bg-(--brand-primary) px-4 py-2 font-bold uppercase tracking-wide text-(--brand-on-primary)">Search</button>
+        <input id="q" name="q" type="search" defaultValue={q} placeholder="Store, city or service" className="min-w-0 flex-1 rounded-(--radius) border border-(--brand-border-strong) bg-(--brand-bg) px-3 py-2 text-(--brand-text)" />
+        <button type="submit" className="rounded-(--radius) bg-(--brand-primary) px-4 py-2 font-bold uppercase tracking-wide text-(--brand-on-primary)">Search</button>
         {q ? <a href={href(ctx, "/search")} className="self-center text-sm underline">Clear</a> : null}
       </form>
       <div className="mt-6" aria-live="polite">
         {q && results.length === 0 ? <p className={emptyBox}>No results for “{q}”. Try a city name or browse <a href={href(ctx, "/locations")} className="underline">all locations</a>.</p> : null}
         {results.length ? (
-          <ol className="divide-y divide-(--brand-border) border-t-4 border-(--brand-primary)">
+          <ol className="divide-y divide-(--section-border) border-t-4 border-(--section-heading)">
             {results.map((r) => (
               <li key={r.path} className="py-3">
-                <p className="text-xs font-bold uppercase tracking-wide text-(--brand-accent)">{r.kindLabel}{r.meta ? ` · ${r.meta}` : ""}</p>
+                <p className="text-xs font-bold uppercase tracking-wide text-(--section-accent)">{r.kindLabel}{r.meta ? ` · ${r.meta}` : ""}</p>
                 <a href={href(ctx, r.path)} className="text-lg font-extrabold uppercase tracking-wide hover:underline">{r.title}</a>
                 {r.snippet ? <p className="text-sm">{r.snippet}</p> : null}
               </li>
             ))}
           </ol>
         ) : null}
-        {q ? <p className="mt-3 text-xs text-(--brand-muted)">{results.length} result{results.length === 1 ? "" : "s"}</p> : null}
+        {q ? <p className="mt-3 text-xs text-(--section-muted)">{results.length} result{results.length === 1 ? "" : "s"}</p> : null}
       </div>
     </div>
   );

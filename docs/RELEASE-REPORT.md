@@ -41,6 +41,7 @@ setup check, lint, typecheck, 28 unit tests, 35 integration tests against the is
 | Demonstration | The ten-step script in `docs/DEMO.md` runs end to end through the interface | `tests/e2e/demo.spec.ts`; screenshots in `docs/evidence/demo/` |
 | Launch readiness (repository side) | Hosted configuration enforced at startup; platform sessions for Supabase Auth unreachable by PostgREST roles; invitation account creation and password recovery; Supabase Storage adapter; authenticated job endpoints with a cron schedule; domain register → verify → activate workflow with explicit go-live; readiness report; first-owner bootstrap | unit `hosted-adapters.test`, integration `hosted.test`, e2e `routing.spec` (LAUNCH-01..05, 07); runbook `docs/LAUNCH-CHECKLIST.md` |
 | Identity completeness (design D0) | Logo with wordmark fallback, typography preset, every theme colour derived from the four brand colours with a 15-pairing contrast gate and a literal-colour audit, per-site favicon (asset or generated monogram), share image, titles without the platform name, `lang` per site, editable listing copy, Search link switch, external navigation links, footer layouts, page header image, Inquiries switch enforced at intake | unit `brand-tokens.test`, `publishing.test`; integration `inquiries.test`; e2e `routing.spec` (DES-01..05); screenshots `docs/evidence/screenshots/`; `docs/DESIGN-TOKENS.md` |
+| Bounded design options (design D1) | Site-wide design options (header, hero and card style, radius, density, container, derived-colour overrides) for organization owners, audited; a style and appearance (background band, alignment, width) on every section, validated against the theme's declared vocabulary on save, on import and at publication; seven new section types (FAQ, quotes, call to action, gallery, facts, click-to-load video, map link); media focal points frozen into releases and applied to every crop; bold and italic in rich text; snapshot schema version 3 with older releases normalised at read time and a rendering-hash test over six frozen releases; both pilots re-composed | unit `design-options.test`, `rendering-hash.test`, `richtext.test`; integration `design.test`; e2e `design.spec` (DES-06..09); screenshot comparison of the restored D0-era releases (`scripts/screenshot-diff.ts`); screenshots `docs/evidence/screenshots/`; `docs/DESIGN-TOKENS.md`; decisions D-015, D-016 |
 
 The full matrix with per-row evidence is `docs/ACCEPTANCE.md`.
 
@@ -56,13 +57,19 @@ conditions in `docs/evidence/LIGHTHOUSE.md`):
 | Store detail `/demo/range-athletics/locations/longmont` (M4) | 99 | 100 | 0.01 | 1.97 s | met |
 | Guide home, after design phase D0 (logo and share image added) | 96 | 100 | 0.026 | 2.82 s | missed by 0.32 s (runs 2.19–2.88 s) |
 | Store detail, after design phase D0 | 99 | 100 | 0.011 | 1.87 s | met |
+| Guide home, after design phase D1 (facts, quotations band, call-to-action band) | 96 | 100 | 0.025 | 2.73 s | missed by 0.23 s (runs 2.04–2.82 s) |
+| Store detail, after design phase D1 | 97 | 100 | 0.011 | 2.30 s | met |
+| Retail home, after design phase D1 (full-width hero with focal point, services as cards) | 99 | 100 | 0.006 | 2.06 s | met |
+| Guide about, after design phase D1 (FAQ accordion, gallery) | 98 | 100 | 0.025 | 2.20 s | met |
 
 Performance ≥ 90 and CLS ≤ 0.1 are met on both pages. The guide home's LCP is bounded by the
 simulated first-visit transfer (client runtime and two font files) rather than the hero
 image; reducing it further means trimming client JavaScript on public pages. SEO scores of 66
 are only the crawlability audit failing on purpose: demonstration routes are `noindex`.
 Field Core Web Vitals cannot be claimed from these runs. The public JavaScript baseline
-recorded at D0 is 143 KiB of script transfer per page (`docs/evidence/LIGHTHOUSE.md`).
+recorded at D0 is 143 KiB of script transfer per page, and D1 leaves it at 143 KiB on every
+measured page; the click-to-load video player is part of that client chunk
+(`docs/evidence/LIGHTHOUSE.md`).
 
 ## 4. Production build, secret inspection and fresh install
 

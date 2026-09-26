@@ -1,27 +1,28 @@
-import type { CSSProperties, ReactNode } from "react";
+import type { ReactNode } from "react";
 import type { RenderContext } from "@/themes/shared/types";
 import { href } from "@/themes/shared/types";
 import type { SnapshotItem, SnapshotMedia } from "@/server/publishing/snapshot";
 import type { ContentKind } from "@/modules/registry";
 import { kindRegistry } from "@/modules/registry";
 import { isExternalLink, type IndexModuleKey } from "@/modules/site-config";
-import { brandCssVariables, deriveBrandTokens } from "@/lib/brand-tokens";
 import { typographyPresets } from "@/themes/fonts";
 import { Picture } from "@/themes/shared/picture";
+import { rootVariables } from "@/themes/shared/design";
 
 /**
- * Root element of every public page: derived brand tokens as CSS custom properties, the
- * chosen typography preset as `--font-heading` / `--font-body`, and the site's language.
- * Themes use only these variables; no literal colours or font names live in theme code.
+ * Root element of every public page: derived brand tokens and design scales as CSS custom
+ * properties, the chosen typography preset as `--font-heading` / `--font-body`, and the
+ * site's language. Themes use only these variables; no literal colours or font names live
+ * in theme code.
  */
 export function SiteRoot({ ctx, themeClass, children }: { ctx: RenderContext; themeClass: string; children: ReactNode }) {
   const { branding, metadata } = ctx.snapshot.config;
   const type = typographyPresets[branding.typography] ?? typographyPresets["editorial-serif"];
   const style = {
-    ...brandCssVariables(deriveBrandTokens(branding.colors)),
+    ...rootVariables(ctx),
     "--font-heading": `var(${type.headingVariable})`,
     "--font-body": `var(${type.bodyVariable})`,
-  } as CSSProperties;
+  } as React.CSSProperties;
   return (
     <div lang={metadata.language} className={`lw-site ${themeClass} ${type.classNames} min-h-screen bg-(--brand-bg) text-(--brand-text) font-(family-name:--font-body)`} style={style}>
       {children}
@@ -47,13 +48,13 @@ export function BrandMark({ ctx, imageClass, textClass }: { ctx: RenderContext; 
   const alt = logo.decorative ? "" : logo.alt.trim() || branding.wordmark;
   return (
     <>
-      <Picture ctx={ctx} media={logo} sizes="240px" alt={alt} className={`${imageClass} w-auto max-w-60 object-contain object-left`} loading="eager" />
+      <Picture ctx={ctx} media={logo} sizes="240px" alt={alt} className={`${imageClass} w-auto max-w-60 object-contain object-left`} loading="eager" focal={false} />
       {alt ? null : <span className="sr-only">{branding.wordmark}</span>}
     </>
   );
 }
 
-/** Anchor attributes for a navigation or footer link; external links never leak the referrer. */
+/** Anchor attributes for a navigation, footer or call-to-action link; external links never leak the referrer. */
 export function linkProps(ctx: RenderContext, path: string): { href: string; rel?: string } {
   return isExternalLink(path) ? { href: path, rel: "noreferrer" } : { href: href(ctx, path) };
 }

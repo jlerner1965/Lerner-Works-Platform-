@@ -14,6 +14,8 @@ export interface SiteCapabilities {
   canViewInquiries: boolean;
   canManageAccess: boolean;
   canManageSettings: boolean;
+  /** Design controls (design programme D-014): organization owners; per-site delegation to publishers arrives in D2. */
+  canDesign: boolean;
 }
 
 export interface SiteRow {
@@ -66,6 +68,7 @@ export function computeCapabilities(orgRole: OrgRole | null, siteRole: SiteRole 
     canViewInquiries: isOwner || siteRole === "publisher",
     canManageAccess: isOwner,
     canManageSettings: isOwner || siteRole === "publisher",
+    canDesign: isOwner,
   };
 }
 

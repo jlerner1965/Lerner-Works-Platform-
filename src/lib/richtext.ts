@@ -4,7 +4,8 @@ import { z } from "zod";
  * Restricted structured body content. Stored as JSON blocks; edited as a small line-based
  * markup ("structured text") that cannot carry HTML or scripts. Inline links use
  * [label](target) where target is a same-site path (/about), a stable item reference
- * (item:<uuid>) resolved at render time, or an https URL.
+ * (item:<uuid>) resolved at render time, or an https URL. Inline emphasis uses **bold** and
+ * *italic* (or _italic_); nothing else is interpreted.
  */
 
 export const inlineLinkTargetPattern = /^(?:\/[^\s)]*|item:[0-9a-f-]{36}|https:\/\/[^\s)]+)$/i;
@@ -25,30 +26,54 @@ export type Block = z.infer<typeof blockSchema>;
 export const bodySchema = z.array(blockSchema).max(200);
 
 export interface InlineNode {
-  type: "text" | "link";
+  type: "text" | "link" | "strong" | "em";
   text: string;
   target?: string;
 }
 
 const linkPattern = /\[([^\]]{1,200})\]\(([^)\s]{1,500})\)/g;
+const emphasisPattern = /\*\*([^*\n]{1,500}?)\*\*|\*([^*\n]{1,500}?)\*|(?<![A-Za-z0-9])_([^_\n]{1,500}?)_(?![A-Za-z0-9])/g;
 
-/** Splits paragraph text into text and link nodes. Invalid link targets stay literal text. */
+/** Splits text into plain, bold and italic nodes. Unmatched markers stay literal. */
+export function parseEmphasis(text: string): InlineNode[] {
+  const nodes: InlineNode[] = [];
+  let last = 0;
+  for (const match of text.matchAll(emphasisPattern)) {
+    const [whole, strong, em, em2] = match;
+    const index = match.index ?? 0;
+    if (index > last) nodes.push({ type: "text", text: text.slice(last, index) });
+    if (strong !== undefined) nodes.push({ type: "strong", text: strong });
+    else nodes.push({ type: "em", text: (em ?? em2)! });
+    last = index + whole.length;
+  }
+  if (last < text.length) nodes.push({ type: "text", text: text.slice(last) });
+  return nodes;
+}
+
+/** Splits paragraph text into text, emphasis and link nodes. Invalid link targets stay literal text. */
 export function parseInline(text: string): InlineNode[] {
   const nodes: InlineNode[] = [];
   let last = 0;
   for (const match of text.matchAll(linkPattern)) {
     const [whole, label, target] = match;
     const index = match.index ?? 0;
-    if (index > last) nodes.push({ type: "text", text: text.slice(last, index) });
+    if (index > last) nodes.push(...parseEmphasis(text.slice(last, index)));
     if (target && inlineLinkTargetPattern.test(target)) {
       nodes.push({ type: "link", text: label ?? "", target });
     } else {
-      nodes.push({ type: "text", text: whole });
+      nodes.push(...parseEmphasis(whole));
     }
     last = index + whole.length;
   }
-  if (last < text.length) nodes.push({ type: "text", text: text.slice(last) });
+  if (last < text.length) nodes.push(...parseEmphasis(text.slice(last)));
   return nodes;
+}
+
+/** Text without inline markup (link labels kept, emphasis markers removed). */
+export function inlineToPlainText(text: string): string {
+  return parseInline(text)
+    .map((n) => (n.type === "link" ? parseEmphasis(n.text).map((e) => e.text).join("") : n.text))
+    .join("");
 }
 
 /** Collects every link target used in a body (for publication validation). */
@@ -166,13 +191,11 @@ export function blocksToPlainText(blocks: Block[]): string {
       switch (b.type) {
         case "paragraph":
         case "quote":
-          return parseInline(b.text)
-            .map((n) => n.text)
-            .join("");
+          return inlineToPlainText(b.text);
         case "heading":
           return b.text;
         case "list":
-          return b.items.join(" ");
+          return b.items.map(inlineToPlainText).join(" ");
         case "image":
           return b.caption ?? "";
       }

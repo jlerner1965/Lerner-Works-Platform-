@@ -58,10 +58,34 @@ Local demonstration routes: `/demo/pine-hollow` and `/demo/range-athletics`. Das
   spec land in `docs/evidence/demo/`.
 - `pnpm verify` — the release gate, in order: setup check, lint, typecheck, unit,
   integration, e2e, production build.
-- `pnpm exec tsx scripts/screenshots.ts --base <url>` — responsive screenshot pass over the
-  two pilots (13 public pages × 390/768/1440) into `docs/evidence/screenshots/`; fails on a
-  non-200 response, horizontal overflow or a console error. Run it against a server that
-  serves a database seeded with `pnpm seed:demo` (each design phase re-runs it).
+- `pnpm exec tsx scripts/screenshots.ts --base <url> [--out <dir>]` — responsive screenshot
+  pass over the two pilots (13 public pages × 390/768/1440) into `docs/evidence/screenshots/`;
+  fails on a non-200 response, horizontal overflow or a console error. Run it against a server
+  that serves a database seeded with `pnpm seed:demo` (each design phase re-runs it).
+- `pnpm exec tsx scripts/screenshot-diff.ts --before <dir> --after <dir> [--out <dir>]` —
+  pixel comparison of two screenshot directories (share of differing pixels per page, size
+  changes, optional highlighted difference images). Used with the rendering-hash procedure below.
+
+### Rendering hashes of frozen releases (design programme, D-015)
+
+`tests/unit/rendering-hash.test.ts` renders every route of the release fixtures in
+`tests/fixtures/releases/` and compares the HTML hashes with `hashes.json`. It fails on any
+theme or renderer change, which is its job. To accept an intended change:
+
+1. Render the old releases with the new code: on a database seeded with `pnpm seed:demo`,
+   restore the release the previous evidence was taken from (Publishing → release → Restore, or
+   `restoreRelease` from a script), start `next start`, and run `scripts/screenshots.ts` into a
+   temporary directory.
+2. Compare with the previous evidence: `scripts/screenshot-diff.ts --before
+   docs/evidence/screenshots --after <tmp>`; review every page above the threshold (the
+   difference images show where).
+3. Restore the current release again (or re-run the seed), then re-record the hashes:
+   `UPDATE_RENDERING_HASHES=1 pnpm exec vitest run --project unit tests/unit/rendering-hash.test.ts`.
+4. Note the reason and the comparison result in `docs/PROGRESS.md`.
+
+New fixtures (after the pilots are re-composed) come from
+`pnpm exec tsx scripts/export-release-fixtures.ts`, which also writes a version-1 copy of each
+release so the normalisation path stays covered.
 
 ## Local auth provider
 

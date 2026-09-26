@@ -1,8 +1,10 @@
 import { kindRegistry, routeFor, type ContentKind } from "@/modules/registry";
 import { isExternalLink } from "@/modules/site-config";
+import { sectionTypeLabels, type SectionType } from "@/modules/page";
 import { collectLinkTargets, type Block } from "@/lib/richtext";
 import { formatRatio } from "@/lib/contrast";
 import { failingPairings } from "@/lib/brand-tokens";
+import { designCapabilityIssues, resolveDesign, sectionCapabilityIssues, themeKeyForPreset } from "@/themes/capabilities";
 import type { ReleaseSnapshot, SnapshotItem } from "@/server/publishing/snapshot";
 import type { BuiltManifest } from "@/server/publishing/manifest";
 
@@ -42,6 +44,13 @@ export function validateManifest(built: BuiltManifest, opts: { now: Date }): Val
   const itemById = manifest.items;
 
   const push = (f: Finding) => (f.severity === "blocker" ? blockers : warnings).push(f);
+  const themeKey = themeKeyForPreset(manifest.site.preset);
+  const design = resolveDesign(themeKey, manifest.config.design);
+
+  // Site-level design options must be ones the theme offers.
+  for (const issue of designCapabilityIssues(themeKey, manifest.config.design)) {
+    push({ severity: "blocker", code: "design_unsupported", message: issue.message, field: issue.path, href: settingsHref });
+  }
 
   // Schema errors and cross-site references.
   for (const item of items) {
@@ -92,15 +101,49 @@ export function validateManifest(built: BuiltManifest, opts: { now: Date }): Val
     if (Array.isArray(payload.body)) bodies.push({ field: "body", blocks: payload.body as Block[] });
     if (item.kind === "page") {
       const sections = (payload.sections as Array<Record<string, unknown>>) ?? [];
+      // Section types and styles the theme does not render (also refused on save and on import).
+      for (const issue of sectionCapabilityIssues(themeKey, sections as Array<{ type: string; variant?: string }>)) {
+        push({ severity: "blocker", code: "variant_unsupported", message: issue.message, itemId: item.id, itemTitle: item.title, field: issue.path, href: itemHref(item.id) });
+      }
       sections.forEach((s, i) => {
         const type = s.type as string;
         const field = `sections.${i}`;
+        const label = sectionTypeLabels[type as SectionType] ?? type;
         if (type === "rich_text" && Array.isArray(s.body)) bodies.push({ field: `${field}.body`, blocks: s.body as Block[] });
-        for (const key of ["ctaPath"]) {
+        for (const key of ["ctaPath", "secondaryPath"]) {
           const p = s[key];
-          if (typeof p === "string" && p && !routePaths.has(normalizePath(p))) {
+          if (typeof p === "string" && p && !isExternalLink(p) && !routePaths.has(normalizePath(p))) {
             push({ severity: "blocker", code: "broken_link", message: `Section ${i + 1} links to ${p}, which is not a published route.`, itemId: item.id, itemTitle: item.title, field: `${field}.${key}`, href: itemHref(item.id) });
           }
+        }
+        if ((type === "faq" || type === "quotes" || type === "gallery" || type === "facts") && (!Array.isArray(s.items) || s.items.length === 0)) {
+          push({ severity: "blocker", code: "empty_section", message: `Section ${i + 1} (${label}) has no items; add some or remove the section.`, itemId: item.id, itemTitle: item.title, field, href: itemHref(item.id) });
+        }
+        if (type === "faq") {
+          ((s.items as Array<{ answer?: Block[] }>) ?? []).forEach((it, j) => {
+            if (Array.isArray(it.answer)) bodies.push({ field: `${field}.items.${j}.answer`, blocks: it.answer });
+          });
+        }
+        if (type === "gallery") {
+          ((s.items as Array<{ assetId?: string }>) ?? []).forEach((it, j) => {
+            if (!it.assetId) push({ severity: "blocker", code: "empty_section", message: `Section ${i + 1} (Gallery): image ${j + 1} has no picture chosen.`, itemId: item.id, itemTitle: item.title, field: `${field}.items.${j}.assetId`, href: itemHref(item.id) });
+          });
+        }
+        if (type === "cta_banner" && (!s.ctaLabel || !s.ctaPath)) {
+          push({ severity: "blocker", code: "cta_incomplete", message: `Section ${i + 1} (Call to action) needs a button label and a link.`, itemId: item.id, itemTitle: item.title, field: `${field}.ctaPath`, href: itemHref(item.id) });
+        }
+        if (type === "video") {
+          if (!s.videoId) push({ severity: "blocker", code: "video_incomplete", message: `Section ${i + 1} (Video) has no video id.`, itemId: item.id, itemTitle: item.title, field: `${field}.videoId`, href: itemHref(item.id) });
+          if (!s.title) push({ severity: "blocker", code: "video_incomplete", message: `Section ${i + 1} (Video) needs a title for screen readers and the poster.`, itemId: item.id, itemTitle: item.title, field: `${field}.title`, href: itemHref(item.id) });
+          if (!s.posterAssetId) push({ severity: "warning", code: "video_no_poster", message: `Section ${i + 1} (Video) has no poster image; visitors see the title on a plain panel until they press play.`, itemId: item.id, itemTitle: item.title, field: `${field}.posterAssetId`, href: itemHref(item.id) });
+        }
+        if (type === "image_hero" && s.overlay === "light" && (s.variant === "full" || (s.variant === "default" && design.hero === "full"))) {
+          push({ severity: "warning", code: "hero_overlay_light", message: `Section ${i + 1} puts text over its image with a light overlay; readability depends on the picture. Medium or strong is safer.`, itemId: item.id, itemTitle: item.title, field: `${field}.overlay`, href: itemHref(item.id) });
+        }
+        if (type === "map_link") {
+          const a = s.address as { line1?: string; locality?: string; approved?: boolean } | undefined;
+          if (!a || (!a.line1 && !a.locality)) push({ severity: "warning", code: "map_no_address", message: `Section ${i + 1} (Map link) has no address, so no directions button will appear.`, itemId: item.id, itemTitle: item.title, field: `${field}.address`, href: itemHref(item.id) });
+          else if (!a.approved) push({ severity: "warning", code: "map_unapproved", message: `Section ${i + 1} (Map link): the address is not approved by the owner, so the directions button stays hidden on the live site.`, itemId: item.id, itemTitle: item.title, field: `${field}.address.approved`, href: itemHref(item.id) });
         }
         if (type === "feature_list") {
           for (const [j, fi] of ((s.items as Array<{ path?: string; title?: string }>) ?? []).entries()) {
@@ -183,8 +226,9 @@ export function validateManifest(built: BuiltManifest, opts: { now: Date }): Val
   }
 
   // Brand contrast: every pairing the themes render, from the four colours and the tokens
-  // derived from them (WCAG 2.2 AA: 4.5:1 for text, 3:1 for focus rings and field borders).
-  for (const p of failingPairings(manifest.config.branding.colors)) {
+  // derived from them, with the owner's overrides applied (WCAG 2.2 AA: 4.5:1 for text,
+  // 3:1 for focus rings and field borders).
+  for (const p of failingPairings(manifest.config.branding.colors, manifest.config.design?.overrides ?? {})) {
     push({ severity: "blocker", code: "contrast", message: `Brand colors fail contrast: ${p.label} (${p.fg} on ${p.bg}) reads at ${formatRatio(p.ratio)}; the minimum is ${p.minimum}:1.`, field: "branding.colors", href: settingsHref });
   }
   if (!manifest.config.metadata.defaultDescription) push({ severity: "warning", code: "missing_site_description", message: "The site has no default description for search results.", field: "metadata.defaultDescription", href: settingsHref });

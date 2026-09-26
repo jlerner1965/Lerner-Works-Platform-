@@ -78,9 +78,22 @@ body {
 .lw-site :focus-visible {
   outline-color: var(--brand-focus);
 }
+.lw-site .lw-band :focus-visible {
+  outline-color: var(--section-fg);
+}
 .lw-site .skip-link {
   background: var(--brand-text);
   color: var(--brand-on-text);
+}
+/* Text over a hero image sits on the text colour mixed over the picture (design programme D1). */
+.lw-hero-overlay-light {
+  background: color-mix(in srgb, var(--brand-text) 55%, transparent);
+}
+.lw-hero-overlay-medium {
+  background: color-mix(in srgb, var(--brand-text) 70%, transparent);
+}
+.lw-hero-overlay-strong {
+  background: color-mix(in srgb, var(--brand-text) 85%, transparent);
 }
 
 /* Public theme prose (restricted structured content) */
@@ -96,7 +109,7 @@ body {
   font-family: var(--font-heading);
   font-size: 1.5rem;
   font-weight: 700;
-  color: var(--brand-primary);
+  color: var(--section-heading, var(--brand-primary));
   margin-top: 1.6em;
 }
 .guide-prose h3 {
@@ -110,7 +123,7 @@ body {
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  border-top: 4px solid var(--brand-primary);
+  border-top: 4px solid var(--section-heading, var(--brand-primary));
   padding-top: 0.5rem;
   margin-top: 1.6em;
 }
@@ -132,15 +145,15 @@ body {
 .guide-prose a,
 .loc-prose a {
   text-decoration: underline;
-  color: var(--brand-accent);
+  color: var(--section-accent, var(--brand-accent));
 }
 .guide-prose blockquote {
-  border-left: 3px solid var(--brand-accent);
+  border-left: 3px solid var(--section-accent, var(--brand-accent));
   padding-left: 1em;
   font-style: italic;
 }
 .loc-prose blockquote {
-  border-left: 4px solid var(--brand-primary);
+  border-left: 4px solid var(--section-heading, var(--brand-primary));
   padding-left: 1em;
   font-weight: 600;
 }
@@ -149,7 +162,7 @@ body {
   display: block;
   font-size: 0.85em;
   font-style: normal;
-  color: var(--brand-muted);
+  color: var(--section-muted, var(--brand-muted));
 }
 .guide-prose figure img,
 .loc-prose figure img {
@@ -159,8 +172,12 @@ body {
 .guide-prose figcaption,
 .loc-prose figcaption {
   font-size: 0.85em;
-  color: var(--brand-muted);
+  color: var(--section-muted, var(--brand-muted));
   margin-top: 0.4em;
+}
+.guide-prose figure img,
+.loc-prose figure img {
+  border-radius: var(--radius, 0px);
 }
 .guide-form h2 {
   font-family: var(--font-heading);

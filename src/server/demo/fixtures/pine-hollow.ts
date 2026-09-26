@@ -388,7 +388,17 @@ export function pineHollowFixture(now: Date): FixtureSite {
           { id: "s-events", type: "content_collection", heading: "Upcoming events", kind: "event", mode: "upcoming", itemIds: [], limit: 4 },
           { id: "s-places", type: "content_collection", heading: "Selected places", kind: "place", mode: "selected", itemIds: ["@place-creekside-coffee", "@place-larkspur-loop", "@place-hollow-mercantile", "@place-public-library", "@place-ridge-house", "@place-mill-pond"] as unknown as string[], limit: 6 },
           { id: "s-feature", type: "content_collection", heading: "From the guide", kind: "article", mode: "latest", itemIds: [], limit: 3 },
-          { id: "s-contact", type: "contact_callout", heading: "Know a place we should list?", text: "The guide is written by residents and updated when someone checks the facts. Tell us what changed or what is missing.", showContactDetails: true },
+          { id: "s-facts", type: "facts", heading: "Pine Hollow at a glance", variant: "grid", columns: 4, items: [
+            { label: "Elevation", value: "8,240 ft" },
+            { label: "Founded", value: "1881 (fictional)" },
+            { label: "Year-round residents", value: "About 2,300" },
+            { label: "From Denver", value: "90 minutes by car" },
+          ] },
+          { id: "s-voices", type: "quotes", heading: "From people who live here", variant: "grid", appearance: { background: "tint" }, items: [
+            { text: "The guide is the only place that tells you the Mercantile closes at noon on Wednesdays. Everything else online is a guess.", attribution: "Marta Ellison", role: "Runs the roaster on Creek Path (fictional)" },
+            { text: "When the trail day got rained out, the listing said so within the hour. That is why people trust it.", attribution: "Dev Okafor", role: "Larkspur Loop volunteer crew (fictional)" },
+          ] },
+          { id: "s-contact", type: "cta_banner", heading: "Know a place we should list?", text: "The guide is written by residents and updated when someone checks the facts. Tell us what changed or what is missing.", ctaLabel: "Tell the editors", ctaPath: "/contact", appearance: { background: "primary", align: "center" } },
         ],
       }),
     },
@@ -407,6 +417,19 @@ export function pineHollowFixture(now: Date): FixtureSite {
             list("Places are checked in person or with the owner", "Events come from organizers and are marked cancelled rather than removed", "Articles are short, signed and dated"),
             h2("Contact"),
             p("Corrections and suggestions go through the contact page. Messages are stored with a receipt reference and answered by the editors."),
+          ] },
+          { id: "s-faq", type: "faq", heading: "Visiting Pine Hollow", items: [
+            { question: "When is the best time to visit?", answer: [p("Late June to early October for the trails and the pond; the **Harvest Market** in October is the busiest weekend of the year. Winter visits are quiet, and several places keep shorter hours, which the listings show per day.")] },
+            { question: "Is there mobile coverage in the valley?", answer: [p("In town, yes. It fades past the Mill Pond dam and is gone at Timber Falls, so download directions before you leave the Mercantile.")] },
+            { question: "Can I bring a dog to the trailheads?", answer: [p("On a leash at Larkspur Loop and Mill Pond Park. Timber Falls Overlook asks visitors to leave dogs in town because of the drop-offs near the viewpoint.")] },
+          ] },
+          { id: "s-gallery", type: "gallery", heading: "The valley through the year", variant: "grid", columns: 3, aspect: "landscape", items: [
+            { assetId: "@hero" as unknown as string, caption: "The valley from Saddle Ridge at midday" },
+            { assetId: "@larkspur" as unknown as string, caption: "Larkspur Loop above the tree line" },
+            { assetId: "@timber-falls" as unknown as string, caption: "Timber Falls after the spring melt" },
+            { assetId: "@mill-pond" as unknown as string, caption: "Mill Pond Park on a still morning" },
+            { assetId: "@creekside" as unknown as string, caption: "Creekside Coffee Roasters on Creek Path" },
+            { assetId: "@hall" as unknown as string, caption: "The community hall, acoustics and all" },
           ] },
         ],
       }),
@@ -475,4 +498,4 @@ export function pineHollowFixture(now: Date): FixtureSite {
   };
 }
 
-export const pineHollowHero = { key: "hero", title: "Pine Hollow valley from Saddle Ridge", alt: "Illustrated mountain valley at midday with a river and pine forest", scene: { type: "landscape" as const, palette: "day" as const, seed: 1, water: true, ratio: "standard" as const } };
+export const pineHollowHero = { key: "hero", title: "Pine Hollow valley from Saddle Ridge", alt: "Illustrated mountain valley at midday with a river and pine forest", scene: { type: "landscape" as const, palette: "day" as const, seed: 1, water: true, ratio: "standard" as const }, focal: { x: 0.5, y: 0.42 } };

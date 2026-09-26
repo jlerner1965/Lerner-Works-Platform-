@@ -33,12 +33,14 @@ const pages: Array<{ name: string; path: string }> = [
   { name: "guide-event", path: "/demo/pine-hollow/events/harvest-market-on-aspen-street" },
   { name: "guide-article", path: "/demo/pine-hollow/articles/how-pine-hollow-keeps-its-trailheads-open" },
   { name: "guide-contact", path: "/demo/pine-hollow/contact" },
+  { name: "guide-about", path: "/demo/pine-hollow/about" },
   { name: "guide-search", path: "/demo/pine-hollow/search?q=coffee" },
   { name: "retail-home", path: "/demo/range-athletics" },
   { name: "retail-locations", path: "/demo/range-athletics/locations" },
   { name: "retail-closed-store", path: "/demo/range-athletics/locations/fort-collins" },
   { name: "retail-service", path: "/demo/range-athletics/services/ski-and-snowboard-tuning" },
   { name: "retail-contact", path: "/demo/range-athletics/contact" },
+  { name: "retail-about", path: "/demo/range-athletics/about" },
 ];
 
 async function main(): Promise<void> {
@@ -60,6 +62,15 @@ async function main(): Promise<void> {
         const response = await page.goto(`${base}${p.path}`, { waitUntil: "networkidle" });
         const status = response?.status() ?? 0;
         await page.evaluate(() => document.fonts.ready);
+        // Walk down the page so lazily loaded images below the fold are fetched before the capture.
+        await page.evaluate(async () => {
+          for (let y = 0; y < document.documentElement.scrollHeight; y += 600) {
+            window.scrollTo(0, y);
+            await new Promise((r) => setTimeout(r, 40));
+          }
+          window.scrollTo(0, 0);
+        });
+        await page.waitForLoadState("networkidle");
         const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
         const file = path.join(outDir, `${p.name}-${width}.png`);
         await page.screenshot({ path: file, fullPage: true });

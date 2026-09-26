@@ -10,6 +10,7 @@ import { createContentItem, saveRevision, getItem, setArchived, findSlugCollisio
 import { isContentKind, kindRegistry, type ContentKind } from "@/modules/registry";
 import { presets } from "@/modules/presets";
 import { slugify } from "@/lib/slug";
+import { sectionCapabilityIssues, themeKeyForPreset } from "@/themes/capabilities";
 
 const uuid = z.uuid();
 
@@ -45,6 +46,11 @@ export async function saveItemAction(input: { itemId: string; baseRevisionId: st
       } catch (err) {
         if (err instanceof ContentValidationError) return { status: "invalid", issues: err.issues, message: "Some fields need attention." };
         throw err;
+      }
+      // Section styles are a fixed vocabulary per theme: rejected here, on import and at publication.
+      if (current.item.kind === "page") {
+        const issues = sectionCapabilityIssues(themeKeyForPreset(ctx.site.preset), (payload.sections as Array<{ type: string; variant?: string }>) ?? []);
+        if (issues.length) return { status: "invalid", issues, message: "Some sections use a style this site's theme does not offer." };
       }
       const collision = await findSlugCollision(db, current.item.siteId, current.item.kind, payload.slug, current.item.id);
       if (collision) return { status: "invalid", issues: [{ path: "slug", message: `The slug "${payload.slug}" is already used by "${collision.title}".` }], message: "Some fields need attention." };

@@ -1,0 +1,12 @@
+guide-home 1 perf 96 a11y 100 bp 100 seo 66 CLS 0.025 LCP 2.73s jsKiB 143 totalKiB 314 offOrigin 0 types Document=41,Image=31,Script=143,Font=99,Other=1
+guide-home 2 perf 95 a11y 100 bp 100 seo 66 CLS 0.025 LCP 2.82s jsKiB 143 totalKiB 314 offOrigin 0 types Document=41,Image=31,Script=143,Font=99,Other=1
+guide-home 3 perf 99 a11y 100 bp 100 seo 66 CLS 0.025 LCP 2.04s jsKiB 143 totalKiB 314 offOrigin 0 types Document=41,Image=31,Script=143,Font=99,Other=1
+store-detail 1 perf 97 a11y 100 bp 100 seo 66 CLS 0.011 LCP 2.31s jsKiB 143 totalKiB 226 offOrigin 0 types Document=35,Image=20,Script=143,Font=27,Other=1
+store-detail 2 perf 99 a11y 100 bp 100 seo 66 CLS 0.011 LCP 1.87s jsKiB 143 totalKiB 226 offOrigin 0 types Document=35,Image=20,Script=143,Font=27,Other=1
+store-detail 3 perf 97 a11y 100 bp 100 seo 66 CLS 0.011 LCP 2.30s jsKiB 143 totalKiB 226 offOrigin 0 types Document=35,Image=20,Script=143,Font=27,Other=1
+retail-home 1 perf 97 a11y 100 bp 100 seo 66 CLS 0.006 LCP 2.60s jsKiB 143 totalKiB 257 offOrigin 0 types Document=37,Image=49,Script=143,Font=27,Other=1
+retail-home 2 perf 99 a11y 100 bp 100 seo 66 CLS 0.006 LCP 2.06s jsKiB 143 totalKiB 257 offOrigin 0 types Document=37,Image=49,Script=143,Font=27,Other=1
+retail-home 3 perf 99 a11y 100 bp 100 seo 66 CLS 0.006 LCP 2.01s jsKiB 143 totalKiB 257 offOrigin 0 types Document=37,Image=49,Script=143,Font=27,Other=1
+guide-about 1 perf 98 a11y 100 bp 100 seo 66 CLS 0.025 LCP 2.20s jsKiB 143 totalKiB 290 offOrigin 0 types Document=36,Image=31,Script=143,Font=79,Other=1
+guide-about 2 perf 100 a11y 100 bp 100 seo 66 CLS 0.025 LCP 1.86s jsKiB 143 totalKiB 290 offOrigin 0 types Document=36,Image=31,Script=143,Font=79,Other=1
+guide-about 3 perf 96 a11y 100 bp 100 seo 66 CLS 0.025 LCP 2.69s jsKiB 143 totalKiB 290 offOrigin 0 types Document=36,Image=31,Script=143,Font=79,Other=1

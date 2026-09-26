@@ -2,9 +2,12 @@
 
 The full specification is `docs/Lerner-Works-Platform-Build-Guide.md`. Read it before changing
 architecture. Resume from `docs/PROGRESS.md`. The design flexibility programme (phases D0–D3)
-is planned in `docs/DESIGN-PLAN.md`; D0 is shipped. Public themes use only the derived brand
-tokens and font variables described in `docs/DESIGN-TOKENS.md` (a unit test rejects literal
-colours in `src/themes`).
+is planned in `docs/DESIGN-PLAN.md`; D0 is shipped, D1 is built (production on the owner's go).
+Public themes use only the derived brand tokens, design variables and font variables described
+in `docs/DESIGN-TOKENS.md` (a unit test rejects literal colours in `src/themes`). A theme or
+renderer change must keep every frozen release in `tests/fixtures/releases/` rendering as
+recorded (`tests/unit/rendering-hash.test.ts`; re-record only after the screenshot comparison
+in `docs/OPERATIONS.md`, decision D-015).
 
 ## Non-negotiable boundaries
 

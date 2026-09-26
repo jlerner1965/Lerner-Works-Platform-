@@ -1,5 +1,6 @@
 import type { Block } from "@/lib/richtext";
-import type { PagePayload } from "@/modules/page";
+import type { PagePayloadInput } from "@/modules/page";
+import type { SiteDesign } from "@/modules/site-config";
 import type { SceneSpec } from "@/server/demo/images";
 
 export interface FixtureImage {
@@ -9,6 +10,8 @@ export interface FixtureImage {
   alt: string;
   scene: SceneSpec;
   decorative?: boolean;
+  /** Focal point kept in view by every crop (0–1 from the left and the top). */
+  focal?: { x: number; y: number };
 }
 
 export interface FixtureItem {
@@ -34,6 +37,8 @@ export interface FixtureSite {
     /** Site-level images (by key from `images`) referenced from the configuration. */
     logoImageKey?: string;
     shareImageKey?: string;
+    /** Site-wide design options (design programme D1); unset fields keep the defaults. */
+    design?: Partial<SiteDesign>;
   };
   /** Site-level images: logo, share image (item images are declared on the items). */
   images?: FixtureImage[];
@@ -63,7 +68,7 @@ export function common(input: { title: string; slug: string; summary: string; bo
   };
 }
 
-export function page(input: { title: string; slug: string; summary: string; sections: PagePayload["sections"]; metaDescription?: string }): Record<string, unknown> {
+export function page(input: { title: string; slug: string; summary: string; sections: NonNullable<PagePayloadInput["sections"]>; metaDescription?: string }): Record<string, unknown> {
   return { ...common({ title: input.title, slug: input.slug, summary: input.summary, metaDescription: input.metaDescription }), sections: input.sections };
 }
 

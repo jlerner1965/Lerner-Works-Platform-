@@ -5,12 +5,13 @@ import { withUser } from "@/server/data/db";
 import { getCurrentSiteConfig } from "@/server/data/sites";
 import { Badge, Card, PageHeader, inputClass, selectClass, formatDateTime } from "@/components/admin/ui";
 import { SettingsSection } from "@/components/admin/settings-forms";
-import { saveBrandingAction, saveNavigationAction, saveModulesAction, saveIndexesAction, saveMetadataAction, saveContactAction, addDomainAction } from "@/server/actions/settings";
+import { saveBrandingAction, saveNavigationAction, saveModulesAction, saveIndexesAction, saveMetadataAction, saveDesignAction, saveContactAction, addDomainAction } from "@/server/actions/settings";
 import { formatRatio } from "@/lib/contrast";
 import { brandPairings } from "@/lib/brand-tokens";
 import { moduleIndexRoutes } from "@/modules/registry";
-import type { IndexModuleKey } from "@/modules/site-config";
+import { tokenOverrideKeys, type IndexModuleKey } from "@/modules/site-config";
 import { typographyPresets } from "@/themes/fonts";
+import { capabilitiesForPreset } from "@/themes/capabilities";
 import { getConfig } from "@/server/config";
 import { getDomainProvider, type DomainProviderStatus } from "@/server/domains/provider";
 import { DomainRow, SiteModeForm } from "@/components/admin/domain-forms";
@@ -32,9 +33,11 @@ export default async function SettingsPage({ params }: { params: Promise<{ siteI
   const { config } = data.config;
   const hidden = { siteId, baseRevisionId: data.config.id };
   const c = config.branding.colors;
-  const pairings = brandPairings(c);
+  const pairings = brandPairings(c, config.design.overrides);
   const failing = pairings.filter((p) => !p.passes).length;
   const site = ctx.site;
+  const theme = capabilitiesForPreset(site.preset);
+  const overrideLabels: Record<(typeof tokenOverrideKeys)[number], string> = { surface: "Tinted panels and bands", surfaceStrong: "Stronger tint (placeholders)", muted: "Secondary text", border: "Dividers and card outlines", borderStrong: "Form field borders", focus: "Keyboard focus ring" };
   const cfg = getConfig();
   const providerConfigured = getDomainProvider() !== null;
   const canonical = data.domains.find((d) => d.isCanonical && d.status === "active" && d.verifiedAt);
@@ -90,6 +93,68 @@ export default async function SettingsPage({ params }: { params: Promise<{ siteI
             </>
           </SettingsSection>
         </Card>
+        {ctx.capabilities.canDesign ? (
+          <Card title="Design">
+            <SettingsSection action={saveDesignAction} hidden={hidden}>
+              <>
+                <p className="text-xs text-ink-subtle">Site-wide composition choices offered by the {theme.label} theme. Each page section also has its own style and appearance in the editor; publication checks every choice against the theme. Only organization owners see this card; every save is audited.</p>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <label className="block">Header layout
+                    <select name="header" defaultValue={config.design.header} className={selectClass}>
+                      <option value="default">Theme default ({theme.defaults.header})</option>
+                      {theme.header.map((h) => <option key={h} value={h}>{h === "left" ? "Brand left, navigation right" : "Brand and navigation centred"}</option>)}
+                    </select>
+                  </label>
+                  <label className="block">Image hero style
+                    <select name="hero" defaultValue={config.design.hero} className={selectClass}>
+                      <option value="default">Theme default ({theme.defaults.hero})</option>
+                      {theme.hero.map((h) => <option key={h} value={h}>{h === "split" ? "Text beside the image" : h === "full" ? "Full-width image with text over it" : "Image above the text"}</option>)}
+                    </select>
+                  </label>
+                  <label className="block">Cards in collections
+                    <select name="cards" defaultValue={config.design.cards} className={selectClass}>
+                      <option value="default">Theme default ({theme.defaults.cards})</option>
+                      {theme.cards.map((s) => <option key={s} value={s}>{s === "image-top" ? "Image above the text" : s === "image-side" ? "Image beside the text" : "Text only"}</option>)}
+                    </select>
+                  </label>
+                  <label className="block">Corner radius
+                    <select name="radius" defaultValue={config.design.radius} className={selectClass}>
+                      <option value="none">Square corners</option>
+                      <option value="small">Small (4 px)</option>
+                      <option value="medium">Medium (12 px)</option>
+                      <option value="large">Large (24 px)</option>
+                    </select>
+                  </label>
+                  <label className="block">Spacing
+                    <select name="density" defaultValue={config.design.density} className={selectClass}>
+                      <option value="compact">Compact</option>
+                      <option value="regular">Regular</option>
+                      <option value="spacious">Spacious</option>
+                    </select>
+                  </label>
+                  <label className="block">Page width
+                    <select name="container" defaultValue={config.design.container} className={selectClass}>
+                      <option value="narrow">Narrow (56 rem)</option>
+                      <option value="regular">Regular (72 rem)</option>
+                      <option value="wide">Wide (88 rem)</option>
+                    </select>
+                  </label>
+                </div>
+                <fieldset className="rounded border border-line p-2">
+                  <legend className="px-1 font-medium">Derived colour overrides</legend>
+                  <p className="mb-2 text-xs text-ink-subtle">The platform derives these from the four brand colours (`docs/DESIGN-TOKENS.md`). Enter a 6-digit hex colour to replace one, or leave it empty to keep the derived value; the contrast list in the Brand card checks the result.</p>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    {tokenOverrideKeys.map((k) => (
+                      <label key={k} className="block">{overrideLabels[k]}
+                        <input name={`override_${k}`} defaultValue={config.design.overrides[k]} placeholder="derived" className={inputClass} maxLength={7} pattern="#[0-9a-fA-F]{6}" />
+                      </label>
+                    ))}
+                  </div>
+                </fieldset>
+              </>
+            </SettingsSection>
+          </Card>
+        ) : null}
         <Card title="Navigation and footer">
           <SettingsSection action={saveNavigationAction} hidden={hidden}>
             <>

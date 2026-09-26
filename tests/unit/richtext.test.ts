@@ -30,4 +30,29 @@ describe("structured text", () => {
   it("renders plain text for indexing", () => {
     expect(blocksToPlainText(parseStructuredText("## H\n\nHello [w](/x) world\n\n- i"))).toBe("H Hello w world i");
   });
+  it("parses bold and italic emphasis without interpreting anything else", () => {
+    expect(parseInline("Plain **bold** and *italic* and _also italic_ text")).toEqual([
+      { type: "text", text: "Plain " },
+      { type: "strong", text: "bold" },
+      { type: "text", text: " and " },
+      { type: "em", text: "italic" },
+      { type: "text", text: " and " },
+      { type: "em", text: "also italic" },
+      { type: "text", text: " text" },
+    ]);
+    // Emphasis around and inside links; unmatched markers and underscores in words stay literal.
+    expect(parseInline("See **[the guide](/about)** now")).toEqual([
+      { type: "text", text: "See **" },
+      { type: "link", text: "the guide", target: "/about" },
+      { type: "text", text: "** now" },
+    ]);
+    expect(parseInline("[**bold label**](/x)")).toEqual([{ type: "link", text: "**bold label**", target: "/x" }]);
+    expect(parseInline("snake_case_name and 2*3*4 and *unclosed")).toEqual([
+      { type: "text", text: "snake_case_name and 2" },
+      { type: "em", text: "3" },
+      { type: "text", text: "4 and *unclosed" },
+    ]);
+    expect(parseInline("<b>html</b> **stays** text").some((n) => n.type === "strong")).toBe(true);
+    expect(blocksToPlainText(parseStructuredText("Hello **bold** and *it* [**l**](/x)\n\n- **item**"))).toBe("Hello bold and it l item");
+  });
 });

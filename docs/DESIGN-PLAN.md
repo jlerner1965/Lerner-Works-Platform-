@@ -36,7 +36,8 @@ Gaps found in that survey, and their state after D0 (shipped 2026-09-26, see sec
   site's language field, share images come from the page or the site.
 - Index titles and intros and the "Search" link were hard-coded → editable per module in
   Settings → Listing pages; the Search link can be switched off. The retail theme's "Find a
-  store" header button remains part of that theme's composition (a D1 header-style option).
+  store" header button remains part of that theme's composition (carried to the D2
+  compositions; D1 added the header layout choice only).
 - The `inquiries` module switch was not enforced by the submission endpoint or store pages →
   `submit_inquiry` refuses submissions when the active release has the module off; store
   pages show no form.
@@ -117,7 +118,7 @@ primary-coloured; a dark logo on it needs a light variant, which the D1 token ov
 header/footer style options cover); configurable "Find a store" header button (D1 header
 style).
 
-### D1 · Bounded design options
+### D1 · Bounded design options — BUILT 2026-09-26, on production after the owner's go
 
 The main flexibility step, without a page builder. About three sessions.
 
@@ -135,6 +136,25 @@ The main flexibility step, without a page builder. About three sessions.
 
 Exit: DES-06 to DES-09 PASS; both pilots re-composed with the new options where it improves
 them; Lighthouse and bundle budget recorded.
+
+What shipped, and where:
+
+| Item | Implementation |
+|---|---|
+| Site-level options | `siteConfig.design` (`src/modules/site-config.ts`): header, hero and card style (`default` resolves per theme), radius, density, container, six derived-colour overrides; Settings → Design card for organization owners (`canDesign`), audited as `design.updated`; variables and scales in `src/themes/shared/design.ts`, documented in `docs/DESIGN-TOKENS.md` |
+| Theme capabilities | `src/themes/capabilities.ts` declares per theme the section types, the variants of each type, the header/hero/card styles and their defaults; checked on save (`saveItemAction`), on package import (dry run) and at publication (`variant_unsupported`, `design_unsupported`); the editor offers only the declared choices (DES-06) |
+| Section variants and appearance | Every section carries `variant` and `appearance` (background `default/tint/primary/accent/dark`, alignment, width); `SectionFrame` renders coloured bands with the `--section-*` variables so every pairing inside a band is one the contrast gate checks; variants per type in `sectionVariants` (hero split/full/stacked, collections grid/list/cards/featured, rich text columns/lead, …) |
+| New section types | FAQ (native `<details>` accordion, no script), quotes, call-to-action banner, gallery (columns, aspect, captions), facts (owner-entered label/value pairs), video (click-to-load, D-013) and map link (directions button from an approved address); publication rules `empty_section`, `cta_incomplete`, `video_incomplete`, `video_no_poster`, `hero_overlay_light`, `map_no_address`, `map_unapproved` |
+| Media focal point | migration `20260926000200_media_focal_point.sql` (`media_assets.focal_x/focal_y`); focal point editor with live crop previews on the media asset page (`setFocalPointAction`); frozen into `snapshot.media[*].focal` and rendered as `object-position` by `Picture`; carried by the site package export/import; a focal-point change alone shows as "Media changed" in the candidate summary (DES-07) |
+| Rich text | `**bold**` and `_italic_` emphasis in `src/lib/richtext.ts`, rendered as `<strong>`/`<em>`; still no HTML |
+| Snapshot schema | version 3; `normalizeSnapshot` parses older releases' configuration and item payloads through the current schemas at read time (defaults for design, variants, appearance) and never rewrites the stored release |
+| Rendering hashes | `tests/unit/rendering-hash.test.ts` over `tests/fixtures/releases/` (exported by `scripts/export-release-fixtures.ts`, with derived version-1 copies); intended changes are reviewed with `scripts/screenshots.ts` + `scripts/screenshot-diff.ts` on restored old releases and re-recorded (D-015) |
+| Pilots | Pine Hollow: facts, tinted quotes band and a primary call-to-action band on the home page, FAQ and gallery on About, hero focal point; Range Athletics: full-width hero with a focal point, inline facts, services as cards, accent call-to-action, FAQ and map link on Contact, small radius |
+
+Not in D1, carried to D2: header overlaid on the hero and the configurable "Find a store"
+header button (both need the composition work of the theme catalogue); per-site delegation of
+design to publishers (D-016 keeps design owner-only until a customer asks); a second logo for
+dark surfaces.
 
 ### D2 · Theme catalogue and design preview
 
@@ -181,7 +201,7 @@ are NOT RUN.
 | DES-06 | Choose a section variant not allowed for the theme | Rejected on save and at publication with a clear message |
 | DES-07 | Set a focal point and publish | Every crop of that image keeps the focal region at 390/768/1440 |
 | DES-08 | Add a video section and load the page | No third-party request before the visitor activates it; player loads only after the click; keyboard operable |
-| DES-09 | Upgrade the renderer after a schema change | Rendering hash of every existing release is unchanged |
+| DES-09 | Upgrade the renderer after a schema change | The recorded rendering hash of every existing release either matches, or every difference was reviewed on the restored old releases with the screenshot comparison and re-recorded with the reason noted (D-015); older releases are normalised at read time and never rewritten |
 | DES-10 | Switch a live site's theme and back | New composition after publication; earlier releases render as before; restore works |
 | DES-11 | Editor, reviewer and non-delegated publisher open Settings | No design controls; direct requests denied; delegation switch grants publishers |
 | DES-12 | Reorder and edit sections in the visual editor by keyboard only | Same result as the forms; explicit save; unsaved-changes warning |

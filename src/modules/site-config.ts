@@ -26,6 +26,42 @@ export const indexCopySchema = z
 export const footerVariants = ["columns", "compact"] as const;
 export const typographyPresetKeys = ["editorial-serif", "utility-sans"] as const;
 
+const hexOrAuto = z.union([z.literal(""), hexColor]).default("");
+export const headerStyles = ["default", "left", "centered"] as const;
+export const heroStyles = ["default", "split", "full", "stacked"] as const;
+export const cardStyles = ["default", "image-top", "image-side", "text"] as const;
+export const radiusScales = ["none", "small", "medium", "large"] as const;
+export const densities = ["compact", "regular", "spacious"] as const;
+export const containerWidths = ["narrow", "regular", "wide"] as const;
+export const tokenOverrideKeys = ["surface", "surfaceStrong", "muted", "border", "borderStrong", "focus"] as const;
+
+/**
+ * Site-level design options (design programme D1). "default" resolves through the theme's
+ * declared defaults (`src/themes/capabilities.ts`); the remaining scales map to CSS
+ * variables set on the theme root. Token overrides replace a derived colour with an owner
+ * choice; the contrast gate runs on the final values.
+ */
+export const designSchema = z
+  .object({
+    header: z.enum(headerStyles).default("default"),
+    hero: z.enum(heroStyles).default("default"),
+    cards: z.enum(cardStyles).default("default"),
+    radius: z.enum(radiusScales).default("none"),
+    density: z.enum(densities).default("regular"),
+    container: z.enum(containerWidths).default("regular"),
+    overrides: z
+      .object({
+        surface: hexOrAuto,
+        surfaceStrong: hexOrAuto,
+        muted: hexOrAuto,
+        border: hexOrAuto,
+        borderStrong: hexOrAuto,
+        focus: hexOrAuto,
+      })
+      .prefault({}),
+  })
+  .prefault({});
+
 export const siteConfigSchema = z.object({
   schemaVersion: z.literal(1).default(1),
   branding: z.object({
@@ -75,6 +111,7 @@ export const siteConfigSchema = z.object({
     faviconAssetId: z.uuid().nullable().default(null),
     shareImageAssetId: z.uuid().nullable().default(null),
   }),
+  design: designSchema,
 });
 
 export type SiteConfig = z.infer<typeof siteConfigSchema>;
@@ -84,6 +121,8 @@ export type ModuleKey = keyof SiteConfig["modules"];
 export type IndexModuleKey = keyof SiteConfig["indexes"];
 export type FooterVariant = SiteConfig["footer"]["variant"];
 export type TypographyPresetKey = SiteConfig["branding"]["typography"];
+export type SiteDesign = SiteConfig["design"];
+export type TokenOverrideKey = (typeof tokenOverrideKeys)[number];
 
 export function isExternalLink(path: string): boolean {
   return /^https:\/\//i.test(path);

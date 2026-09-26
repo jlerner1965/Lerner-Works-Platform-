@@ -45,6 +45,16 @@ export interface MediaAssetRow {
   attributionText: string | null;
   license: string | null;
   derivatives: Record<string, { key: string; path: string; width: number; height: number; bytes: number; hash: string }>;
+  /** Focal point 0–1; `numeric` columns arrive as strings from the driver. null = centre. */
+  focalX?: number | string | null;
+  focalY?: number | string | null;
+}
+
+/** Parses a focal coordinate as stored (numeric string or number) into a number inside 0–1, or null. */
+function focalCoordinate(value: number | string | null | undefined): number | null {
+  if (value === null || value === undefined || value === "") return null;
+  const n = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(n) && n >= 0 && n <= 1 ? n : null;
 }
 
 export interface BuiltManifest {
@@ -116,6 +126,17 @@ function collectAssetRefs(kind: ContentKind, payload: Record<string, unknown>): 
     sections.forEach((s, i) => {
       if (s.type === "image_hero" && typeof s.imageAssetId === "string") refs.push({ assetId: s.imageAssetId, field: `sections.${i}.imageAssetId` });
       if (s.type === "rich_text" && Array.isArray(s.body)) for (const id of collectImageAssetIds(s.body as Block[])) refs.push({ assetId: id, field: `sections.${i}.body` });
+      if (s.type === "video" && typeof s.posterAssetId === "string") refs.push({ assetId: s.posterAssetId, field: `sections.${i}.posterAssetId` });
+      if (s.type === "gallery") {
+        ((s.items as Array<{ assetId?: string }>) ?? []).forEach((it, j) => {
+          if (typeof it.assetId === "string" && it.assetId) refs.push({ assetId: it.assetId, field: `sections.${i}.items.${j}.assetId` });
+        });
+      }
+      if (s.type === "faq") {
+        ((s.items as Array<{ answer?: Block[] }>) ?? []).forEach((it, j) => {
+          if (Array.isArray(it.answer)) for (const id of collectImageAssetIds(it.answer)) refs.push({ assetId: id, field: `sections.${i}.items.${j}.answer` });
+        });
+      }
     });
   }
   return refs;
@@ -127,6 +148,8 @@ export function toSnapshotMedia(row: MediaAssetRow): SnapshotMedia {
     const d = row.derivatives[k];
     if (d) variants[k] = { key: d.key, path: d.path, width: d.width, height: d.height, bytes: d.bytes, hash: d.hash };
   }
+  const focalX = focalCoordinate(row.focalX);
+  const focalY = focalCoordinate(row.focalY);
   return {
     id: row.id,
     hash: row.sha256,
@@ -138,6 +161,7 @@ export function toSnapshotMedia(row: MediaAssetRow): SnapshotMedia {
     attribution: row.attributionText ?? "",
     license: row.license ?? "",
     variants,
+    ...(focalX !== null && focalY !== null ? { focal: { x: focalX, y: focalY } } : {}),
   };
 }
 

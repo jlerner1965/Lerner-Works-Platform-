@@ -110,7 +110,7 @@ async function publish(userId: string, site: SiteRow, reason: string, log: strin
     throw new Error(`demo candidate blocked: ${candidate.validation.blockers.map((b) => b.message).join(" | ")}`);
   }
   const s = candidate.summary;
-  if (!s.firstRelease && s.added.length + s.changed.length + s.removed.length + s.configFields.length + s.mediaAdded.length === 0 && !s.navigationChanged) {
+  if (!s.firstRelease && s.added.length + s.changed.length + s.removed.length + s.configFields.length + s.mediaAdded.length + (s.mediaChanged?.length ?? 0) === 0 && !s.navigationChanged) {
     await withUser(userId, (db) => db`update public.release_candidates set state = 'discarded' where id = ${candidate.id}`);
     log.push(`no changes to publish for "${reason}"`);
     return null;
@@ -144,8 +144,11 @@ export async function loadDemoContent(userId: string, siteId: string, opts: { no
     if (fixture.key === "pine-hollow") images.push(pineHollowHero);
     for (const img of images) {
       const before = await db<{ id: string }[]>`select id from public.media_assets where site_id = ${site.id} and source_url = ${`fixture://${fixture.key}/${img.key}`}`;
-      assetIds.set(img.key, await ensureImage(db, site, userId, fixture.key, img));
+      const assetId = await ensureImage(db, site, userId, fixture.key, img);
+      assetIds.set(img.key, assetId);
       if (!before[0]) result.images++;
+      // Focal points are part of the fixture: set through the same column an editor's save uses.
+      await db`update public.media_assets set focal_x = ${img.focal?.x ?? null}, focal_y = ${img.focal?.y ?? null} where id = ${assetId} and site_id = ${site.id}`;
     }
   });
 
@@ -211,6 +214,7 @@ export async function loadDemoContent(userId: string, siteId: string, opts: { no
     next.metadata.defaultTitle = site.name;
     if (fixture.config.logoImageKey) next.branding.logoAssetId = assetIds.get(fixture.config.logoImageKey) ?? null;
     if (fixture.config.shareImageKey) next.metadata.shareImageAssetId = assetIds.get(fixture.config.shareImageKey) ?? null;
+    if (fixture.config.design) next.design = { ...next.design, ...fixture.config.design, overrides: { ...next.design.overrides, ...(fixture.config.design.overrides ?? {}) } };
     if (stable(next) !== stable(current.config)) {
       const saved = await saveSiteConfig(db, { siteId: site.id, organizationId: site.organizationId, baseRevisionId: current.id, config: next, authorId: userId, changeNote: "Demonstration configuration" });
       if (!saved.ok) throw new Error("configuration changed concurrently");

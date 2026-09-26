@@ -2,61 +2,82 @@ import type { ReactNode } from "react";
 import type { Theme, RenderContext } from "@/themes/shared/types";
 import { href } from "@/themes/shared/types";
 import type { ResolvedRoute } from "@/server/publishing/public-site";
-import type { SnapshotItem } from "@/server/publishing/snapshot";
+import type { SnapshotItem, SnapshotMedia } from "@/server/publishing/snapshot";
 import type { PagePayload, PageSection } from "@/modules/page";
 import { RichText } from "@/themes/shared/richtext";
 import { Picture } from "@/themes/shared/picture";
 import { InquiryForm } from "@/themes/shared/inquiry-form";
 import { resolveCollection, featuredImage, itemPath } from "@/themes/shared/collections";
 import { SiteRoot, BrandMark, linkProps, showSearchLink, pageHeaderImage } from "@/themes/shared/site-root";
+import { SectionFrame, PageContainer } from "@/themes/shared/frame";
+import { siteDesign, isColouredBand, columnsFor } from "@/themes/shared/design";
+import { FaqSection, QuotesSection, CtaBannerSection, GallerySection, FactsSection, VideoSection, MapLinkSection, columnsClass, type SectionStyle } from "@/themes/shared/sections";
 import { hoursStatusAt } from "@/lib/hours";
 import type { HoursException, WeeklyHours } from "@/modules/common";
 import { LocationsStoreDetail, LocationsServiceDetail, LocationsIndex, LocationsSearch } from "@/themes/locations/pages";
 import type { Block } from "@/lib/richtext";
 
 export const locFormStyles = {
-  wrapper: "space-y-4 border-t-4 border-(--brand-primary) bg-(--brand-surface) p-6",
-  input: "w-full rounded-none border border-(--brand-border-strong) bg-(--brand-bg) px-3 py-2 text-base text-(--brand-text)",
+  wrapper: "space-y-4 rounded-(--radius) border-t-4 border-(--brand-primary) bg-(--section-panel) p-6 text-(--section-panel-fg)",
+  input: "w-full rounded-(--radius) border border-(--brand-border-strong) bg-(--brand-bg) px-3 py-2 text-base text-(--brand-text)",
   label: "mb-1 block text-sm font-bold uppercase tracking-wide",
-  button: "inline-block rounded-none bg-(--brand-accent) px-6 py-3 font-bold uppercase tracking-wide text-(--brand-on-accent) hover:bg-(--brand-primary) hover:text-(--brand-on-primary) disabled:opacity-60",
+  button: "inline-block rounded-(--radius) bg-(--brand-accent) px-6 py-3 font-bold uppercase tracking-wide text-(--brand-on-accent) hover:bg-(--brand-primary) hover:text-(--brand-on-primary) disabled:opacity-60",
   error: "text-sm font-semibold text-(--brand-danger)",
   success: "text-base",
   legend: "text-sm text-(--brand-muted)",
 };
 
 /** Accent call-to-action button; hover swaps to the primary colour with its own readable text. */
-export const accentButton = "inline-block rounded-none bg-(--brand-accent) px-6 py-3 font-bold uppercase tracking-wide text-(--brand-on-accent) hover:bg-(--brand-primary) hover:text-(--brand-on-primary)";
-export const primaryButton = "inline-block rounded-none bg-(--brand-primary) px-6 py-3 font-bold uppercase tracking-wide text-(--brand-on-primary) hover:bg-(--brand-accent) hover:text-(--brand-on-accent)";
-export const outlineButton = "inline-block rounded-none border-2 border-(--brand-primary) px-4 py-1.5 text-sm font-bold uppercase tracking-wide text-(--brand-primary) hover:bg-(--brand-primary) hover:text-(--brand-on-primary)";
+export const accentButton = "inline-block rounded-(--radius) bg-(--brand-accent) px-6 py-3 font-bold uppercase tracking-wide text-(--brand-on-accent) hover:bg-(--brand-primary) hover:text-(--brand-on-primary)";
+export const primaryButton = "inline-block rounded-(--radius) bg-(--brand-primary) px-6 py-3 font-bold uppercase tracking-wide text-(--brand-on-primary) hover:bg-(--brand-accent) hover:text-(--brand-on-accent)";
+export const outlineButton = "inline-block rounded-(--radius) border-2 border-(--brand-primary) px-4 py-1.5 text-sm font-bold uppercase tracking-wide text-(--brand-primary) hover:bg-(--brand-primary) hover:text-(--brand-on-primary)";
+
+export const locationsStyle: SectionStyle = {
+  theme: "locations",
+  heading: (text) => <LocRule>{text}</LocRule>,
+  intro: "mt-2 max-w-2xl text-lg",
+  eyebrow: "text-xs font-bold uppercase tracking-wide text-(--section-accent)",
+  title: "font-extrabold uppercase tracking-wide text-(--section-fg)",
+  prose: "loc-prose",
+  buttonPrimary: accentButton,
+  buttonInverse: "inline-block rounded-(--radius) bg-(--section-fg) px-6 py-3 font-bold uppercase tracking-wide text-(--section-bg) hover:opacity-90",
+  buttonOutline: "inline-block rounded-(--radius) border-2 border-(--section-fg) px-6 py-3 font-bold uppercase tracking-wide text-(--section-fg) hover:opacity-90",
+  panel: "rounded-(--radius) border border-(--section-border) bg-(--section-panel) text-(--section-panel-fg)",
+  quote: "font-extrabold leading-snug text-(--section-heading)",
+  fact: "mt-1 text-3xl font-extrabold text-(--section-heading)",
+};
 
 export function LocationsLayout({ ctx, children }: { ctx: RenderContext; children: ReactNode }) {
   const { config, site } = ctx.snapshot;
+  const centered = siteDesign(ctx).header === "centered";
+  const navLink = "border-b-4 border-transparent py-1 hover:border-(--brand-accent) aria-[current=page]:border-(--brand-accent)";
+  const findStore = config.modules.stores ? <a href={href(ctx, "/locations")} className="rounded-(--radius) bg-(--brand-accent) px-4 py-2 text-sm font-bold uppercase tracking-wide text-(--brand-on-accent) hover:bg-(--brand-primary) hover:text-(--brand-on-primary)">Find a store</a> : null;
   return (
     <SiteRoot ctx={ctx} themeClass="locations-theme">
       <a href="#content" className="skip-link">Skip to content</a>
       {ctx.mode === "demo" ? <p className="bg-(--brand-accent) px-4 py-1.5 text-center text-xs font-bold uppercase tracking-wide text-(--brand-on-accent)">Demonstration site · fictional retailer, stores and addresses</p> : null}
       <header className="border-b-4 border-(--brand-primary)">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-8 gap-y-3 px-4 py-4">
+        <div className={`mx-auto max-w-(--container) px-4 py-4 ${centered ? "flex flex-col items-center gap-3 text-center" : "flex flex-wrap items-center gap-x-8 gap-y-3"}`}>
           <a href={href(ctx, "/")} className="inline-flex items-center">
             <BrandMark ctx={ctx} imageClass="h-10 sm:h-12" textClass="text-2xl font-extrabold uppercase tracking-tight text-(--brand-primary)" />
           </a>
-          <nav aria-label="Primary" className="flex-1">
-            <ul className="flex flex-wrap gap-x-6 gap-y-1 text-sm font-bold uppercase tracking-wide">
+          <nav aria-label="Primary" className={centered ? "" : "flex-1"}>
+            <ul className={`flex flex-wrap gap-x-6 gap-y-1 text-sm font-bold uppercase tracking-wide ${centered ? "justify-center" : ""}`}>
               {config.navigation.items.map((n) => (
                 <li key={n.path}>
-                  <a {...linkProps(ctx, n.path)} aria-current={ctx.path === n.path ? "page" : undefined} className="border-b-4 border-transparent py-1 hover:border-(--brand-accent) aria-[current=page]:border-(--brand-accent)">{n.label}</a>
+                  <a {...linkProps(ctx, n.path)} aria-current={ctx.path === n.path ? "page" : undefined} className={navLink}>{n.label}</a>
                 </li>
               ))}
-              {showSearchLink(ctx) ? <li><a href={href(ctx, "/search")} aria-current={ctx.path === "/search" ? "page" : undefined} className="border-b-4 border-transparent py-1 hover:border-(--brand-accent) aria-[current=page]:border-(--brand-accent)">Search</a></li> : null}
+              {showSearchLink(ctx) ? <li><a href={href(ctx, "/search")} aria-current={ctx.path === "/search" ? "page" : undefined} className={navLink}>Search</a></li> : null}
             </ul>
           </nav>
-          {config.modules.stores ? <a href={href(ctx, "/locations")} className="rounded-none bg-(--brand-accent) px-4 py-2 text-sm font-bold uppercase tracking-wide text-(--brand-on-accent) hover:bg-(--brand-primary) hover:text-(--brand-on-primary)">Find a store</a> : null}
+          {findStore}
         </div>
       </header>
-      <main id="content" className="mx-auto max-w-6xl px-4 py-8">{children}</main>
+      <main id="content" className="py-8">{children}</main>
       <footer className="mt-16 border-t-4 border-(--brand-primary)">
         {config.footer.variant === "compact" ? (
-          <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-8 text-sm sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+          <div className="mx-auto flex max-w-(--container) flex-col gap-4 px-4 py-8 text-sm sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
             <div className="flex flex-col gap-1">
               <BrandMark ctx={ctx} imageClass="h-8" textClass="text-lg font-extrabold uppercase text-(--brand-primary)" />
               {config.footer.text ? <p className="max-w-md">{config.footer.text}</p> : null}
@@ -78,7 +99,7 @@ export function LocationsLayout({ ctx, children }: { ctx: RenderContext; childre
             </div>
           </div>
         ) : (
-          <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 text-sm sm:grid-cols-3">
+          <div className="mx-auto grid max-w-(--container) gap-8 px-4 py-10 text-sm sm:grid-cols-3">
             <div>
               <BrandMark ctx={ctx} imageClass="h-8" textClass="text-lg font-extrabold uppercase text-(--brand-primary)" />
               {config.footer.text ? <p className="mt-2 max-w-xs">{config.footer.text}</p> : null}
@@ -106,8 +127,10 @@ export function LocationsLayout({ ctx, children }: { ctx: RenderContext; childre
 }
 
 export function LocRule({ children }: { children: ReactNode }) {
-  return <h2 className="mb-5 border-t-4 border-(--brand-primary) pt-3 text-xl font-extrabold uppercase tracking-wide">{children}</h2>;
+  return <h2 className="mb-5 border-t-4 border-(--section-heading) pt-3 text-xl font-extrabold uppercase tracking-wide">{children}</h2>;
 }
+
+const h1 = "text-4xl font-extrabold uppercase tracking-tight text-(--section-heading)";
 
 export function StoreStatus({ ctx, item }: { ctx: RenderContext; item: SnapshotItem }) {
   const p = item.payload as Record<string, unknown>;
@@ -122,6 +145,7 @@ export function StoreStatus({ ctx, item }: { ctx: RenderContext; item: SnapshotI
   );
 }
 
+/** Store card on the page colours (it sits on a panel of its own, so status colours stay checked). */
 export function StoreCard({ ctx, item, featured = false }: { ctx: RenderContext; item: SnapshotItem; featured?: boolean }) {
   const p = item.payload as Record<string, unknown>;
   const a = p.address as { line1: string; locality: string; region: string; postalCode: string };
@@ -129,7 +153,7 @@ export function StoreCard({ ctx, item, featured = false }: { ctx: RenderContext;
   const img = featuredImage(ctx, item);
   const services = ((p.serviceItemIds as string[]) ?? []).map((id) => ctx.snapshot.items[id]).filter(Boolean);
   return (
-    <div className={`flex flex-col border border-(--brand-border) ${featured ? "md:flex-row" : ""}`}>
+    <div className={`flex flex-col overflow-hidden rounded-(--radius) border border-(--brand-border) bg-(--brand-bg) text-(--brand-text) ${featured ? "md:flex-row" : ""}`}>
       {img ? <Picture ctx={ctx} media={img} sizes={featured ? "(min-width: 768px) 50vw, 100vw" : "(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"} className={`${featured ? "md:w-1/2" : ""} aspect-[3/2] w-full object-cover`} /> : null}
       <div className="flex flex-1 flex-col p-4">
         <h3 className="text-lg font-extrabold uppercase tracking-wide">{path ? <a href={href(ctx, path)} className="hover:underline">{item.title}</a> : item.title}</h3>
@@ -142,121 +166,238 @@ export function StoreCard({ ctx, item, featured = false }: { ctx: RenderContext;
   );
 }
 
+const narrowByDefault = new Set<PageSection["type"]>(["rich_text", "inquiry_form", "faq", "video", "map_link"]);
+
 export function LocationsSections({ ctx, page }: { ctx: RenderContext; page: PagePayload }) {
   return (
-    <div className="space-y-12">
+    <div className="space-y-(--section-gap)">
       {page.sections.map((section, i) => (
-        <LocationsSection key={section.id} ctx={ctx} section={section} first={i === 0} />
+        <SectionFrame key={section.id} appearance={section.appearance} narrowAlign="start" narrow={narrowByDefault.has(section.type) || (section.type === "quotes" && (section.variant === "single" || (section.variant === "default" && section.items.length <= 1)))}>
+          <LocationsSection ctx={ctx} section={section} first={i === 0} />
+        </SectionFrame>
       ))}
     </div>
   );
 }
 
+function Cta({ ctx, label, path, onBand, className = "" }: { ctx: RenderContext; label: string; path: string; onBand: boolean; className?: string }) {
+  if (!label || !path) return null;
+  return <a {...linkProps(ctx, path)} className={`${className} ${onBand ? locationsStyle.buttonInverse : accentButton}`.trim()}>{label}</a>;
+}
+
+function ImageHero({ ctx, section }: { ctx: RenderContext; section: Extract<PageSection, { type: "image_hero" }> }) {
+  const media = section.imageAssetId ? ctx.snapshot.media[section.imageAssetId] : null;
+  const variant = section.variant === "default" ? siteDesign(ctx).hero : section.variant;
+  const onBand = isColouredBand(section.appearance.background);
+  const text = (
+    <>
+      <h1 className="text-4xl font-extrabold uppercase leading-none tracking-tight text-(--section-heading) sm:text-5xl">{section.heading}</h1>
+      {section.subheading ? <p className="mt-3 text-lg">{section.subheading}</p> : null}
+      <Cta ctx={ctx} label={section.ctaLabel} path={section.ctaPath} onBand={onBand} className="mt-5" />
+    </>
+  );
+  if (variant === "stacked") {
+    return (
+      <div>
+        {media ? <Picture ctx={ctx} media={media} sizes="(min-width: 1408px) 1408px, 100vw" className="mb-6 aspect-[21/9] w-full rounded-(--radius) object-cover" loading="eager" fetchPriority="high" /> : null}
+        <div className="max-w-3xl">{text}</div>
+      </div>
+    );
+  }
+  if (variant === "split") {
+    return (
+      <div className="grid items-center gap-8 md:grid-cols-2">
+        <div>{text}</div>
+        {media ? <Picture ctx={ctx} media={media} sizes="(min-width: 768px) 50vw, 100vw" className="aspect-[4/3] w-full rounded-(--radius) object-cover" loading="eager" fetchPriority="high" /> : null}
+      </div>
+    );
+  }
+  // full: the image across the width with a text panel in the band's own colour cutting into its lower edge.
+  return (
+    <div className="relative">
+      {media ? <Picture ctx={ctx} media={media} sizes="(min-width: 1408px) 1408px, 100vw" className="aspect-[21/9] w-full rounded-(--radius) object-cover" loading="eager" fetchPriority="high" /> : null}
+      {/* Positioned, so its background paints above the image it overlaps (block backgrounds paint before replaced content). */}
+      <div className={media ? "relative -mt-12 ml-0 mr-auto max-w-3xl rounded-(--radius) bg-(--section-bg) p-6 text-(--section-fg) md:ml-8" : ""}>{text}</div>
+    </div>
+  );
+}
+
 function LocationsSection({ ctx, section, first }: { ctx: RenderContext; section: PageSection; first: boolean }) {
+  const onBand = isColouredBand(section.appearance.background);
   switch (section.type) {
-    case "text_hero":
+    case "text_hero": {
+      const statement = section.variant === "statement";
+      const compact = section.variant === "compact";
       return (
-        <section className="border-b-4 border-(--brand-primary) pb-10">
-          <h1 className="max-w-4xl text-4xl font-extrabold uppercase leading-none tracking-tight text-(--brand-primary) sm:text-6xl">{section.heading}</h1>
-          {section.subheading ? <p className="mt-4 max-w-2xl text-lg">{section.subheading}</p> : null}
-          {section.ctaLabel && section.ctaPath ? <a href={href(ctx, section.ctaPath)} className={`mt-6 ${accentButton}`}>{section.ctaLabel}</a> : null}
-        </section>
-      );
-    case "image_hero": {
-      const media = section.imageAssetId ? ctx.snapshot.media[section.imageAssetId] : null;
-      return (
-        <section className="relative">
-          {media ? <Picture ctx={ctx} media={media} sizes="100vw" className="aspect-[21/9] w-full object-cover" loading="eager" fetchPriority="high" /> : null}
-          <div className={`${media ? "-mt-12 ml-0 mr-auto max-w-3xl bg-(--brand-bg) p-6 md:ml-8" : ""}`}>
-            <h1 className="text-4xl font-extrabold uppercase leading-none tracking-tight text-(--brand-primary) sm:text-5xl">{section.heading}</h1>
-            {section.subheading ? <p className="mt-3 text-lg">{section.subheading}</p> : null}
-            {section.ctaLabel && section.ctaPath ? <a href={href(ctx, section.ctaPath)} className={`mt-5 ${accentButton}`}>{section.ctaLabel}</a> : null}
-          </div>
-        </section>
+        <div className={compact ? "pb-4" : statement ? "py-6" : "border-b-4 border-(--section-heading) pb-10"}>
+          <h1 className={`max-w-4xl font-extrabold uppercase leading-none tracking-tight text-(--section-heading) ${statement ? "text-6xl sm:text-8xl" : compact ? "text-3xl sm:text-4xl" : "text-4xl sm:text-6xl"} ${section.appearance.align === "center" ? "mx-auto" : ""}`}>{section.heading}</h1>
+          {section.subheading ? <p className={`mt-4 max-w-2xl text-lg ${section.appearance.align === "center" ? "mx-auto" : ""}`}>{section.subheading}</p> : null}
+          <Cta ctx={ctx} label={section.ctaLabel} path={section.ctaPath} onBand={onBand} className="mt-6" />
+        </div>
       );
     }
+    case "image_hero":
+      return <ImageHero ctx={ctx} section={section} />;
     case "rich_text":
       return (
-        <section className="max-w-3xl">
-          {section.heading ? (first ? <h1 className="mb-5 text-4xl font-extrabold uppercase tracking-tight text-(--brand-primary)">{section.heading}</h1> : <LocRule>{section.heading}</LocRule>) : null}
-          {section.body.length ? <RichText ctx={ctx} blocks={section.body as Block[]} className="loc-prose" /> : <p className="text-(--brand-muted)">This section has no text yet.</p>}
-        </section>
-      );
-    case "feature_list":
-      return (
-        <section>
-          {section.heading ? <LocRule>{section.heading}</LocRule> : null}
-          {section.items.length === 0 ? <p className="text-(--brand-muted)">Nothing listed yet.</p> : (
-            <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {section.items.map((it) => (
-                <li key={it.title} className="border border-(--brand-border) p-4">
-                  <p className="font-extrabold uppercase tracking-wide">{it.path ? <a href={href(ctx, it.path)} className="hover:underline">{it.title}</a> : it.title}</p>
-                  {it.text ? <p className="mt-1 text-sm">{it.text}</p> : null}
-                </li>
-              ))}
-            </ul>
+        <>
+          {section.heading ? (first ? <h1 className={`mb-5 ${h1}`}>{section.heading}</h1> : <LocRule>{section.heading}</LocRule>) : null}
+          {section.body.length ? (
+            <RichText ctx={ctx} blocks={section.body as Block[]} className={`loc-prose ${section.variant === "columns" ? "md:columns-2 md:gap-10" : ""} ${section.variant === "lead" ? "[&>p:first-child]:text-xl [&>p:first-child]:font-semibold" : ""}`} />
+          ) : (
+            <p className="text-(--section-muted)">This section has no text yet.</p>
           )}
-        </section>
+        </>
       );
+    case "feature_list": {
+      const variant = section.variant === "default" ? "cards" : section.variant;
+      const item = (it: (typeof section.items)[number]) => (
+        <>
+          <p className="font-extrabold uppercase tracking-wide">{it.path ? <a {...linkProps(ctx, it.path)} className="hover:underline">{it.title}</a> : it.title}</p>
+          {it.text ? <p className="mt-1 text-sm">{it.text}</p> : null}
+        </>
+      );
+      return (
+        <>
+          {section.heading ? <LocRule>{section.heading}</LocRule> : null}
+          {section.items.length === 0 ? <p className="text-(--section-muted)">Nothing listed yet.</p> : variant === "list" ? (
+            <ul className="divide-y divide-(--section-border) border-y border-(--section-border)">{section.items.map((it) => <li key={it.title} className="py-3">{item(it)}</li>)}</ul>
+          ) : variant === "grid" ? (
+            <ul className={`grid gap-x-8 ${columnsClass[columnsFor("locations", "feature_list", section.columns)]}`}>{section.items.map((it) => <li key={it.title} className="border-t-4 border-(--section-heading) py-3">{item(it)}</li>)}</ul>
+          ) : (
+            <ul className={`grid gap-4 ${columnsClass[columnsFor("locations", "feature_list", section.columns)]}`}>{section.items.map((it) => <li key={it.title} className="rounded-(--radius) border border-(--section-border) p-4">{item(it)}</li>)}</ul>
+          )}
+        </>
+      );
+    }
     case "location_collection": {
       const items = resolveCollection(ctx, section);
-      const featured = section.mode === "selected";
+      const variant = section.variant === "default" ? (section.mode === "selected" ? "featured" : "cards") : section.variant;
       return (
-        <section>
+        <>
           {section.heading ? <LocRule>{section.heading}</LocRule> : null}
           {items.length === 0 ? (
-            <p className="border border-dashed border-(--brand-border-strong) p-6 text-(--brand-muted)">{featured ? "No featured store selected." : "No store locations have been published yet."}</p>
-          ) : featured ? (
+            <p className="rounded-(--radius) border border-dashed border-(--brand-border-strong) p-6 text-(--section-muted)">{section.mode === "selected" ? "No featured store selected." : "No store locations have been published yet."}</p>
+          ) : variant === "featured" || variant === "list" ? (
             <div className="space-y-4">{items.map((s) => <StoreCard key={s.id} ctx={ctx} item={s} featured />)}</div>
           ) : (
-            <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{items.map((s) => <li key={s.id}><StoreCard ctx={ctx} item={s} /></li>)}</ul>
+            <ul className={`grid gap-4 ${columnsClass[columnsFor("locations", "location_collection", section.columns)]}`}>{items.map((s) => <li key={s.id}><StoreCard ctx={ctx} item={s} /></li>)}</ul>
           )}
-        </section>
+        </>
       );
     }
     case "content_collection": {
       const items = resolveCollection(ctx, section);
       return (
-        <section>
+        <>
           {section.heading ? <LocRule>{section.heading}</LocRule> : null}
-          {items.length === 0 ? <p className="border border-dashed border-(--brand-border-strong) p-6 text-(--brand-muted)">Nothing has been published here yet.</p> : (
-            <ul className="grid gap-px bg-(--brand-border) sm:grid-cols-2 lg:grid-cols-4">
-              {items.map((it) => {
-                const p = itemPath(ctx, it);
-                return (
-                  <li key={it.id} className="bg-(--brand-bg) p-5">
-                    <h3 className="font-extrabold uppercase tracking-wide">{p ? <a href={href(ctx, p)} className="hover:underline">{it.title}</a> : it.title}</h3>
-                    {it.payload.summary ? <p className="mt-2 text-sm">{String(it.payload.summary)}</p> : null}
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </section>
+          <LocationsCollection ctx={ctx} items={items} variant={section.variant} columns={columnsFor("locations", "content_collection", section.columns)} />
+        </>
       );
     }
     case "contact_callout": {
       const { contact } = ctx.snapshot.site;
+      const banner = section.variant === "banner";
+      const panel = section.appearance.background === "default" ? "rounded-(--radius) border-t-4 border-(--section-accent) bg-(--section-panel) p-6 text-(--section-panel-fg)" : "";
+      const details = section.showContactDetails ? <p className="mt-2 text-sm">{contact.phone}{contact.phone && contact.email ? " · " : ""}{contact.email ? <a href={`mailto:${contact.email}`} className="underline">{contact.email}</a> : null}</p> : null;
       return (
-        <section className="grid gap-4 border-t-4 border-(--brand-accent) bg-(--brand-surface) p-6 md:grid-cols-[2fr_1fr] md:items-center">
+        <div className={`${panel} ${banner ? "text-center" : "grid gap-4 md:grid-cols-[2fr_1fr] md:items-center"}`}>
           <div>
-            <h2 className="text-2xl font-extrabold uppercase tracking-wide text-(--brand-primary)">{section.heading}</h2>
-            {section.text ? <p className="mt-2">{section.text}</p> : null}
-            {section.showContactDetails ? <p className="mt-2 text-sm">{contact.phone}{contact.phone && contact.email ? " · " : ""}{contact.email ? <a href={`mailto:${contact.email}`} className="underline">{contact.email}</a> : null}</p> : null}
+            <h2 className="text-2xl font-extrabold uppercase tracking-wide text-(--section-heading)">{section.heading}</h2>
+            {section.text ? <p className={`mt-2 ${banner ? "mx-auto max-w-prose" : ""}`}>{section.text}</p> : null}
+            {details}
           </div>
-          <a href={href(ctx, "/contact")} className={`justify-self-start md:justify-self-end ${primaryButton}`}>Contact us</a>
-        </section>
+          <a href={href(ctx, "/contact")} className={`${banner ? "mt-5 inline-block" : "justify-self-start md:justify-self-end"} ${onBand ? locationsStyle.buttonInverse : primaryButton}`}>Contact us</a>
+        </div>
       );
     }
     case "inquiry_form": {
       const locations = section.locationSelect ? Object.values(ctx.snapshot.items).filter((i) => i.kind === "store").sort((a, b) => a.title.localeCompare(b.title)).map((i) => ({ id: i.id, label: i.title })) : [];
       return (
-        <section className="max-w-2xl">
+        <div className={section.variant === "wide" ? "" : "max-w-2xl"}>
           <InquiryForm endpoint={ctx.inquiryEndpoint} heading={section.heading} intro={section.intro} sourcePath={ctx.path} locations={locations} styles={locFormStyles} />
-        </section>
+        </div>
       );
     }
+    case "faq":
+      return <FaqSection ctx={ctx} section={section} style={locationsStyle} />;
+    case "quotes":
+      return <QuotesSection section={section} style={locationsStyle} />;
+    case "cta_banner":
+      return <CtaBannerSection ctx={ctx} section={section} style={locationsStyle} />;
+    case "gallery":
+      return <GallerySection ctx={ctx} section={section} style={locationsStyle} />;
+    case "facts":
+      return <FactsSection section={section} style={locationsStyle} />;
+    case "video":
+      return <VideoSection ctx={ctx} section={section} style={locationsStyle} />;
+    case "map_link":
+      return <MapLinkSection ctx={ctx} section={section} style={locationsStyle} />;
   }
+}
+
+/** Content collections (services on this preset): cell grid by default, cards or rows with images, or text. */
+export function LocationsCollection({ ctx, items, variant = "default", columns = 4 }: { ctx: RenderContext; items: SnapshotItem[]; variant?: string; columns?: 2 | 3 | 4 }) {
+  if (items.length === 0) return <p className="rounded-(--radius) border border-dashed border-(--brand-border-strong) p-6 text-(--section-muted)">Nothing has been published here yet.</p>;
+  const v = variant === "default" ? (siteDesign(ctx).cards === "image-side" ? "list" : siteDesign(ctx).cards === "image-top" ? "text" : "text") : variant;
+  const title = (it: SnapshotItem, className: string) => {
+    const p = itemPath(ctx, it);
+    return <h3 className={className}>{p ? <a href={href(ctx, p)} className="hover:underline">{it.title}</a> : it.title}</h3>;
+  };
+  if (v === "cards") {
+    return (
+      <ul className={`grid gap-4 ${columnsClass[columns]}`}>
+        {items.map((it) => {
+          const img = featuredImage(ctx, it);
+          return (
+            <li key={it.id} className={`overflow-hidden ${locationsStyle.panel}`}>
+              {img ? <Picture ctx={ctx} media={img} sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw" className="aspect-[3/2] w-full object-cover" /> : null}
+              <div className="p-4">
+                {title(it, "font-extrabold uppercase tracking-wide")}
+                {it.payload.summary ? <p className="mt-2 text-sm">{String(it.payload.summary)}</p> : null}
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    );
+  }
+  if (v === "list") {
+    return (
+      <ul className="divide-y divide-(--section-border) border-y border-(--section-border)">
+        {items.map((it) => {
+          const img = featuredImage(ctx, it);
+          return (
+            <li key={it.id} className="flex gap-5 py-4">
+              {img ? <Picture ctx={ctx} media={img} sizes="160px" className="aspect-[3/2] w-32 shrink-0 rounded-(--radius) object-cover sm:w-40" /> : null}
+              <div className="min-w-0">
+                {title(it, "font-extrabold uppercase tracking-wide")}
+                {it.payload.summary ? <p className="mt-1 text-sm">{String(it.payload.summary)}</p> : null}
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    );
+  }
+  return (
+    <ul className={`grid gap-px rounded-(--radius) bg-(--section-border) ${columnsClass[columns]}`}>
+      {items.map((it) => (
+        <li key={it.id} className="bg-(--section-bg) p-5">
+          {title(it, "font-extrabold uppercase tracking-wide")}
+          {it.payload.summary ? <p className="mt-2 text-sm">{String(it.payload.summary)}</p> : null}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function HeaderImage({ ctx, media }: { ctx: RenderContext; media: SnapshotMedia }) {
+  return (
+    <PageContainer>
+      <Picture ctx={ctx} media={media} sizes="(min-width: 1408px) 1408px, 100vw" className="mb-8 aspect-[21/9] w-full rounded-(--radius) object-cover" loading="eager" fetchPriority="high" />
+    </PageContainer>
+  );
 }
 
 export const locationsTheme: Theme = {
@@ -267,17 +408,17 @@ export const locationsTheme: Theme = {
         const header = pageHeaderImage(ctx, route.item);
         return (
           <LocationsLayout ctx={ctx}>
-            {header ? <Picture ctx={ctx} media={header} sizes="(min-width: 1152px) 1152px, 100vw" className="mb-8 aspect-[21/9] w-full object-cover" loading="eager" fetchPriority="high" /> : null}
+            {header ? <HeaderImage ctx={ctx} media={header} /> : null}
             <LocationsSections ctx={ctx} page={route.item.payload as unknown as PagePayload} />
           </LocationsLayout>
         );
       }
       case "detail":
-        return <LocationsLayout ctx={ctx}>{route.kind === "store" ? <LocationsStoreDetail ctx={ctx} item={route.item} /> : route.kind === "service" ? <LocationsServiceDetail ctx={ctx} item={route.item} /> : <GenericDetail ctx={ctx} item={route.item} />}</LocationsLayout>;
+        return <LocationsLayout ctx={ctx}><PageContainer>{route.kind === "store" ? <LocationsStoreDetail ctx={ctx} item={route.item} /> : route.kind === "service" ? <LocationsServiceDetail ctx={ctx} item={route.item} /> : <GenericDetail ctx={ctx} item={route.item} />}</PageContainer></LocationsLayout>;
       case "index":
-        return <LocationsLayout ctx={ctx}><LocationsIndex ctx={ctx} kind={route.kind} /></LocationsLayout>;
+        return <LocationsLayout ctx={ctx}><PageContainer><LocationsIndex ctx={ctx} kind={route.kind} /></PageContainer></LocationsLayout>;
       case "search":
-        return <LocationsLayout ctx={ctx}><LocationsSearch ctx={ctx} /></LocationsLayout>;
+        return <LocationsLayout ctx={ctx}><PageContainer><LocationsSearch ctx={ctx} /></PageContainer></LocationsLayout>;
       default:
         return null;
     }
@@ -287,7 +428,7 @@ export const locationsTheme: Theme = {
 function GenericDetail({ ctx, item }: { ctx: RenderContext; item: SnapshotItem }) {
   return (
     <article className="max-w-3xl">
-      <h1 className="text-4xl font-extrabold uppercase tracking-tight text-(--brand-primary)">{item.title}</h1>
+      <h1 className={h1}>{item.title}</h1>
       {item.payload.summary ? <p className="mt-3 text-lg">{String(item.payload.summary)}</p> : null}
       <RichText ctx={ctx} blocks={(item.payload.body as Block[]) ?? []} className="loc-prose mt-6" />
     </article>
