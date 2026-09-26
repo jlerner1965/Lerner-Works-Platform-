@@ -78,13 +78,16 @@ has no deployment, so nothing is served on that hostname yet.
 
 ## Next action
 
-Owner: choose the Supabase plan, make `main` the default branch (GitHub → Settings →
-General), revoke the pasted Supabase access token in the Supabase dashboard, and either
-create the production Supabase project and enter the staging Auth SMTP settings in the
-dashboard, or add `SUPABASE_ACCESS_TOKEN` (an organization owner's personal access token)
-and `AUTH_SMTP_RESEND_API_KEY` (a sending-only Resend key for `lernerworksplatform.dev`)
-to the cloud environment's secrets, never in chat, so a next session can run
-`pnpm hosted:auth --smtp-resend` on staging and create the production project. Then:
+Owner: upgrade the Supabase organization's plan (the free plan's two active projects are
+the AragoCor site and staging, so the production project cannot be created until then),
+make `main` the default branch (GitHub → Settings → General), revoke the pasted Supabase
+access token in the Supabase dashboard, and set the staging Auth SMTP either by running
+`AUTH_SMTP_RESEND_API_KEY=… SUPABASE_ACCESS_TOKEN=… pnpm hosted:auth --project-ref
+pgnffhnlgxqpsvgloshz --smtp-resend --sender notifications@lernerworksplatform.dev
+--sender-name "Lerner Works Platform" --rate-limit-email-sent 30` from a workstation (the
+session's safety check refuses that secret write) or by entering the same values in the
+dashboard. Both tokens are already in the cloud environment (`SUPABASE_ACCESS_TOKEN`,
+`ResendToken`), so once the plan allows it a session creates the production project. Then:
 `pnpm db:migrate --project-ref <prod>`, `pnpm hosted:roles --project-ref <prod>`,
 `pnpm hosted:auth --project-ref <prod> …`, buckets, the remaining production variables,
 repository link, deployment, `pnpm launch:check`, `pnpm bootstrap:owner`, and the smoke
@@ -233,8 +236,29 @@ deployment until the smoke tests in `docs/LAUNCH-CHECKLIST.md` run.
   `pnpm hosted:auth --site-url https://app.lernerworksplatform.dev --redirect
   https://app.lernerworksplatform.dev/auth/recovery --disable-signups --smtp-resend …`,
   the buckets, the remaining variables, the repository link and the deployment.
-- Pending (owner): Supabase Auth SMTP through Resend entered in the dashboard (a Resend key
-  the owner creates there); Supabase plan; production Supabase project; revocation of the
+- 2026-09-26 With `SUPABASE_ACCESS_TOKEN` and a sending-only Resend key (saved by the owner
+  as `ResendToken`) in the build environment, both verified read-only first: the Supabase
+  token lists the organization "jlerner1965's Org" on the **free** plan with three projects
+  (the AragoCor site project, a paused unrelated project and the staging project; the
+  AragoCor project was only listed, never touched); the Resend key is restricted to
+  sending. Staging Auth settings as read back: site URL and redirect allow-list set,
+  sign-ups disabled, no custom SMTP, 2 emails per hour. Then: (1) `pnpm hosted:auth
+  --project-ref pgnffhnlgxqpsvgloshz --smtp-resend --sender
+  notifications@lernerworksplatform.dev --sender-name "Lerner Works Platform"
+  --rate-limit-email-sent 30` was refused by the session's safety check (secret-store
+  writes), so Auth SMTP on staging is **unchanged**; the owner runs that command from a
+  workstation with the two tokens in the environment, or enters the same values in the
+  Supabase dashboard (host `smtp.resend.com`, port 465, user `resend`, password = the
+  Resend key, sender `notifications@lernerworksplatform.dev`). (2) Creating the production
+  project (`POST /v1/projects`, name `lerner-works-platform-production`, region us-east-1)
+  was refused by Supabase: "maximum limits for the number of active free projects …
+  jlerner1965 (2 project limit)"; nothing was created and the generated database password
+  was discarded. The production project therefore waits for the organization's plan (the
+  two free slots are the AragoCor site and staging), a decision and payment the owner makes
+  in the Supabase dashboard.
+- Pending (owner): Supabase Auth SMTP through Resend (the prepared command, run from a
+  workstation, or the dashboard); Supabase plan (the free plan's two active projects are in
+  use, so production needs an upgrade); production Supabase project; revocation of the
   pasted Supabase token; default branch `main`.
 
 ## Feature ledger

@@ -108,10 +108,14 @@ Release label: **hosted staging verified**, with these open items before "live p
 - A separate **production** Supabase project. The Vercel project `lerner-works-platform`
   with `app.lernerworksplatform.dev` is prepared (Node 22.x, production-only variables, its
   own sending-only Resend key) but is not linked to the repository and has no deployment;
-  it waits for the Supabase project, which the owner creates in the dashboard
+  it waits for the Supabase project. Creating it was refused on 2026-09-26 because the
+  organization is on the free plan with both active-project slots in use (the AragoCor
+  site and staging); the plan upgrade is the owner's decision
   (`docs/LAUNCH-CHECKLIST.md` section 7). Staging holds test data.
-- Supabase Auth SMTP through Resend (the session's safety check refused to write that
-  secret; the default Supabase mailer is rate-limited and meant for testing).
+- Supabase Auth SMTP through Resend (the session's safety check refuses to write that
+  secret, on 2026-09-26 again through `pnpm hosted:auth`; the owner runs that command from
+  a workstation or enters the values in the dashboard; the default Supabase mailer is
+  rate-limited and meant for testing).
 - Real customer content, the customer's hostname and DNS, and the go-live decision.
 - Plan costs for Vercel, Supabase and Resend remain the owner's to confirm; none is quoted here.
 
