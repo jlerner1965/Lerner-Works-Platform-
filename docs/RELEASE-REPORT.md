@@ -102,15 +102,24 @@ verified (`docs/PROGRESS.md` → "Hosted setup log", `docs/ACCEPTANCE.md` LAUNCH
 
 Release label: **hosted staging verified**, with these open items before "live pilot ready":
 
-- The owner completes the password-recovery email step and confirms the backup schedule
-  (physical backups enabled, no snapshot yet, point-in-time recovery off).
-- A separate **production** Supabase project and Vercel project, set up the same way with
-  production secrets (`docs/LAUNCH-CHECKLIST.md` section 7); staging holds test data.
+- The owner signed in to staging on 2026-09-26 (password set through a one-time token-hash
+  link). The backup schedule is still the owner's check (physical backups enabled, no
+  snapshot yet, point-in-time recovery off; the project is on the free tier).
+- A separate **production** Supabase project. The Vercel project `lerner-works-platform`
+  with `app.lernerworksplatform.dev` is prepared (Node 22.x, production-only variables, its
+  own sending-only Resend key) but is not linked to the repository and has no deployment;
+  it waits for the Supabase project, which the owner creates in the dashboard
+  (`docs/LAUNCH-CHECKLIST.md` section 7). Staging holds test data.
 - Supabase Auth SMTP through Resend (the session's safety check refused to write that
   secret; the default Supabase mailer is rate-limited and meant for testing).
-- A long-lived Vercel API token in the project environment (the one set expires within a day).
+- A long-lived Vercel API token in both project environments (the one on staging is the
+  owner's 24-hour token; the API refused to create one from it).
 - Real customer content, the customer's hostname and DNS, and the go-live decision.
 - Plan costs for Vercel, Supabase and Resend remain the owner's to confirm; none is quoted here.
+
+Credentials shared during setup: the Resend key was replaced by two sending-only keys (one
+per environment) and deleted; the Vercel token expires within a day; the Supabase access
+token is the owner's to revoke in the dashboard.
 
 ## 6. Known defects and limitations
 
