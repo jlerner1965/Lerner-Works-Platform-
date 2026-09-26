@@ -106,10 +106,11 @@ on the free tier in the slot of the paused staging project; readiness report
 `docs/evidence/production/launch-check-2026-09-26.txt`; first owner created), with these
 open items before "live pilot ready":
 
-- The owner-session checks of the checklist: a test site published and served, an inquiry
-  delivered to the inbox, an invitation. The owner's first production sign-in happened on
-  2026-09-26 through "Forgot your password?", which was also the first delivery through
-  Resend SMTP on production.
+- Acceptance of the invitation the owner sent from production (its email was delivered).
+  Done on 2026-09-26: the owner's first sign-in through "Forgot your password?" (the first
+  Resend SMTP delivery), a test site published and served on its demo route, and inquiries
+  from the public form stored, then delivered by the scheduler on its own once the cron fix
+  was deployed.
 - The backup routine. The free tier has no provider backups and no point-in-time recovery,
   and idle pausing is kept at bay only by the five-minute delivery cron; the owner schedules
   `pnpm backup:local` from a workstation or records the accepted gap. The published free-tier
@@ -134,9 +135,11 @@ secrets; the Supabase access token is the owner's to revoke in the dashboard.
   not follow, and (b) the application's host routing answered 404 for `/api/jobs/*` on any
   hostname other than `APP_HOST`. Found on production after the first real inquiry; fixed by
   limiting Deployment Protection to preview deployments and by exempting `/api/jobs/` from
-  host routing; `pnpm launch:check` now probes the job endpoint on the deployment URL. Until
-  the fix is deployed, inquiries are stored and can be delivered by calling the endpoint with
-  the job secret.
+  host routing; `pnpm launch:check` now probes the job endpoint on the deployment URL. Fixed
+  in production the same day (pull request #6, deployment of `9b72435` at 13:07 UTC): the
+  first cron slot afterwards delivered the waiting test inquiry unattended at 13:10 UTC, and
+  the readiness report is green on the live deployment
+  (`docs/evidence/production/launch-check-2026-09-26-after-cron-fix.txt`).
 
 - The Turbopack development server intermittently answered 404 for a nested dynamic route
   that was first requested while another route was still compiling. It affects `next dev`

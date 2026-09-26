@@ -75,29 +75,26 @@ Resume point for the build. Update after every milestone and before any context 
 
 ## Current task
 
-Production is live. The Vercel project `lerner-works-platform` is linked to the repository
-with `main` as production branch and serves `main` (commit `7f4caf7`, the commit staging's
-smoke tests passed) at `https://app.lernerworksplatform.dev` against the Supabase project
-`lerner-works-platform-production` (`fvpooyxkuvltjzjbevxf`, free tier, in the slot of the
-paused and retired staging project). The first owner account (the owner's address,
-organization "Lerner Works") exists; the owner sets a password through "Forgot your
-password?" (Resend SMTP). No customer organization, site or hostname exists yet.
+Production is live and verified end to end. The Vercel project `lerner-works-platform` is
+linked to the repository with `main` as production branch and serves `main` (commit
+`9b72435`, the merge of pull request #6) at `https://app.lernerworksplatform.dev` against the
+Supabase project `lerner-works-platform-production` (`fvpooyxkuvltjzjbevxf`, free tier, in
+the slot of the paused and retired staging project). The owner signed in, published a test
+site, sent an invitation, and inquiries from the public form are stored and delivered by
+Vercel Cron on their own (verified 13:10 UTC after the cron fix). The readiness report is
+green on the live deployment. No customer organization, site or hostname exists yet.
 
 ## Next action
 
-Owner (signed in to production on 2026-09-26; test site published, invitation sent): finish
-the production checks of `docs/LAUNCH-CHECKLIST.md` section 6: add your address as an
-inquiry recipient on the test site (Settings → Contact), submit the public contact form at
-`/demo/aragosan/contact` and confirm the inbox shows it delivered, and accept the pending
-invitation from its email; decide the
-backup routine (the free tier has no provider
-backups: `pnpm backup:local` on a schedule from a workstation, or an accepted gap recorded
-here); decide whether the paused staging project stays or is deleted; revoke the pasted
-Supabase access token in the Supabase dashboard; confirm the sending domain status at
-Resend; open or approve the pull request that brings this branch's documentation and
-tooling into `main` (a push to `main` deploys to production; the branch changes docs and
-scripts only). Then the customer work of section 7: organization and site with approved real
-content, the customer's hostname and DNS, activation and go-live, one pilot at a time.
+Owner: accept the pending invitation from its email (the last owner-session check of
+`docs/LAUNCH-CHECKLIST.md` section 6); decide the backup routine (the free tier has no
+provider backups: `pnpm backup:local` dumps the database from a workstation with the admin
+connection string but does not cover the storage buckets, so media relies on the per-site
+package export or on a plan with provider backups; or record the accepted gap here); decide
+whether the paused staging project stays or is deleted; revoke the pasted Supabase access
+token in the Supabase dashboard; confirm the sending domain status at Resend. Then the
+customer work of section 7: organization and site with approved real content, the customer's
+hostname and DNS, activation and go-live, one pilot at a time.
 
 ## Restore rehearsal (OPS-02) — 2026-09-26
 
@@ -382,10 +379,20 @@ deployment until the smoke tests in `docs/LAUNCH-CHECKLIST.md` run.
   branch restarted from `main`. The routing fix reaches production through the next merge;
   the pending scheduler-test job (LW-FEAD02A1) is the end-to-end proof once the first cron
   slot after that deployment delivers it.
-- Pending (owner): merge the routing fix into `main` (a pull request from this branch), then
-  the cron delivers the pending test inquiry by itself; acceptance of the pending invitation;
-  backup routine decision; keep or delete the paused staging project; revocation of the
-  pasted Supabase token; sending domain status confirmed at Resend.
+- 2026-09-26 Cron fix verified in production. Pull request #6 (opened on the owner's
+  instruction, merged by the owner at 13:06 UTC) redeployed production (`9b72435`, READY at
+  13:07); the job endpoint on the deployment's generated URL now answers 401 instead of 404;
+  `pnpm launch:check` on the live deployment: 24 rows OK including "Cron target", one WARN
+  (sending-only Resend key), READY
+  (`docs/evidence/production/launch-check-2026-09-26-after-cron-fix.txt`). The scheduler-test
+  job that had waited since 12:52 was delivered by Vercel Cron at 13:10:38 UTC without any
+  manual trigger (provider `resend`, accepted, reference stored). Inquiries therefore flow
+  end to end on production: public form → stored → delivered within five minutes. The two
+  jobs from before the recipient existed stay `failed` with the recipient message; the owner
+  can re-queue them from the inquiry detail or leave them. Browser routing spec: 4 passed.
+- Pending (owner): acceptance of the pending invitation; backup routine decision; keep or
+  delete the paused staging project; revocation of the pasted Supabase token; sending domain
+  status confirmed at Resend.
 
 ## Feature ledger
 
