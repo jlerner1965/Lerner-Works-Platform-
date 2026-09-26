@@ -26,6 +26,34 @@
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
+/* Self-hosted typefaces for the public themes (public/fonts, SIL Open Font License; decision
+   D-019). Each family has a metric-adjusted local fallback so line breaks hold when the file
+   arrives; the override values are next/font's fallback calculation for these exact files
+   against Times New Roman or Arial, and the metric-compatible Liberation, Tinos and Arimo
+   faces stand in for them where they are not installed. The theme root preloads the files of
+   the typography preset in use. */
+@font-face { font-family: "Source Serif 4"; font-style: normal; font-weight: 400 700; font-display: swap; src: url(/fonts/source-serif-4-normal.woff2) format("woff2"); }
+@font-face { font-family: "Source Serif 4"; font-style: italic; font-weight: 400; font-display: swap; src: url(/fonts/source-serif-4-400-italic.woff2) format("woff2"); }
+@font-face { font-family: "Source Serif 4 Fallback"; src: local("Times New Roman"), local("TimesNewRomanPSMT"), local("Liberation Serif"), local("Tinos"); ascent-override: 87.45%; descent-override: 28.28%; line-gap-override: 0%; size-adjust: 118.46%; }
+@font-face { font-family: "Source Sans 3"; font-style: normal; font-weight: 400 600; font-display: swap; src: url(/fonts/source-sans-3-normal.woff2) format("woff2"); }
+@font-face { font-family: "Source Sans 3 Fallback"; src: local("Arial"), local("ArialMT"), local("Liberation Sans"), local("Arimo"); ascent-override: 114.52%; descent-override: 44.74%; line-gap-override: 0%; size-adjust: 89.41%; }
+@font-face { font-family: "Public Sans"; font-style: normal; font-weight: 400 800; font-display: swap; src: url(/fonts/public-sans-normal.woff2) format("woff2"); }
+@font-face { font-family: "Public Sans Fallback"; src: local("Arial"), local("ArialMT"), local("Liberation Sans"), local("Arimo"); ascent-override: 92.25%; descent-override: 21.85%; line-gap-override: 0%; size-adjust: 102.98%; }
+@font-face { font-family: "Lora"; font-style: normal; font-weight: 400 700; font-display: swap; src: url(/fonts/lora-normal.woff2) format("woff2"); }
+@font-face { font-family: "Lora"; font-style: italic; font-weight: 400; font-display: swap; src: url(/fonts/lora-400-italic.woff2) format("woff2"); }
+@font-face { font-family: "Lora Fallback"; src: local("Times New Roman"), local("TimesNewRomanPSMT"), local("Liberation Serif"), local("Tinos"); ascent-override: 87.53%; descent-override: 23.84%; line-gap-override: 0%; size-adjust: 114.93%; }
+@font-face { font-family: "Inter"; font-style: normal; font-weight: 400 800; font-display: swap; src: url(/fonts/inter-normal.woff2) format("woff2"); }
+@font-face { font-family: "Inter Fallback"; src: local("Arial"), local("ArialMT"), local("Liberation Sans"), local("Arimo"); ascent-override: 89.79%; descent-override: 22.36%; line-gap-override: 0%; size-adjust: 107.89%; }
+@font-face { font-family: "Nunito"; font-style: normal; font-weight: 400 800; font-display: swap; src: url(/fonts/nunito-normal.woff2) format("woff2"); }
+@font-face { font-family: "Nunito Fallback"; src: local("Arial"), local("ArialMT"), local("Liberation Sans"), local("Arimo"); ascent-override: 103.02%; descent-override: 35.97%; line-gap-override: 0%; size-adjust: 98.13%; }
+
+.lw-font-guide-serif { --font-guide-serif: "Source Serif 4", "Source Serif 4 Fallback", serif; }
+.lw-font-guide-sans { --font-guide-sans: "Source Sans 3", "Source Sans 3 Fallback", sans-serif; }
+.lw-font-locations-sans { --font-locations-sans: "Public Sans", "Public Sans Fallback", sans-serif; }
+.lw-font-lora { --font-lora: "Lora", "Lora Fallback", serif; }
+.lw-font-inter { --font-inter: "Inter", "Inter Fallback", sans-serif; }
+.lw-font-nunito { --font-nunito: "Nunito", "Nunito Fallback", sans-serif; }
+
 :root {
   color-scheme: light;
 }
@@ -184,4 +212,148 @@ body {
   font-size: 1.5rem;
   font-weight: 700;
   color: var(--brand-primary);
+}
+
+/* Magazine composition (design programme D2): long-read prose with a drop cap on the opening paragraph. */
+.mag-prose {
+  line-height: 1.7;
+  font-size: 1.0625rem;
+}
+.mag-prose > * + * {
+  margin-top: 1.1em;
+}
+.mag-prose h2 {
+  font-family: var(--font-heading);
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--section-heading, var(--brand-primary));
+  margin-top: 1.8em;
+}
+.mag-prose h3 {
+  font-family: var(--font-heading);
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-top: 1.5em;
+}
+.mag-prose ul {
+  list-style: disc;
+  padding-left: 1.4em;
+}
+.mag-prose ol {
+  list-style: decimal;
+  padding-left: 1.4em;
+}
+.mag-prose a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  color: var(--section-accent, var(--brand-accent));
+}
+.mag-prose blockquote {
+  margin-left: 0;
+  padding-left: 1.25em;
+  border-left: 2px solid var(--section-heading, var(--brand-primary));
+  font-family: var(--font-heading);
+  font-size: 1.25em;
+  font-style: italic;
+  line-height: 1.45;
+}
+.mag-prose cite {
+  display: block;
+  font-family: var(--font-body);
+  font-size: 0.8em;
+  font-style: normal;
+  color: var(--section-muted, var(--brand-muted));
+}
+.mag-prose figure img {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius, 0px);
+}
+.mag-prose figcaption {
+  font-size: 0.85em;
+  color: var(--section-muted, var(--brand-muted));
+  margin-top: 0.4em;
+}
+.mag-dropcap > p:first-of-type::first-letter {
+  float: left;
+  font-family: var(--font-heading);
+  font-size: 3.6em;
+  font-weight: 700;
+  line-height: 0.8;
+  padding: 0.1em 0.12em 0 0;
+  color: var(--section-heading, var(--brand-primary));
+}
+.mag-form h2 {
+  font-family: var(--font-heading);
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--section-heading, var(--brand-primary));
+}
+
+/* Storefront composition (design programme D2): heavy uppercase headings, accent rules. */
+.store-prose {
+  line-height: 1.6;
+}
+.store-prose > * + * {
+  margin-top: 1em;
+}
+.store-prose h2 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  border-left: 6px solid var(--section-accent, var(--brand-accent));
+  padding-left: 0.6rem;
+  margin-top: 1.6em;
+}
+.store-prose h3 {
+  font-size: 1.1rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-top: 1.4em;
+}
+.store-prose ul {
+  list-style: square;
+  padding-left: 1.4em;
+}
+.store-prose ol {
+  list-style: decimal;
+  padding-left: 1.4em;
+}
+.store-prose a {
+  text-decoration: underline;
+  font-weight: 700;
+  color: var(--section-accent, var(--brand-accent));
+}
+.store-prose blockquote {
+  border-left: 6px solid var(--section-heading, var(--brand-primary));
+  padding-left: 1em;
+  font-weight: 700;
+  font-size: 1.15em;
+}
+.store-prose cite {
+  display: block;
+  font-size: 0.85em;
+  font-weight: 400;
+  font-style: normal;
+  color: var(--section-muted, var(--brand-muted));
+}
+.store-prose figure img {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius, 0px);
+}
+.store-prose figcaption {
+  font-size: 0.85em;
+  color: var(--section-muted, var(--brand-muted));
+  margin-top: 0.4em;
+}
+.store-form h2 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  color: var(--section-heading, var(--brand-primary));
 }

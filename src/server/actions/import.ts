@@ -74,7 +74,7 @@ export async function confirmImportAction(_prev: ImportState, formData: FormData
       if (!raw) throw new Error("The uploaded package is no longer available; upload it again.");
       const dry = await dryRunPackage(db, ctx.site, raw);
       if (dry.errors.length) throw new Error(`The package failed validation: ${dry.errors[0]}`);
-      const applied = await applyPackage(db, ctx.site, user.id, dry);
+      const applied = await applyPackage(db, ctx.site, user.id, dry, { keepDesign: !ctx.capabilities.canDesign });
       await db`update public.import_jobs set state = 'completed', completed_at = now(), result = ${db.json(applied)} where id = ${jobId}`;
       await db`insert into public.audit_events (organization_id, site_id, actor_id, action, entity_type, entity_id, metadata) values (${ctx.site.organizationId}, ${siteId}, ${user.id}, 'import.package_applied', 'import_job', ${jobId}, ${db.json(applied)})`;
       return `${applied.items} items (${applied.adoptedPages} starter pages replaced), ${applied.media} images and the configuration were imported as drafts. Domains and notification recipients were not imported.`;

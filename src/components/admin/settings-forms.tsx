@@ -14,6 +14,13 @@ export function SettingsSection({ action, submitLabel = "Save", children, hidden
         <input key={k} type="hidden" name={k} value={v} />
       ))}
       {state.message ? <Alert tone="success">{state.message}</Alert> : null}
+      {state.notes?.length ? (
+        <Alert tone="warning">
+          <ul className="list-disc pl-5">
+            {state.notes.map((note, i) => <li key={i}>{note}</li>)}
+          </ul>
+        </Alert>
+      ) : null}
       {state.error ? (
         <Alert tone="danger" role="alert">
           <p>{state.error}</p>

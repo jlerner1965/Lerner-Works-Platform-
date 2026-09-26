@@ -1,77 +1,90 @@
-import localFont from "next/font/local";
 import type { TypographyPresetKey } from "@/modules/site-config";
 
 /**
- * Self-hosted open-licensed typefaces (SIL Open Font License 1.1; see fonts/LICENSE.md).
- * Files are the Google Fonts latin subsets; variable-weight files cover the listed range.
- *
- * Fonts are not preloaded: both themes are part of the same public route, and a preload would
- * make every page download all three families (the retailer pages never use the serif).
- * Each theme's stylesheet references only its own faces, so the browser fetches them on
- * first use; metric-adjusted fallbacks keep the swap from shifting layout.
+ * Self-hosted open-licensed typefaces (SIL Open Font License 1.1; see public/fonts/LICENSE.md).
+ * The files are the Google Fonts latin subsets, served from `public/fonts/` with a long cache
+ * life (`next.config.ts`); the `@font-face` rules and the metric-adjusted local fallback of
+ * each family live in `src/app/globals.css` (decision D-019). A family declares the CSS
+ * variable that carries its stack and the class that sets it; a typography preset puts its
+ * families' classes on the theme root, which also preloads the preset's files so the first
+ * paint already has them and the swap from the fallback face moves nothing.
  */
-export const guideSerif = localFont({
-  src: [
-    { path: "./fonts/source-serif-4-400-italic.woff2", weight: "400", style: "italic" },
-    { path: "./fonts/source-serif-4-normal.woff2", weight: "400 700", style: "normal" },
-  ],
+export interface FontFamily {
+  /** Class defined in globals.css that sets `variable` to the family's stack. */
+  className: string;
+  /** CSS custom property that holds the family's font stack. */
+  variable: string;
+  /** Files under public/, preloaded by the theme root while the family is in use. */
+  files: string[];
+}
+
+export const guideSerif: FontFamily = {
+  className: "lw-font-guide-serif",
   variable: "--font-guide-serif",
-  display: "swap",
-  preload: false,
-  adjustFontFallback: "Times New Roman",
-});
-
-export const guideSans = localFont({
-  src: [
-    { path: "./fonts/source-sans-3-normal.woff2", weight: "400 600", style: "normal" },
-  ],
+  files: ["/fonts/source-serif-4-normal.woff2", "/fonts/source-serif-4-400-italic.woff2"],
+};
+export const guideSans: FontFamily = {
+  className: "lw-font-guide-sans",
   variable: "--font-guide-sans",
-  display: "swap",
-  preload: false,
-  adjustFontFallback: "Arial",
-});
-
-export const locationsSans = localFont({
-  src: [
-    { path: "./fonts/public-sans-normal.woff2", weight: "400 800", style: "normal" },
-  ],
+  files: ["/fonts/source-sans-3-normal.woff2"],
+};
+export const locationsSans: FontFamily = {
+  className: "lw-font-locations-sans",
   variable: "--font-locations-sans",
-  display: "swap",
-  preload: false,
-  adjustFontFallback: "Arial",
-});
+  files: ["/fonts/public-sans-normal.woff2"],
+};
+// Families added for the D2 presets (latin subsets, variable weight).
+export const lora: FontFamily = {
+  className: "lw-font-lora",
+  variable: "--font-lora",
+  files: ["/fonts/lora-normal.woff2", "/fonts/lora-400-italic.woff2"],
+};
+export const inter: FontFamily = {
+  className: "lw-font-inter",
+  variable: "--font-inter",
+  files: ["/fonts/inter-normal.woff2"],
+};
+export const nunito: FontFamily = {
+  className: "lw-font-nunito",
+  variable: "--font-nunito",
+  files: ["/fonts/nunito-normal.woff2"],
+};
 
 export interface TypographyPreset {
   key: TypographyPresetKey;
   label: string;
   description: string;
-  /** Font-variable classes to put on the theme root (each defines its CSS variable there). */
+  /** Classes to put on the theme root (each defines its family's CSS variable there). */
   classNames: string;
   /** CSS custom property names that hold each family's font stack. */
   headingVariable: string;
   bodyVariable: string;
+  /** Font files the theme root preloads for this preset. */
+  preload: string[];
+}
+
+function preset(key: TypographyPresetKey, label: string, description: string, heading: FontFamily, body: FontFamily): TypographyPreset {
+  const families = heading === body ? [heading] : [heading, body];
+  return {
+    key,
+    label,
+    description,
+    classNames: families.map((f) => f.className).join(" "),
+    headingVariable: heading.variable,
+    bodyVariable: body.variable,
+    preload: families.flatMap((f) => f.files),
+  };
 }
 
 /**
  * Typography presets a site can choose from (`branding.typography`). Themes read
  * `--font-heading` and `--font-body` only, so a preset swap changes every heading and body
- * face without touching theme code. Both presets use the self-hosted families above.
+ * face without touching theme code. Every preset uses the self-hosted families above.
  */
 export const typographyPresets: Record<TypographyPresetKey, TypographyPreset> = {
-  "editorial-serif": {
-    key: "editorial-serif",
-    label: "Editorial serif",
-    description: "Source Serif 4 headings with Source Sans 3 text.",
-    classNames: `${guideSerif.variable} ${guideSans.variable}`,
-    headingVariable: "--font-guide-serif",
-    bodyVariable: "--font-guide-sans",
-  },
-  "utility-sans": {
-    key: "utility-sans",
-    label: "Utility sans",
-    description: "Public Sans for headings and text.",
-    classNames: locationsSans.variable,
-    headingVariable: "--font-locations-sans",
-    bodyVariable: "--font-locations-sans",
-  },
+  "editorial-serif": preset("editorial-serif", "Editorial serif", "Source Serif 4 headings with Source Sans 3 text.", guideSerif, guideSans),
+  "utility-sans": preset("utility-sans", "Utility sans", "Public Sans for headings and text.", locationsSans, locationsSans),
+  "classic-serif": preset("classic-serif", "Classic serif", "Lora headings with Source Sans 3 text.", lora, guideSans),
+  "modern-grotesk": preset("modern-grotesk", "Modern grotesk", "Inter for headings and text.", inter, inter),
+  "friendly-rounded": preset("friendly-rounded", "Friendly rounded", "Nunito for headings and text.", nunito, nunito),
 };

@@ -66,7 +66,7 @@ describe("manifest validation", () => {
   it("blocks duplicate routes, missing navigation targets and broken links", () => {
     const s = snapshot();
     s.routes.push({ path: "/about", kind: "page", itemId: "contact" });
-    s.config = { ...s.config, navigation: { items: [{ label: "Ghost", path: "/ghost" }, { label: "Partner", path: "https://partner.example/hub" }], showSearch: true } };
+    s.config = { ...s.config, navigation: { items: [{ label: "Ghost", path: "/ghost" }, { label: "Partner", path: "https://partner.example/hub" }], showSearch: true, cta: { label: "", path: "" } } };
     (s.items.home!.payload.sections as Array<Record<string, unknown>>)[0]!.ctaPath = "/missing";
     const r = validateManifest({ manifest: s, notes: [], mediaRows: new Map(), missingMedia: [] }, { now });
     const codes = r.blockers.map((b) => b.code);

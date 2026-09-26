@@ -1,5 +1,64 @@
 # Lighthouse lab runs (local production build)
 
+## After design phase D2 (2026-09-26, night)
+
+Same tool and conditions as the earlier runs (Lighthouse 13.5.0, Chromium 141 headless,
+mobile preset, simulated throttling, three runs per page, `next start` of the production
+build on `http://127.0.0.1:3200` with the seeded development database), run twice: with both
+pilots on their original compositions (release 8 of each, after the theme switch back), and
+with Pine Hollow on the magazine composition (Classic serif preset) and Range Athletics on the
+storefront composition (Modern grotesk preset), release 7 of each. Raw per-run summary:
+`docs/evidence/lighthouse/d2-2026-09-26-summary.txt`.
+
+Original compositions:
+
+| Page | Performance (3 runs) | Median | Accessibility | Best practices | SEO | CLS | LCP (3 runs) | Median LCP |
+|---|---|---|---|---|---|---|---|---|
+| `/demo/pine-hollow` (guide home) | 94 / 93 / 93 | 93 | 100 | 100 | 66 | 0.000 | 3.06 s / 3.12 s / 3.07 s | 3.07 s |
+| `/demo/range-athletics/locations/longmont` (store detail) | 98 / 98 / 98 | 98 | 100 | 100 | 66 | 0.000 | 2.29 s / 2.37 s / 2.28 s | 2.29 s |
+| `/demo/range-athletics` (retail home) | 100 / 99 / 98 | 99 | 100 | 100 | 66 | 0.000 | 1.92 s / 2.18 s / 2.30 s | 2.18 s |
+| `/demo/pine-hollow/about` (guide about) | 96 / 98 / 99 | 98 | 100 | 100 | 66 | 0.000 | 2.79 s / 2.40 s / 2.20 s | 2.40 s |
+
+D2 compositions:
+
+| Page | Performance (3 runs) | Median | Accessibility | Best practices | SEO | CLS | LCP (3 runs) | Median LCP |
+|---|---|---|---|---|---|---|---|---|
+| `/demo/pine-hollow` (magazine home) | 95 / 95 / 95 | 95 | 100 | 100 | 66 | 0.000 | 2.83 s / 2.84 s / 2.85 s | 2.84 s |
+| `/demo/range-athletics/locations/longmont` (storefront store detail) | 97 / 97 / 97 | 97 | 100 | 100 | 66 | 0.000 | 2.53 s / 2.52 s / 2.52 s | 2.52 s |
+| `/demo/range-athletics` (storefront home) | 99 / 100 / 97 | 99 | 100 | 100 | 66 | 0.000 | 2.24 s / 1.89 s / 2.59 s | 2.24 s |
+| `/demo/pine-hollow/about` (magazine about) | 98 / 97 / 96 | 97 | 100 | 100 | 66 | 0.000 | 2.37 s / 2.69 s / 2.69 s | 2.69 s |
+
+Against the targets (median performance ≥ 90, CLS ≤ 0.1, lab LCP ≤ 2.5 s): performance and
+CLS met on all eight pages; LCP met on the store detail, the retail home and the guide about of
+the original compositions and on the storefront home, missed on the guide home (3.07 s; missed
+at every phase since M4, now by 0.57 s), the magazine home (2.84 s), the magazine about
+(2.69 s) and the storefront store detail (2.52 s).
+
+Two findings of the first D2 run were fixed before these numbers (the first run is noted at
+the end of the summary file). The magazine pages measured a cumulative layout shift of
+0.13–0.14 on the home (0.074 in one run) and 0.127 on the about page, because every font
+family swapped in after the first paint and the magazine's decks and bottom-anchored hero
+re-wrapped by a line, moving the page; and the storefront's store tiles scored 96–97 on
+accessibility for the city label in the accent colour on the dark tile (3.54:1). The font
+delivery changed (decision D-019): the files are served from `public/fonts/` with
+metric-adjusted fallback faces that resolve on Windows, macOS, Linux and ChromeOS, and the
+theme root preloads the files of the preset in use, so the swap moves nothing: CLS is 0.000
+on every run of both compositions (0.006–0.025 on the original compositions after D1), and at
+most 0.02 on a throttled 1.6 Mbps load measured with a layout-shift observer. The price shows
+on the simulated slow link: the fonts (99 KiB on the guide, 88 KiB on the magazine, 48 KiB on
+the retail compositions) download alongside the hero image instead of after the first paint,
+which moved the guide home's LCP from 2.73 s to 3.07 s and put the storefront store detail
+at 2.52 s; on a fast connection nothing changes. The city label now reads in the tile's text
+colour with an accent bar, and accessibility is 100 everywhere.
+
+Public JavaScript budget (DES-14): **143 KiB of script transfer on every measured page of
+both compositions, unchanged from the D0 baseline at kibibyte precision** (allowance 20 KiB
+per phase). The new compositions, the theme registry, the design preview and the delegation
+switch add no client JavaScript to public pages. Total first-visit transfer: guide home
+318 KiB (document 44, images 31, script 143, fonts 99), store detail 230 KiB, retail home
+260 KiB, guide about 314 KiB; magazine home 299 KiB (fonts 88), storefront store detail
+252 KiB, storefront home 282 KiB, magazine about 301 KiB. Every request is same-origin.
+
 ## After design phase D1 (2026-09-26, evening)
 
 Same tool and conditions as the earlier runs (Lighthouse 13.5.0, Chromium 141 headless,

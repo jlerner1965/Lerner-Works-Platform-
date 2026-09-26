@@ -4,9 +4,12 @@
 
 | Family | Use | Files | Source |
 |---|---|---|---|
-| Source Serif 4 | Pine Hollow Guide headings | `src/themes/fonts/source-serif-4-*.woff2` | Adobe, via Google Fonts latin subset (downloaded 2026-09-26) |
-| Source Sans 3 | Pine Hollow Guide body | `src/themes/fonts/source-sans-3-normal.woff2` | Adobe, via Google Fonts latin subset |
-| Public Sans | Range Athletics headings and body | `src/themes/fonts/public-sans-normal.woff2` | U.S. Web Design System, via Google Fonts latin subset |
+| Source Serif 4 | Pine Hollow Guide headings (Editorial serif preset) | `public/fonts/source-serif-4-*.woff2` | Adobe, via Google Fonts latin subset (downloaded 2026-09-26) |
+| Source Sans 3 | Pine Hollow Guide body (Editorial serif and Classic serif presets) | `public/fonts/source-sans-3-normal.woff2` | Adobe, via Google Fonts latin subset |
+| Public Sans | Range Athletics headings and body (Utility sans preset) | `public/fonts/public-sans-normal.woff2` | U.S. Web Design System, via Google Fonts latin subset |
+| Lora | Classic serif preset headings (D2) | `public/fonts/lora-*.woff2` | The Lora Project Authors, via Google Fonts latin subset (downloaded 2026-09-26) |
+| Inter | Modern grotesk preset (D2) | `public/fonts/inter-normal.woff2` | The Inter Project Authors, via Google Fonts latin subset (downloaded 2026-09-26) |
+| Nunito | Friendly rounded preset (D2) | `public/fonts/nunito-normal.woff2` | The Nunito Project Authors, via Google Fonts latin subset (downloaded 2026-09-26) |
 
 The dashboard uses the operating system's default sans-serif stack.
 

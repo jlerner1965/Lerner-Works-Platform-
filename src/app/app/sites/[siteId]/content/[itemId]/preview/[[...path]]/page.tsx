@@ -77,7 +77,7 @@ export default async function DraftPreviewPage({ params, searchParams }: { param
       {route.type === "not_found" ? (
         <main className="mx-auto max-w-lg px-4 py-24 text-center"><h1 className="text-2xl font-semibold">Not part of this preview</h1><p className="mt-2 text-sm">This item&apos;s kind may belong to a disabled module, so it has no public route.</p></main>
       ) : (
-        getTheme(data.manifest.site.preset).render(ctx, route)
+        getTheme(data.manifest).render(ctx, route)
       )}
     </>
   );

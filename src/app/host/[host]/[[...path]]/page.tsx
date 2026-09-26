@@ -54,5 +54,5 @@ export default async function LiveSitePage({ params, searchParams }: { params: P
     releaseVersion: release.releaseVersion,
     publishedAt: release.publishedAt,
   });
-  return getTheme(release.snapshot.site.preset).render(ctx, route);
+  return getTheme(release.snapshot).render(ctx, route);
 }

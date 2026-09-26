@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import type { ReleaseSnapshot, SnapshotMedia, MediaVariantKey } from "@/server/publishing/snapshot";
 import type { ResolvedRoute } from "@/server/publishing/public-site";
+import type { ThemeKey } from "@/modules/site-config";
 
 export type RenderMode = "live" | "demo" | "preview";
 
@@ -23,7 +24,7 @@ export interface RenderContext {
 }
 
 export interface Theme {
-  key: "guide" | "locations";
+  key: ThemeKey;
   render(ctx: RenderContext, route: ResolvedRoute): ReactNode;
 }
 

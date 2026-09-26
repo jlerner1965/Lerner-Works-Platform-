@@ -15,8 +15,8 @@ Resume point for the build. Update after every milestone and before any context 
 | Production (hosted) | DONE (2026-09-26) | Production Supabase and Vercel projects configured and deployed; owner signed in; inquiries stored and delivered by Vercel Cron after the routing fix; readiness report green (see the hosted setup log). |
 | D0 Identity completeness | DONE (2026-09-26, on production: pull request #7 merged as `9c49d7a`, migration applied, live checks in `docs/evidence/production/d0-2026-09-26-live-checks.txt`) | Design programme phase 0 (`docs/DESIGN-PLAN.md` section 4): logo rendered, typography preset applied, every theme colour a derived token with a 15-pairing contrast gate and a literal-colour audit, per-site favicon/share image/title/language, editable listing copy, Search link switch, external links, footer layouts, page header image, inquiries switch enforced in SQL. Snapshot schema version 2 with version-1 releases normalised at read time. |
 | D1 Bounded design options | DONE (2026-09-26, on production: pull request #8 merged as `1f8407d`, migration `20260926000200_media_focal_point.sql` applied, live checks in `docs/evidence/production/d1-2026-09-26-live-checks.txt`) | Site-wide design options (owners only, audited), section styles and appearance validated against each theme's declared vocabulary on save, import and publication, seven new section types (FAQ, quotes, call to action, gallery, facts, click-to-load video, map link), media focal points, bold and italic in rich text, snapshot schema version 3 with a rendering-hash test over six frozen releases and a screenshot comparison of the restored D0-era releases (identical), both pilots re-composed. DES-06 to DES-09 PASS; Lighthouse and the 143 KiB script budget recorded (unchanged). |
-| D2 Theme catalogue and design preview | PLANNED | Theme registry with capability declarations, one more composition per preset, theme switching per site, design preview of the draft configuration, more typography presets. |
-| D3 Visual in-context editing | PLANNED | Editable preview with keyboard-equivalent reordering, side-panel forms on the same schemas, live tokens, explicit save; same review and publication path. |
+| D2 Theme catalogue and design preview | BUILT (2026-09-26, verified in the repository; production on the owner's go: pull request, migration `20260926000300_design_delegation.sql`, live checks) | Theme registry with capability declarations (four compositions, two per preset: magazine for the guide, storefront for the retail business), theme switching per site with migration notes and compatibility checks on save, import and publication, design preview of the draft configuration over the active release at 390/768/1440, per-site design delegation (owner-only switch, database trigger, audit), header button, overlay header, dark-surface logo, three more self-hosted typography presets, snapshot schema version 4 with eight frozen releases in the rendering-hash test, fonts served from `public/fonts/` with a per-preset preload (D-019). DES-10 and DES-11 PASS; Lighthouse and the 143 KiB script budget recorded. Bounded by D-017 (not a page builder). |
+| D3 Visual in-context editing | OPTIONAL (owner's decision 2026-09-26; decided after D2 is in customer use, D-017) | Editable preview with keyboard-equivalent reordering, side-panel forms on the same schemas, live tokens, explicit save; same review and publication path; nothing beyond the same validated structures. |
 
 ## Environment blockers (precise)
 
@@ -29,6 +29,34 @@ Resume point for the build. Update after every milestone and before any context 
 
 ## Last verified results
 
+- 2026-09-26 (design phase D2) `pnpm verify` on the final code: GATE PASSED in 318 s (setup
+  check 1 s, lint 14 s, typecheck 3 s, unit 4 s, integration 30 s, browser 260 s, production
+  build 6 s): 91 unit tests (adds `themes.test`: catalogue invariants, theme resolution and
+  compatibility, configuration defaults, typography presets with their files and stylesheet
+  rules, and every route of the version-3 fixtures rendered under every compatible theme; the
+  rendering-hash test now covers eight frozen releases), 51 integration tests (adds
+  `themes.test`: DES-10 switch, preview, publish, restore and switch back, incompatible theme
+  refused on save, at publication and on package import; DES-11 delegation enforced by the
+  action and by the database trigger, audited, editors and reviewers denied), 26 browser tests
+  against a production build (adds `themes.spec`: the magazine and storefront compositions
+  switched to, previewed, published and switched back for both pilots; delegation granted and
+  revoked). Screenshot pass `scripts/screenshots.ts`: 15 public pages × 390/768/1440 on the
+  original compositions (all 200, no horizontal overflow, no console errors) plus 9 guide
+  pages under the magazine and 6 retail pages under the storefront composition. Comparison of
+  the original compositions against the D1 evidence: identical apart from the footer release
+  number and the anti-aliasing of the back-link arrow (≤ 0.07 % of pixels); hashes
+  re-recorded (D-015, D-019). Lighthouse after D2 (`docs/evidence/LIGHTHOUSE.md`): original
+  compositions guide home median 93 / accessibility 100 / CLS 0.000 / LCP 3.07 s, store detail
+  98 / 100 / 0.000 / 2.29 s, retail home 99 / 100 / 0.000 / 2.18 s, guide about 98 / 100 /
+  0.000 / 2.40 s; D2 compositions magazine home 95 / 100 / 0.000 / 2.84 s, storefront store
+  detail 97 / 100 / 0.000 / 2.52 s, storefront home 99 / 100 / 0.000 / 2.24 s, magazine about
+  97 / 100 / 0.000 / 2.69 s; script transfer 143 KiB on every page (unchanged baseline). Two
+  defects found and fixed by the first Lighthouse run: the magazine pages' layout shift of
+  0.13–0.14 (fonts swapping in after the first paint; fixed by the font delivery change of
+  D-019, which also raised the guide home's simulated LCP from 2.73 s to 3.07 s) and the
+  storefront tiles' city label at 3.54:1 on the dark tile (now the tile's text colour with an
+  accent bar). Two browser-test defects fixed: the settings page's theme description sat inside
+  the select's label, and the sign-out step ran on pages without dashboard chrome.
 - 2026-09-26 (design phase D1) `pnpm verify` on the final code: GATE PASSED in 273 s (setup
   check 1 s, lint 13 s, typecheck 4 s, unit 3 s, integration 28 s, browser 218 s, production
   build 6 s): 80 unit tests (adds theme capabilities, the new section schemas, design defaults,
@@ -116,7 +144,37 @@ Resume point for the build. Update after every milestone and before any context 
 
 ## Current task
 
-Design programme phase D1 (bounded design options) is on production. With the owner's go
+Design programme phase D2 (theme catalogue and design preview) is built and verified in the
+repository on branch `claude/lucid-darwin-cif2y6`; it is not on production. Production needs
+the owner's go for: the pull request into `main`; the migration
+`20260926000300_design_delegation.sql` (adds `sites.design_delegated`, the owner-only
+`set_design_delegation()` function and the trigger that refuses a design change in a
+configuration revision from anyone but an owner unless the site is delegated) applied to the
+production project through the Management API before the merge; and the live checks
+afterwards. What the branch holds: the theme registry and capability declarations (four
+compositions; `docs/DESIGN-PLAN.md` section 4 lists what shipped and where), theme switching
+per site with migration notes, the design preview at `/app/sites/{siteId}/previews/design`,
+delegation, the header button, the overlay header, the dark-surface logo, three typography
+presets, snapshot schema version 4, the font delivery change of D-019, decisions D-018 and
+D-019; tests in `tests/unit/themes.test.ts`, `tests/integration/themes.test.ts` and
+`tests/e2e/themes.spec.ts`; evidence in `docs/ACCEPTANCE.md` (DES-10, DES-11, DES-13 and
+DES-14, DES-09 extended), `docs/evidence/LIGHTHOUSE.md`,
+`docs/evidence/lighthouse/d2-2026-09-26-summary.txt` and
+`docs/evidence/screenshots/{magazine,storefront}/`. The local development database has both
+pilots back on their original compositions (release 8 of each) after the theme round trip
+used for the screenshots and the version-4 fixtures.
+
+Rendering-hash re-record (D-015), D2: version-4 fixtures of both pilots on the magazine and
+storefront compositions (release 7 of each) were added, and the hashes of all eight fixtures
+were re-recorded once, because the font delivery change (D-019) altered the theme root's class
+names and added the preload links to every page. The justification is the screenshot
+comparison of the pilots restored to their original compositions against the D1 evidence:
+15 pages × 3 widths identical in size, at most 0.07 % differing pixels, all of it the footer
+release number and anti-aliasing of the arrow glyph in the detail pages' back links
+(identical at 3× magnification). The D1 pass in `docs/evidence/screenshots/` was replaced by
+this one.
+
+Phase D1 (bounded design options) remains on production. With the owner's go
 (2026-09-26): migration `20260926000200_media_focal_point.sql` applied to the production
 project through the Management API at 16:11 UTC (1 applied, 8 already applied; the two
 nullable columns confirmed through the API afterwards), pull request #8 merged into `main`
@@ -148,14 +206,14 @@ organization, site or hostname exists yet.
 
 ## Next action
 
-Owner: look at the D1 controls on the production test site (Settings → Design; a page with
-a coloured call-to-action band, an FAQ and a gallery; the media library's focal point
-editor) and publish a release to see them live. Then phase D2 (`docs/DESIGN-PLAN.md`: theme
-catalogue with capability declarations, a second composition
-per preset, theme switching per site, design preview of the draft configuration, more
-typography presets), starting on the owner's go. Open points carried from D1: header overlaid
-on the hero and the configurable "Find a store" button (D2 compositions), a dark-surface logo
-variant, delegation of design to publishers (kept off, D-016), further video providers.
+Owner: give the go for D2 on production: pull request from `claude/lucid-darwin-cif2y6` into
+`main`, migration `20260926000300_design_delegation.sql` applied to the production project
+first, deployment, live checks (a version-1 release still renders; `/fonts/*.woff2` answer 200
+with the immutable cache header; the preload links sit in the head), then look at the D2
+controls on the production test site: Settings → Design → Theme with the compatible
+compositions and the "Open the design preview" link, the delegation switch, the header button
+and the dark logo. Open points: further video providers; whether D3 happens at all (decided
+after D2 is in customer use, D-017).
 
 Owner: accept the pending invitation from its email (the last owner-session check of
 `docs/LAUNCH-CHECKLIST.md` section 6); decide the backup routine (the free tier has no

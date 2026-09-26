@@ -1,3 +1,5 @@
+import type { ThemeKey } from "@/modules/site-config";
+
 export interface RelatedItem {
   id: string;
   title: string;
@@ -21,7 +23,7 @@ export interface EditorContext {
   assets: AssetOption[];
   routes: string[];
   /** Theme rendering this site; decides which section types and styles the editor offers. */
-  themeKey: "guide" | "locations";
+  themeKey: ThemeKey;
 }
 
 export type Issues = Record<string, string>;

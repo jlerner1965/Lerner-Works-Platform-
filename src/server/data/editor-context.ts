@@ -3,7 +3,7 @@ import type { SiteRow } from "@/server/data/access";
 import type { EditorContext, RelatedItem, AssetOption } from "@/components/admin/editor/types";
 import { moduleIndexRoutes } from "@/modules/registry";
 import { getCurrentSiteConfig } from "@/server/data/sites";
-import { themeKeyForPreset } from "@/themes/capabilities";
+import { themeKeyFor } from "@/themes/capabilities";
 
 /** Related items, ready assets and known routes for pickers, all scoped to one site. */
 export async function loadEditorContext(db: Db, site: SiteRow): Promise<EditorContext> {
@@ -32,5 +32,5 @@ export async function loadEditorContext(db: Db, site: SiteRow): Promise<EditorCo
   const routes: string[] = ["/"];
   for (const page of related.page ?? []) if (page.slug !== "home") routes.push(`/${page.slug}`);
   if (config) for (const idx of moduleIndexRoutes) if (config.config.modules[idx.module]) routes.push(idx.path);
-  return { siteId: site.id, timeZone: site.timeZone, related, assets: assetOptions, routes, themeKey: themeKeyForPreset(site.preset) };
+  return { siteId: site.id, timeZone: site.timeZone, related, assets: assetOptions, routes, themeKey: themeKeyFor(site.preset, config?.config.design) };
 }

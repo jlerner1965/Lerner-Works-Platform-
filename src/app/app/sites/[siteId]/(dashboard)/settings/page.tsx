@@ -5,13 +5,13 @@ import { withUser } from "@/server/data/db";
 import { getCurrentSiteConfig } from "@/server/data/sites";
 import { Badge, Card, PageHeader, inputClass, selectClass, formatDateTime } from "@/components/admin/ui";
 import { SettingsSection } from "@/components/admin/settings-forms";
-import { saveBrandingAction, saveNavigationAction, saveModulesAction, saveIndexesAction, saveMetadataAction, saveDesignAction, saveContactAction, addDomainAction } from "@/server/actions/settings";
+import { saveBrandingAction, saveNavigationAction, saveModulesAction, saveIndexesAction, saveMetadataAction, saveDesignAction, setDesignDelegationAction, saveContactAction, addDomainAction } from "@/server/actions/settings";
 import { formatRatio } from "@/lib/contrast";
 import { brandPairings } from "@/lib/brand-tokens";
 import { moduleIndexRoutes } from "@/modules/registry";
 import { tokenOverrideKeys, type IndexModuleKey } from "@/modules/site-config";
 import { typographyPresets } from "@/themes/fonts";
-import { capabilitiesForPreset } from "@/themes/capabilities";
+import { capabilitiesFor, capabilitiesForPreset, themesForPreset } from "@/themes/capabilities";
 import { getConfig } from "@/server/config";
 import { getDomainProvider, type DomainProviderStatus } from "@/server/domains/provider";
 import { DomainRow, SiteModeForm } from "@/components/admin/domain-forms";
@@ -36,7 +36,9 @@ export default async function SettingsPage({ params }: { params: Promise<{ siteI
   const pairings = brandPairings(c, config.design.overrides);
   const failing = pairings.filter((p) => !p.passes).length;
   const site = ctx.site;
-  const theme = capabilitiesForPreset(site.preset);
+  const theme = capabilitiesFor(site.preset, config.design);
+  const themeChoices = themesForPreset(site.preset);
+  const presetTheme = capabilitiesForPreset(site.preset);
   const overrideLabels: Record<(typeof tokenOverrideKeys)[number], string> = { surface: "Tinted panels and bands", surfaceStrong: "Stronger tint (placeholders)", muted: "Secondary text", border: "Dividers and card outlines", borderStrong: "Form field borders", focus: "Keyboard focus ring" };
   const cfg = getConfig();
   const providerConfigured = getDomainProvider() !== null;
@@ -61,6 +63,13 @@ export default async function SettingsPage({ params }: { params: Promise<{ siteI
                 </select>
               </label>
               <p className="text-xs text-ink-subtle">The logo replaces the wordmark in the header and footer of the public site, shown 40–48 px tall; a wide image (about 3:1) with a transparent background works best. The wordmark stays the logo&apos;s alternative text unless the image has its own.</p>
+              <label className="block">Logo for dark surfaces
+                <select name="logoDarkAssetId" defaultValue={config.branding.logoDarkAssetId ?? ""} className={selectClass}>
+                  <option value="">Wordmark text (no dark logo)</option>
+                  {data.assets.map((a) => <option key={a.id} value={a.id}>{assetLabel(a)}</option>)}
+                </select>
+              </label>
+              <p className="text-xs text-ink-subtle">Used where the theme puts the brand on the primary colour or a dark band (the guide&apos;s footer, the storefront&apos;s header bar). Without it those places show the wordmark, because a logo drawn for the light background may vanish there.</p>
               <div className="grid grid-cols-2 gap-3">
                 {(["primary", "accent", "background", "text"] as const).map((k) => (
                   <label key={k} className="block capitalize">{k}
@@ -97,12 +106,22 @@ export default async function SettingsPage({ params }: { params: Promise<{ siteI
           <Card title="Design">
             <SettingsSection action={saveDesignAction} hidden={hidden}>
               <>
-                <p className="text-xs text-ink-subtle">Site-wide composition choices offered by the {theme.label} theme. Each page section also has its own style and appearance in the editor; publication checks every choice against the theme. Only organization owners see this card; every save is audited.</p>
+                <p className="text-xs text-ink-subtle">The theme is the composition this site renders with; the choices below are the ones the {theme.label} theme offers. Each page section also has its own style and appearance in the editor; publication checks every choice against the theme. A theme change is a configuration revision: the public site changes with the next release, and earlier releases keep the theme they were published with. Organization owners see this card, and this site&apos;s publishers when the owner delegates design below; every save is audited.</p>
+                <p className="text-xs"><a href={`/app/sites/${siteId}/previews/design`} className="text-action underline">Open the design preview</a> — the saved configuration rendered over the active release, at 390, 768 and 1440 pixels, without publishing anything.</p>
+                <div>
+                  <label className="block">Theme
+                    <select name="theme" defaultValue={config.design.theme} className={selectClass} aria-describedby="design-theme-description">
+                      <option value="default">Preset default ({presetTheme.label})</option>
+                      {themeChoices.map((t) => <option key={t.key} value={t.key}>{t.label}</option>)}
+                    </select>
+                  </label>
+                  <p id="design-theme-description" className="mt-1 text-xs text-ink-subtle">{theme.description}</p>
+                </div>
                 <div className="grid gap-3 sm:grid-cols-2">
                   <label className="block">Header layout
                     <select name="header" defaultValue={config.design.header} className={selectClass}>
                       <option value="default">Theme default ({theme.defaults.header})</option>
-                      {theme.header.map((h) => <option key={h} value={h}>{h === "left" ? "Brand left, navigation right" : "Brand and navigation centred"}</option>)}
+                      {theme.header.map((h) => <option key={h} value={h}>{h === "left" ? "Brand left, navigation right" : h === "centered" ? "Brand and navigation centred" : "Header over the hero band"}</option>)}
                     </select>
                   </label>
                   <label className="block">Image hero style
@@ -153,6 +172,18 @@ export default async function SettingsPage({ params }: { params: Promise<{ siteI
                 </fieldset>
               </>
             </SettingsSection>
+            {ctx.capabilities.isOwner ? (
+              <div className="mt-4 border-t border-line pt-3">
+                <SettingsSection action={setDesignDelegationAction} hidden={hidden} submitLabel="Save delegation">
+                  <>
+                    <p className="font-medium">Delegation</p>
+                    <p className="text-xs text-ink-subtle">Design is the agency&apos;s work (decision D-017). Switch this on only for a customer whose publishers should change this site&apos;s design themselves; the switch is audited and the database refuses design changes from anyone else.</p>
+                    <label className="flex items-center gap-2"><input type="checkbox" name="delegated" defaultChecked={site.designDelegated} /> Let this site&apos;s publishers change its design</label>
+                    <p className="text-xs text-ink-subtle">Currently: {site.designDelegated ? "delegated to this site's publishers" : "organization owners only"}.</p>
+                  </>
+                </SettingsSection>
+              </div>
+            ) : null}
           </Card>
         ) : null}
         <Card title="Navigation and footer">
@@ -168,6 +199,13 @@ export default async function SettingsPage({ params }: { params: Promise<{ siteI
                 ))}
               </fieldset>
               <label className="flex items-center gap-2"><input type="checkbox" name="showSearch" defaultChecked={config.navigation.showSearch} /> Show a Search link in the navigation (the /search page stays reachable by address)</label>
+              <fieldset><legend className="font-medium">Header button</legend>
+                <p className="text-xs text-ink-subtle">Themes with a button in the header show this label and link; leave both empty for the theme&apos;s own default (the retail compositions show &quot;Find a store&quot; while the stores module is on; the guide compositions show no button).</p>
+                <div className="mt-1 grid grid-cols-2 gap-2">
+                  <input name="ctaLabel" defaultValue={config.navigation.cta?.label ?? ""} placeholder="Label" aria-label="Header button label" className={inputClass} maxLength={40} />
+                  <input name="ctaPath" defaultValue={config.navigation.cta?.path ?? ""} placeholder="/path or https://…" aria-label="Header button path" className={inputClass} />
+                </div>
+              </fieldset>
               <label className="block">Footer text<textarea name="footerText" defaultValue={config.footer.text} className={`${inputClass} min-h-16`} maxLength={400} /></label>
               <fieldset><legend className="font-medium">Footer links (up to 8)</legend>
                 {Array.from({ length: 8 }).map((_, i) => (

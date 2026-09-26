@@ -84,7 +84,8 @@ describe("theme colour audit", () => {
     for (const f of files) {
       const text = fs.readFileSync(f, "utf8");
       text.split("\n").forEach((line, i) => {
-        const cleaned = line.replace(/border-transparent/g, "");
+        // "transparent" is the absence of a colour (invisible borders, a header overlaid on a hero image), not a palette pick.
+        const cleaned = line.replace(/\b(?:border|bg)-transparent\b/g, "");
         if (hexLiteral.test(cleaned) || paletteClass.test(cleaned) || opacityTint.test(cleaned)) offenders.push(`${path.relative(process.cwd(), f)}:${i + 1}: ${line.trim().slice(0, 100)}`);
       });
     }

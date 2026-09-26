@@ -29,6 +29,11 @@ const nextConfig: NextConfig = {
         headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
       },
       {
+        // Self-hosted font files (public/fonts): a replaced file gets a new name, so they can be immutable.
+        source: "/fonts/:path*",
+        headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
+      },
+      {
         // Local demonstration routes are not canonical customer URLs.
         source: "/demo/:path*",
         headers: [

@@ -3,7 +3,7 @@ import type { SiteDesign } from "@/modules/site-config";
 import type { SectionAppearance, SectionBackground } from "@/modules/page";
 import { brandCssVariables, deriveBrandTokens, type BrandTokens } from "@/lib/brand-tokens";
 import type { RenderContext } from "@/themes/shared/types";
-import { resolveDesign, themeKeyForPreset, type ThemeKey } from "@/themes/capabilities";
+import { resolveDesign, themeKeyFor, type ThemeKey } from "@/themes/capabilities";
 
 /**
  * Site-level design options as CSS custom properties (design programme D1). Themes use the
@@ -17,6 +17,8 @@ const radius: Record<SiteDesign["radius"], string> = { none: "0px", small: "0.25
 const sectionGap: Record<ThemeKey, Record<SiteDesign["density"], string>> = {
   guide: { compact: "2.25rem", regular: "3.5rem", spacious: "5rem" },
   locations: { compact: "2rem", regular: "3rem", spacious: "4.5rem" },
+  magazine: { compact: "2.5rem", regular: "4rem", spacious: "5.5rem" },
+  storefront: { compact: "1.5rem", regular: "2.5rem", spacious: "4rem" },
 };
 const bandPad: Record<SiteDesign["density"], string> = { compact: "2rem", regular: "3rem", spacious: "4.5rem" };
 const container: Record<SiteDesign["container"], string> = { narrow: "56rem", regular: "72rem", wide: "88rem" };
@@ -26,6 +28,8 @@ export type ColumnSection = "feature_list" | "content_collection" | "location_co
 const defaultColumns: Record<ThemeKey, Record<ColumnSection, 2 | 3 | 4>> = {
   guide: { feature_list: 4, content_collection: 3, location_collection: 3, gallery: 3, facts: 3 },
   locations: { feature_list: 4, content_collection: 4, location_collection: 3, gallery: 3, facts: 3 },
+  magazine: { feature_list: 3, content_collection: 3, location_collection: 3, gallery: 3, facts: 4 },
+  storefront: { feature_list: 4, content_collection: 3, location_collection: 3, gallery: 4, facts: 4 },
 };
 
 export function columnsFor(theme: ThemeKey, type: ColumnSection, columns: 2 | 3 | 4 | undefined): 2 | 3 | 4 {
@@ -51,7 +55,7 @@ export function rootVariables(ctx: RenderContext): CSSProperties {
 }
 
 export function themeKeyOf(ctx: RenderContext): ThemeKey {
-  return themeKeyForPreset(ctx.snapshot.site.preset);
+  return themeKeyFor(ctx.snapshot.site.preset, ctx.snapshot.config.design);
 }
 
 /** Concrete header, hero and card styles for this site (theme defaults applied). */
