@@ -88,6 +88,27 @@ parts before a hosted launch: managed database backups, bucket versioning, and t
 provider's user store (local auth users are included in the dump; Supabase Auth users would
 not be).
 
+## Hosted setup log (staging)
+
+Actions performed with owner-supplied credentials, recorded without secrets. Each line is a
+fact verified through the provider's API at the time; nothing below claims a working
+deployment until the smoke tests in `docs/LAUNCH-CHECKLIST.md` run.
+
+- 2026-09-26 Vercel team "ARProject" (Pro plan): token verified read-only; the team also
+  hosts the existing live properties, which are not touched. Vercel's GitHub app has access
+  to the platform repository. Creating the project through the API was blocked by the
+  session's safety check; the owner creates it in the dashboard (name
+  `lerner-works-platform-staging`).
+- 2026-09-26 Domain `lernerworksplatform.dev` is Vercel-managed (nameservers
+  ns1/ns2.vercel-dns.com, verified, wildcard alias to Vercel). Decided hostnames:
+  `staging.lernerworksplatform.dev` (staging) and `app.lernerworksplatform.dev` (production).
+- 2026-09-26 Resend: domain `lernerworksplatform.dev` registered (region us-east-1); with the
+  owner's approval the four DNS records Resend required (DKIM TXT, MX and SPF TXT on `send`,
+  CNAME `rsend`) were added to the Vercel zone through its API; Resend reports the domain
+  **verified**. Sender for the platform: `notifications@lernerworksplatform.dev`.
+- Pending: Vercel project + environment variables + staging hostname; Supabase staging project
+  (roles script, migrations, auth settings, buckets); first owner; smoke tests.
+
 ## Feature ledger
 
 Columns: working UI · persistent backend · permission checks · tests · external configuration.

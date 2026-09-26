@@ -212,6 +212,10 @@ async function notifyChecks(cfg: { NOTIFY_PROVIDER: string; NOTIFY_RESEND_API_KE
     return;
   }
   const fromDomain = from.split("@")[1]?.toLowerCase();
+  if (fromDomain === "resend.dev") {
+    add(process.env.APP_ENV === "production" ? "FAIL" : "WARN", "Notifications", `${from} is Resend's onboarding sender: it delivers only to the account owner's own address. Acceptable for staging smoke tests, never for production.`);
+    return;
+  }
   try {
     const res = await fetch("https://api.resend.com/domains", { headers: { Authorization: `Bearer ${key}` } });
     if (!res.ok) {
