@@ -39,8 +39,17 @@ smoke tests; customer domains one site at a time.
    after the migrations; run it again after any migration that adds session functions.
 3. Authentication → Settings: **disable new user sign-ups** (onboarding is invitation-only);
    set Site URL to `APP_URL`; add `APP_URL/auth/recovery` to the redirect allow-list; keep
-   email confirmation on. Configure the auth email sender (SMTP or the default limits) and
-   customise the "Reset password" template if wanted (the link uses `{{ .ConfirmationURL }}`).
+   email confirmation on. Without the dashboard, the same settings go through the Management
+   API: `SUPABASE_ACCESS_TOKEN=... pnpm hosted:auth --project-ref <ref> --site-url <APP_URL>
+   --redirect <APP_URL>/auth/recovery --disable-signups`. Configure the auth email sender:
+   the default Supabase mailer sends a few messages an hour and is for testing only. For
+   Resend, create a sending-only API key restricted to the sending domain and run
+   `AUTH_SMTP_RESEND_API_KEY=... SUPABASE_ACCESS_TOKEN=... pnpm hosted:auth --project-ref <ref>
+   --smtp-resend --sender <NOTIFY_FROM_ADDRESS> --sender-name "<name>"` (Resend's relay
+   `smtp.resend.com:465`, user `resend`; the command reads the settings back and verifies
+   them without printing the key; `--show` prints the current settings, `--dry-run` the
+   change set). Customise the "Reset password" template if wanted (the link uses
+   `{{ .ConfirmationURL }}`).
 4. Storage: create bucket `private` (private) and bucket `public-assets` (public). Do not
    add public bucket policies beyond the defaults; the platform writes with the service key.
 5. Copy the connection strings (pooler, transaction or session mode) for `lw_app` and for
@@ -93,10 +102,10 @@ It verifies configuration completeness, both database connections and their priv
 (application role has no table access; elevated role bypasses RLS), migrations, absence of
 the local auth shim, RLS on every table, session-table exposure, absence of `.example`
 demonstration accounts, live-site invariants, Supabase Auth reachability with sign-ups
-disabled, both storage buckets and their visibility, the Resend sending domain status (read
-only), the job secret and cron schedule, and the Vercel project. Every item must be OK
-(WARN is acceptable only where the report says so). It never prints secrets and sends no
-email.
+disabled, the auth email sender (custom SMTP or the default mailer; with `--project-ref`),
+both storage buckets and their visibility, the Resend sending domain status (read only),
+the job secret and cron schedule, and the Vercel project. Every item must be OK (WARN is
+acceptable only where the report says so). It never prints secrets and sends no email.
 
 ## 5. First owner
 

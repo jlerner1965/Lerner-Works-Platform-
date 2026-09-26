@@ -24,6 +24,9 @@ Resume point for the build. Update after every milestone and before any context 
 
 ## Last verified results
 
+- 2026-09-26 (hosted auth tool) `pnpm lint`, `pnpm typecheck` clean; `pnpm test` 51 passed
+  (adds `pnpm hosted:auth` argument parsing, change-set validation, Management API calls
+  with an injected fetch, redaction and read-back verification).
 - 2026-09-26 (launch readiness) `pnpm test` 44 passed (adds GoTrue, Supabase Storage, Vercel
   and Resend adapter tests with an injected fetch, hosted configuration validation, job
   authorization); `pnpm test:integration` 42 passed (adds platform sessions, domain workflow
@@ -75,14 +78,17 @@ has no deployment, so nothing is served on that hostname yet.
 
 ## Next action
 
-Owner: create the production Supabase project in the Supabase dashboard (the access token
-shared during setup can neither list organizations nor create projects), enter the Supabase
-Auth SMTP settings for staging, choose the Supabase plan and make `main` the default branch;
-any further provider secret goes through the build environment's secrets, never in chat.
-Then: `pnpm db:migrate --project-ref <prod>`, `pnpm hosted:roles --project-ref <prod>`, auth
-settings and buckets, the remaining production variables, repository link, deployment,
-`pnpm launch:check`, `pnpm bootstrap:owner`, and the smoke tests against production
-(`docs/LAUNCH-CHECKLIST.md` section 7).
+Owner: choose the Supabase plan, make `main` the default branch (GitHub → Settings →
+General), revoke the pasted Supabase access token in the Supabase dashboard, and either
+create the production Supabase project and enter the staging Auth SMTP settings in the
+dashboard, or add `SUPABASE_ACCESS_TOKEN` (an organization owner's personal access token)
+and `AUTH_SMTP_RESEND_API_KEY` (a sending-only Resend key for `lernerworksplatform.dev`)
+to the cloud environment's secrets, never in chat, so a next session can run
+`pnpm hosted:auth --smtp-resend` on staging and create the production project. Then:
+`pnpm db:migrate --project-ref <prod>`, `pnpm hosted:roles --project-ref <prod>`,
+`pnpm hosted:auth --project-ref <prod> …`, buckets, the remaining production variables,
+repository link, deployment, `pnpm launch:check`, `pnpm bootstrap:owner`, and the smoke
+tests against production (`docs/LAUNCH-CHECKLIST.md` section 7).
 
 ## Restore rehearsal (OPS-02) — 2026-09-26
 
@@ -203,6 +209,30 @@ deployment until the smoke tests in `docs/LAUNCH-CHECKLIST.md` run.
   404 again. Not run: the same workflow from the staging dashboard, which needs an owner
   session (smoke test 6 covers it with owner credentials). The production project remains
   unlinked and without a deployment. No token value was printed, logged or committed.
+- 2026-09-26 The remaining owner items were attempted from the build environment later the
+  same day; all five are BLOCKED here. The environment holds no Supabase or Resend
+  credential (only `VERCEL_API_TOKEN`), so Supabase Auth SMTP, the production Supabase
+  project and the Supabase plan could not be touched; the plan is a billing decision (no
+  price is quoted here); the pasted Supabase access token can only be revoked in the
+  Supabase dashboard; the repository's default branch is still `claude/new-session-ywlx40`
+  (remote HEAD) and the session's GitHub tools cannot change repository settings, so the
+  owner sets it in GitHub → Settings → General → Default branch. Prepared instead:
+  `pnpm hosted:auth --project-ref <ref>` sets Supabase Auth's site URL, redirect
+  allow-list, sign-ups and Resend SMTP (`smtp.resend.com:465`, user `resend`, key from
+  `AUTH_SMTP_RESEND_API_KEY`) through the Management API, reads the settings back and
+  verifies them (`--show`, `--dry-run`), and `pnpm launch:check --project-ref` reports
+  the auth email sender. Field names were checked against the published OpenAPI document
+  of `api.supabase.com`; lint, typecheck and 51 unit tests pass (6 new, injected fetch);
+  the command has not run against a live project. A next run needs, in the cloud
+  environment's secrets: `SUPABASE_ACCESS_TOKEN` (a personal access token of an owner of
+  the Supabase organization, able to list organizations and create projects) and
+  `AUTH_SMTP_RESEND_API_KEY` (a sending-only Resend key restricted to
+  `lernerworksplatform.dev`). Staging then takes `pnpm hosted:auth --project-ref
+  pgnffhnlgxqpsvgloshz --smtp-resend --sender notifications@lernerworksplatform.dev`;
+  production takes project creation, `pnpm db:migrate`, `pnpm hosted:roles`,
+  `pnpm hosted:auth --site-url https://app.lernerworksplatform.dev --redirect
+  https://app.lernerworksplatform.dev/auth/recovery --disable-signups --smtp-resend …`,
+  the buckets, the remaining variables, the repository link and the deployment.
 - Pending (owner): Supabase Auth SMTP through Resend entered in the dashboard (a Resend key
   the owner creates there); Supabase plan; production Supabase project; revocation of the
   pasted Supabase token; default branch `main`.

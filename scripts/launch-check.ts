@@ -15,7 +15,8 @@ import dotenv from "dotenv";
 import postgres from "postgres";
 import { loadEnv, projectRoot } from "./lib/env";
 import { listMigrationFiles, migrationsDir } from "./lib/db-admin";
-import { assertProjectRef, executeSql } from "./lib/supabase-management";
+import { assertProjectRef, executeSql, managementToken } from "./lib/supabase-management";
+import { readAuthConfig } from "./lib/supabase-auth";
 
 const envFileIndex = process.argv.indexOf("--env-file");
 if (envFileIndex >= 0) {
@@ -59,6 +60,7 @@ async function main(): Promise<void> {
 
   if (projectRef) {
     await managedDatabaseChecks(projectRef);
+    await managedAuthMailerChecks(projectRef);
   } else {
     await databaseChecks();
     await appRoleChecks();
@@ -303,6 +305,22 @@ function jobChecks(cfg: { jobTriggerSecret: string | undefined } | null): void {
   if (fs.existsSync(vercelJson)) {
     const crons = (JSON.parse(fs.readFileSync(vercelJson, "utf8")) as { crons?: Array<{ path: string; schedule: string }> }).crons ?? [];
     add("OK", "Cron schedule", crons.map((c) => `${c.path} (${c.schedule})`).join("; ") + " — plan limits decide the effective cadence");
+  }
+}
+
+// The auth email sender is visible only through the Management API (--project-ref). The
+// default Supabase mailer sends a few messages an hour and is meant for testing; a launch
+// needs custom SMTP (pnpm hosted:auth --smtp-resend).
+async function managedAuthMailerChecks(ref: string): Promise<void> {
+  try {
+    const c = await readAuthConfig(ref, managementToken());
+    if (c.smtp_host) {
+      add("OK", "Auth email sender", `custom SMTP through ${c.smtp_host}:${c.smtp_port ?? "?"} as ${c.smtp_admin_email ?? "?"}${c.smtp_sender_name ? ` (${c.smtp_sender_name})` : ""}; ${c.rate_limit_email_sent ?? "?"} emails/hour`);
+    } else {
+      add("WARN", "Auth email sender", "default Supabase mailer (a few messages an hour; acceptable for staging tests only): pnpm hosted:auth --project-ref <ref> --smtp-resend");
+    }
+  } catch (err) {
+    add("WARN", "Auth email sender", `not readable: ${err instanceof Error ? err.message : String(err)}`);
   }
 }
 
