@@ -161,8 +161,16 @@ Only after all seven pass can the release be labelled **hosted staging verified*
 - [x] `pnpm launch:check --env-file … --project-ref fvpooyxkuvltjzjbevxf` on 2026-09-26: 23
       rows OK, one WARN (sending-only Resend key; domain status confirmed at Resend), no
       `.example` accounts — `docs/evidence/production/launch-check-2026-09-26.txt`.
-- [ ] Deploy the same commit that passed staging. Vercel keeps previous deployments for an
-      application rollback; content rollback is a release restore in the dashboard.
+- [x] Deploy the same commit that passed staging. Vercel keeps previous deployments for an
+      application rollback; content rollback is a release restore in the dashboard. Done on
+      2026-09-26: repository linked with production branch `main`, deployment
+      `dpl_BuGsbLzt4HCw1VxD9E446wZRkpgz` of `7f4caf7` READY at
+      `https://app.lernerworksplatform.dev`; `/healthz` reports the database reachable,
+      `/app` and `/` redirect to sign-in, `/api/jobs/deliver` answers 401 without and with a
+      wrong secret, both crons enabled, the domain workflow proven on the production project
+      with a throwaway hostname; first owner and organization "Lerner Works" created with
+      `pnpm bootstrap:owner --project-ref … --confirm-hosted` (password discarded; the owner
+      sets one through "Forgot your password?").
 - [ ] Create the customer organization and site; load **approved real content** (never the
       demonstration seed); publish; add the customer's hostname; complete verification with the
       customer's DNS provider; activate; go live. One pilot at a time.

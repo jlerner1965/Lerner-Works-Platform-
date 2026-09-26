@@ -100,24 +100,24 @@ verified (`docs/PROGRESS.md` → "Hosted setup log", `docs/ACCEPTANCE.md` LAUNCH
   through the identity provider, job authentication, recovery request, and the full domain
   workflow with a real hostname served live and returned to demonstration mode.
 
-Release label: **hosted staging verified**, with these open items before "live pilot ready":
+Release label: **production deployed** on 2026-09-26 (commit `7f4caf7`,
+`https://app.lernerworksplatform.dev`, Supabase project `lerner-works-platform-production`
+on the free tier in the slot of the paused staging project; readiness report
+`docs/evidence/production/launch-check-2026-09-26.txt`; first owner created), with these
+open items before "live pilot ready":
 
-- The owner signed in to staging on 2026-09-26 (password set through a one-time token-hash
-  link). The backup schedule is still the owner's check (physical backups enabled, no
-  snapshot yet, point-in-time recovery off; the project is on the free tier).
-- The **production** Supabase project `lerner-works-platform-production` exists since
-  2026-09-26 on the free tier, in the slot of the staging project the owner paused (no plan
-  upgrade for now; the free tier's idle pausing, missing provider backups and published
-  limits are recorded in `docs/PROGRESS.md`). It is migrated and has the application role,
-  the Auth settings with Resend SMTP and both buckets; the Vercel project
-  `lerner-works-platform` with `app.lernerworksplatform.dev` carries every variable and the
-  readiness report is green (`docs/evidence/production/launch-check-2026-09-26.txt`). It is
-  not linked to the repository and has no deployment until the owner's go-ahead; the first
-  owner and the production checks of the checklist follow the deployment. Staging stays
-  paused with its test data.
-- Supabase Auth SMTP through Resend is set on production (verified by read-back on
-  2026-09-26; a delivery test through the relay is still to come). The paused staging
-  project never received it.
+- The owner's first production sign-in through "Forgot your password?", which is also the
+  first delivery through Resend SMTP (set on production and verified by read-back), and the
+  owner-session checks of the checklist: a test site published and served, an inquiry
+  delivered to the inbox, an invitation.
+- The backup routine. The free tier has no provider backups and no point-in-time recovery,
+  and idle pausing is kept at bay only by the five-minute delivery cron; the owner schedules
+  `pnpm backup:local` from a workstation or records the accepted gap. The published free-tier
+  limits are recorded in `docs/PROGRESS.md`.
+- Housekeeping: keep or delete the paused staging project (test data only, never received
+  custom SMTP), revoke the pasted Supabase access token in the dashboard, confirm the sending
+  domain status at Resend, and bring the session branch's documentation and tooling into
+  `main` through a pull request.
 - Real customer content, the customer's hostname and DNS, and the go-live decision.
 - Plan costs for Vercel, Supabase and Resend remain the owner's to confirm; none is quoted here.
 
