@@ -28,7 +28,8 @@
     "restore:rehearsal": "tsx scripts/restore-rehearsal.ts",
     "launch:check": "tsx scripts/launch-check.ts",
     "bootstrap:owner": "tsx scripts/bootstrap-owner.ts",
-    "hosted:roles": "tsx scripts/hosted-roles.ts"
+    "hosted:roles": "tsx scripts/hosted-roles.ts",
+    "smoke": "playwright test --config playwright.smoke.config.ts"
   },
   "dependencies": {
     "csv-parse": "7.0.3",

@@ -125,6 +125,14 @@ through the notification queue.
 7. Take a database backup (Supabase dashboard) and confirm the storage buckets are included
    in the backup plan; note the restore procedure in `docs/OPERATIONS.md`.
 
+`pnpm smoke` automates 1–6 against a deployed environment (`tests/smoke/staging.spec.ts`,
+variables `SMOKE_BASE_URL`, `SMOKE_OWNER_EMAIL`, `SMOKE_OWNER_PASSWORD`, `SMOKE_JOB_SECRET`,
+optional `SMOKE_INVITEE_EMAIL`, `SMOKE_HOSTNAME`, `SMOKE_RESEND_API_KEY`, `SMOKE_SITE_ID` /
+`SMOKE_SITE_KEY` to reuse a site). Every message it sends goes to the owner's own mailbox;
+the invitee must be a mailbox the owner controls. Screenshots land in `docs/evidence/staging/`.
+Behind a TLS-inspecting proxy, import the proxy's authority into the browser NSS store
+rather than ignoring certificate errors.
+
 Only after all seven pass can the release be labelled **hosted staging verified**.
 
 ## 7. Production

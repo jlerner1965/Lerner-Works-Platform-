@@ -50,6 +50,7 @@ Evidence (screenshots, asset register, Lighthouse runs) is in `docs/evidence/`.
 | `pnpm launch:check [--env-file <file>]` | Hosted readiness report: configuration, database privileges and RLS, identity, storage, email, scheduler, domain provider; no secrets printed |
 | `pnpm bootstrap:owner --email … --organization …` | Creates the first owner account and organization (`BOOTSTRAP_PASSWORD` env; `--confirm-hosted` outside local) |
 | `pnpm db:migrate --project-ref <ref>` / `pnpm hosted:roles --project-ref <ref>` | Hosted project setup through the Supabase Management API (`SUPABASE_ACCESS_TOKEN`; role password from `LW_APP_PASSWORD`) |
+| `pnpm smoke` | Staging smoke tests against a deployed environment (`SMOKE_*` variables; see `docs/LAUNCH-CHECKLIST.md` section 6) |
 
 All demonstration content is fictional. Pine Hollow Guide and Range Athletics are not real
 businesses, and no live Lerner Works property is touched by this repository.

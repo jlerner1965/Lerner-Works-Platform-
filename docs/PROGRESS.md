@@ -10,7 +10,7 @@ Resume point for the build. Update after every milestone and before any context 
 | M1 First complete publishing workflow | DONE (2026-09-26) | Edit → draft → approve → frozen candidate → preview → atomic activation → public demo route, verified by 28 unit, 21 integration and 2 browser tests. |
 | M2 Complete editing and public experiences | DONE (2026-09-26) | All six content kinds editable and rendered; media pipeline with validation and derivatives; two fully populated fictional pilots with original generated artwork; search/filters; settings; site creation; responsive screenshots at 390/768/1440 with no overflow; 28 unit, 25 integration, 6 browser tests. |
 | M3 Operational completion | DONE (2026-09-26) | Review queue, release restore, inquiry inbox + durable notification queue with worker, owner access management with local invitation flow, CSV import with dry run, portable site package export/import, audit log, retention job, backup + restore rehearsal. |
-| Launch readiness (post-M4) | DONE for the repository (2026-09-26); hosted verification BLOCKED on owner accounts | Supabase Auth provider with platform sessions, invitations and password recovery; Supabase Storage provider; scheduled job endpoints + `vercel.json`; domain registration/verification/activation via the Vercel API and explicit go-live; hosted configuration enforcement; `pnpm launch:check`; `pnpm bootstrap:owner`; `docs/LAUNCH-CHECKLIST.md`. Provider adapters are unit-tested against recorded API shapes only. |
+| Launch readiness (post-M4) | DONE (2026-09-26); staging verified the same day (see the hosted setup log) | Supabase Auth provider with platform sessions, invitations and password recovery; Supabase Storage provider; scheduled job endpoints + `vercel.json`; domain registration/verification/activation via the Vercel API and explicit go-live; hosted configuration enforcement; `pnpm launch:check`; `pnpm bootstrap:owner`; `docs/LAUNCH-CHECKLIST.md`. Provider adapters are unit-tested against recorded API shapes only. |
 | M4 Verification and refinement | DONE (2026-09-26) | Acceptance matrix complete with evidence (38 PASS, 0 FAIL, 0 BLOCKED); ten-step demonstration automated with screenshots; browser suite moved to the production build; production build + secret inspection; Lighthouse lab runs; fresh-install rehearsal; release report in `docs/RELEASE-REPORT.md`. |
 
 ## Environment blockers (precise)
@@ -128,7 +128,18 @@ deployment until the smoke tests in `docs/LAUNCH-CHECKLIST.md` run.
   `pnpm launch:check --env-file … --project-ref` reported every item OK before deploying.
   Supabase Auth SMTP through Resend was not set (the session's safety check refused the
   secret write); the default Supabase mailer remains until the owner enters it.
-- Pending: first owner (`pnpm bootstrap:owner --project-ref`); smoke tests 1–7.
+- 2026-09-26 First owner created on staging (`pnpm bootstrap:owner --project-ref … --confirm-hosted`,
+  Supabase Auth account + organization "Lerner Works"); password kept out of the chat, the
+  owner takes over through "Forgot your password?". Smoke tests 1–6 (`pnpm smoke`, see
+  ACCEPTANCE LAUNCH-06) passed against staging; screenshots in `docs/evidence/staging/`.
+  Test messages went only to the owner's mailbox (invitee: a plus-address of it). Browser
+  runs from the build environment needed its proxy authority in the NSS store (not a TLS
+  bypass). Left on staging: three `smoke-*` sites (one published), the invitee account
+  (membership removed), test inquiries and invitations. Supabase Auth SMTP still uses the
+  default mailer. The `VERCEL_API_TOKEN` in the project environment is the owner's
+  24-hour token and must be replaced with a long-lived one for the domain workflow.
+- Pending: owner confirms the recovery email and the backup schedule; production project;
+  long-lived Vercel token; PR #3 merge so `main` carries the hosted tooling.
 
 ## Feature ledger
 

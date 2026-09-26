@@ -83,33 +83,34 @@ Field Core Web Vitals cannot be claimed from these runs.
   28 unit and 35 integration tests: every step exit 0. On a machine without the database,
   `pnpm db:start` creates it first, as the README says.
 
-## 5. Not verified here (hosted readiness)
+## 5. Hosted staging (verified 2026-09-26) and what remains
 
-Every hosted integration is now implemented and configured through the environment
-(`.env.example`), and the application refuses to start in a hosted environment that still
-uses a development-only provider. The adapters are tested against recorded API shapes with
-an injected HTTP client, and the database side (sessions, domain workflow, go-live, job
-endpoints) is tested for real against PostgreSQL. What is **not** verified, because no
-account or credential exists in this environment and creating one needs the owner:
+With the owner's credentials the staging environment was set up from this repository and
+verified (`docs/PROGRESS.md` → "Hosted setup log", `docs/ACCEPTANCE.md` LAUNCH-06):
 
-- **Supabase Auth** (`AUTH_PROVIDER=supabase`): the GoTrue password grant, administrative
-  user creation for invitations and the PKCE recovery flow have not been exercised against a
-  live project. The local shim proves the workflow.
-- **Supabase Storage** (`STORAGE_PROVIDER=supabase`): uploads, authenticated downloads,
-  recursive deletes and public URLs are unexercised against live buckets.
-- **Transactional email** (`NOTIFY_PROVIDER=resend`): no real email was sent. The queue,
-  retries and status reporting are verified with the local sink.
-- **Domain verification through the Vercel API** and real DNS: the dashboard workflow is
-  verified with recorded responses and test hostnames; no domain was registered anywhere.
-- **The scheduler itself**: the endpoints are verified; whether Vercel Cron runs at the
-  configured cadence depends on the plan the owner selects.
-- **Lighthouse on hosted infrastructure and field Core Web Vitals**: only local lab runs.
-- **Plan eligibility and prices** for Vercel, Supabase and Resend: not checked; no free-tier
-  claim is made.
+- Supabase project `pgnffhnlgxqpsvgloshz` (us-east-1): migrations and the application role
+  applied through the Management API, sign-ups disabled, buckets created; database checks
+  all OK in `pnpm launch:check --project-ref`.
+- Vercel project `lerner-works-platform-staging` at `https://staging.lernerworksplatform.dev`
+  (Pro team "ARProject"), production branch `main`, crons registered, HSTS and the other
+  headers present.
+- Resend: domain `lernerworksplatform.dev` verified; sender `notifications@lernerworksplatform.dev`.
+- Smoke tests 1–6 passed against staging: hosted storage upload and publishing, inquiry
+  delivery through the scheduled job and Resend, invitation email and account creation
+  through the identity provider, job authentication, recovery request, and the full domain
+  workflow with a real hostname served live and returned to demonstration mode.
 
-`docs/LAUNCH-CHECKLIST.md` turns each of these into a staging smoke test with a recorded
-result (ACCEPTANCE LAUNCH-06). Until those run, the release label stays **working local
-release**, not "hosted staging verified".
+Release label: **hosted staging verified**, with these open items before "live pilot ready":
+
+- The owner completes the password-recovery email step and confirms the backup schedule
+  (physical backups enabled, no snapshot yet, point-in-time recovery off).
+- A separate **production** Supabase project and Vercel project, set up the same way with
+  production secrets (`docs/LAUNCH-CHECKLIST.md` section 7); staging holds test data.
+- Supabase Auth SMTP through Resend (the session's safety check refused to write that
+  secret; the default Supabase mailer is rate-limited and meant for testing).
+- A long-lived Vercel API token in the project environment (the one set expires within a day).
+- Real customer content, the customer's hostname and DNS, and the go-live decision.
+- Plan costs for Vercel, Supabase and Resend remain the owner's to confirm; none is quoted here.
 
 ## 6. Known defects and limitations
 
