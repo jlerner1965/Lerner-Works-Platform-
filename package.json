@@ -1,0 +1,66 @@
+{
+  "name": "lernerworks-platform",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Lerner Works Website Platform: agency-operated multi-site publishing dashboard with two fictional pilot sites.",
+  "packageManager": "pnpm@10.33.0",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "setup:check": "tsx scripts/setup-check.ts",
+    "db:start": "tsx scripts/db-start.ts",
+    "db:migrate": "tsx scripts/db-migrate.ts",
+    "db:reset": "tsx scripts/db-reset.ts",
+    "seed:demo": "tsx scripts/seed-demo.ts",
+    "dev": "tsx scripts/dev.ts",
+    "worker:dev": "tsx scripts/worker.ts",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --project unit",
+    "test:integration": "vitest run --project integration",
+    "test:e2e": "playwright test",
+    "build": "next build",
+    "start": "next start",
+    "verify": "tsx scripts/verify.ts",
+    "retention": "tsx scripts/retention.ts",
+    "backup:local": "tsx scripts/backup-local.ts",
+    "restore:rehearsal": "tsx scripts/restore-rehearsal.ts",
+    "launch:check": "tsx scripts/launch-check.ts",
+    "bootstrap:owner": "tsx scripts/bootstrap-owner.ts"
+  },
+  "dependencies": {
+    "csv-parse": "7.0.3",
+    "fflate": "0.8.3",
+    "next": "16.3.6",
+    "postgres": "3.4.9",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "server-only": "0.0.1",
+    "sharp": "0.35.4",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "@tailwindcss/postcss": "4.3.3",
+    "@types/node": "26.6.3",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "dotenv": "18.0.4",
+    "eslint": "9.39.5",
+    "eslint-config-next": "16.3.6",
+    "postcss": "8.5.28",
+    "tailwindcss": "4.3.3",
+    "tsx": "4.23.15",
+    "typescript": "5.9.3",
+    "vitest": "4.1.11"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@tailwindcss/oxide",
+      "esbuild",
+      "sharp",
+      "unrs-resolver"
+    ]
+  }
+}

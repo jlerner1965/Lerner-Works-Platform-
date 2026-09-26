@@ -1,0 +1,28 @@
+# dependencies
+node_modules/
+.pnpm-store/
+
+# next.js
+.next/
+.next-e2e/
+.next-build/
+out/
+next-env.d.ts
+
+# local runtime data (storage objects, mail sink, generated credentials)
+.data/
+.env
+.env.local
+.env.*.local
+docs/local-accounts.md
+
+# test output
+test-results/
+playwright-report/
+coverage/
+tests/e2e/.auth/
+
+# misc
+*.log
+.DS_Store
+*.tsbuildinfo
