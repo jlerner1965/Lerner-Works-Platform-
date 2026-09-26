@@ -13,7 +13,7 @@ Resume point for the build. Update after every milestone and before any context 
 | Launch readiness (post-M4) | DONE (2026-09-26); staging verified the same day (see the hosted setup log) | Supabase Auth provider with platform sessions, invitations and password recovery; Supabase Storage provider; scheduled job endpoints + `vercel.json`; domain registration/verification/activation via the Vercel API and explicit go-live; hosted configuration enforcement; `pnpm launch:check`; `pnpm bootstrap:owner`; `docs/LAUNCH-CHECKLIST.md`. Provider adapters are unit-tested against recorded API shapes only. |
 | M4 Verification and refinement | DONE (2026-09-26) | Acceptance matrix complete with evidence (38 PASS, 0 FAIL, 0 BLOCKED); ten-step demonstration automated with screenshots; browser suite moved to the production build; production build + secret inspection; Lighthouse lab runs; fresh-install rehearsal; release report in `docs/RELEASE-REPORT.md`. |
 | Production (hosted) | DONE (2026-09-26) | Production Supabase and Vercel projects configured and deployed; owner signed in; inquiries stored and delivered by Vercel Cron after the routing fix; readiness report green (see the hosted setup log). |
-| D0 Identity completeness | DONE (2026-09-26, on the branch; production after the pull request merges) | Design programme phase 0 (`docs/DESIGN-PLAN.md` section 4): logo rendered, typography preset applied, every theme colour a derived token with a 15-pairing contrast gate and a literal-colour audit, per-site favicon/share image/title/language, editable listing copy, Search link switch, external links, footer layouts, page header image, inquiries switch enforced in SQL. Snapshot schema version 2 with version-1 releases normalised at read time. |
+| D0 Identity completeness | DONE (2026-09-26, on production: pull request #7 merged as `9c49d7a`, migration applied, live checks in `docs/evidence/production/d0-2026-09-26-live-checks.txt`) | Design programme phase 0 (`docs/DESIGN-PLAN.md` section 4): logo rendered, typography preset applied, every theme colour a derived token with a 15-pairing contrast gate and a literal-colour audit, per-site favicon/share image/title/language, editable listing copy, Search link switch, external links, footer layouts, page header image, inquiries switch enforced in SQL. Snapshot schema version 2 with version-1 releases normalised at read time. |
 | D1 Bounded design options | PLANNED | Site-level design options, section variants and appearance, new section types (FAQ, quotes, CTA, gallery, facts, video, map link), media focal point, rich text emphasis, snapshot version bump with rendering-hash test. |
 | D2 Theme catalogue and design preview | PLANNED | Theme registry with capability declarations, one more composition per preset, theme switching per site, design preview of the draft configuration, more typography presets. |
 | D3 Visual in-context editing | PLANNED | Editable preview with keyboard-equivalent reordering, side-panel forms on the same schemas, live tokens, explicit save; same review and publication path. |
@@ -93,29 +93,33 @@ Resume point for the build. Update after every milestone and before any context 
 
 ## Current task
 
-Design programme phase D0 (identity completeness) is implemented and verified on the branch
-`claude/lucid-darwin-cif2y6`: `pnpm verify` green, screenshots of both pilots at 390/768/1440
-with logos, fonts and derived colours, Lighthouse re-run recorded, acceptance rows DES-01 to
-DES-05 PASS with DES-13/14 baselines (`docs/ACCEPTANCE.md`). It reaches production when the
-pull request merges into `main` (Vercel deploys `main`); the new migration
-`20260926000100_inquiries_switch.sql` must be applied to the production database before or
-with that deploy (`pnpm db:migrate` against the production admin connection, as for the
-earlier migrations), and existing releases keep rendering because version-1 snapshots are
-normalised at read time.
+Design programme phase D0 (identity completeness) is on production. With the owner's go
+(2026-09-26): migration `20260926000100_inquiries_switch.sql` applied to the production
+project through the Management API (1 applied, 7 already applied), pull request #7 merged
+into `main` as `9c49d7a`, Vercel deployment `dpl_5ALmsgF8zZT8ofwU3CdGtpRoVibc` READY at
+14:34 UTC, then live checks on `https://app.lernerworksplatform.dev` (evidence
+`docs/evidence/production/d0-2026-09-26-live-checks.txt`): the owner's test site renders its
+version-1 release through the normalised path with `lang="en"`, its own title
+(`Aragosan`, `Events · Aragosan`) and no platform name, the generated monogram favicon
+(200 `image/svg+xml`; 404 for an unknown site), `og:site_name`, the derived brand tokens and
+font variables on the theme root; the sign-in page keeps the platform identity; the cron
+target on the deployment hostname still answers 401. The readiness report was not re-run
+(its inputs did not change in D0; the check-only environment file from the morning was
+deleted after use).
 
-Production itself is unchanged since the cron fix: the Vercel project `lerner-works-platform`
-serves `main` at `https://app.lernerworksplatform.dev` against the Supabase project
+The Vercel project `lerner-works-platform` serves `main` at
+`https://app.lernerworksplatform.dev` against the Supabase project
 `lerner-works-platform-production` (`fvpooyxkuvltjzjbevxf`). No customer organization, site or
-hostname exists yet.
+hostname exists yet. This evidence commit sits on the working branch (restarted from
+`main` after the merge) and reaches `main` with the next pull request.
 
 ## Next action
 
-Owner: merge the D0 pull request (or say so and it will be merged and verified here), then
-apply the migration to production and check the pilot site's header, favicon and page titles
-on the live deployment. Then phase D1 (`docs/DESIGN-PLAN.md`: bounded design options,
-section variants, new section types, media focal point, rendering-hash test), about three
-sessions, starting on the owner's go. The plan's open points (fonts, video providers,
-delegation default) can be answered along the way.
+Owner: look at the test site on production (logo upload and a publish will show the new
+header; Settings → Brand shows the contrast pairings). Then phase D1 (`docs/DESIGN-PLAN.md`:
+bounded design options, section variants, new section types, media focal point,
+rendering-hash test), about three sessions, starting on the owner's go. The plan's open
+points (fonts, video providers, delegation default) can be answered along the way.
 
 Owner: accept the pending invitation from its email (the last owner-session check of
 `docs/LAUNCH-CHECKLIST.md` section 6); decide the backup routine (the free tier has no

@@ -1,0 +1,20 @@
+D0 live checks on production, 2026-09-26T14:36:01Z, deployment dpl_5ALmsgF8zZT8ofwU3CdGtpRoVibc (main 9c49d7a, merge of pull request #7)
+Migration 20260926000100_inquiries_switch.sql applied to project fvpooyxkuvltjzjbevxf at 14:32 UTC (1 applied, 7 already applied).
+Site under test: aragosan (owner's test site, demo mode, release version 1 stored as snapshot schema version 1).
+
+PASS  html element carries lang="en" on /demo/aragosan (Vercel adds data-dpl-id before it)
+PASS  title is the site default title only
+PASS  platform name absent from the page
+PASS  favicon link points at the generated monogram
+PASS  og:site_name is the wordmark
+PASS  --brand-on-primary:
+PASS  --font-heading:var\(--font-guide-serif\)
+PASS  theme root class present (version-1 snapshot normalised and rendered)
+
+200 image/svg+xml; charset=utf-8  GET /demo/aragosan/favicon.svg (svg body)
+200 text/html; charset=utf-8  GET /demo/aragosan/events <title>Events · Aragosan</title>
+404 text/plain;charset=UTF-8  GET /demo/no-such-site/favicon.svg
+200 text/html; charset=utf-8  GET /sign-in lang="en" platform title present: 1
+200 application/json  GET /healthz
+
+401  GET /api/jobs/deliver on the deployment hostname (401 = cron target still reachable through the proxy exemption)
