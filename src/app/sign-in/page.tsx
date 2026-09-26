@@ -20,7 +20,7 @@ export default async function SignInPage({ searchParams }: { searchParams: Promi
           <h1 className="mt-1 text-2xl font-semibold">Sign in</h1>
           {params["signed-out"] ? <p className="mt-2 text-sm text-success">You have been signed out.</p> : null}
         </div>
-        <SignInForm next={params.next} />
+        <SignInForm next={params.next} recoveryHref={cfg.AUTH_PROVIDER === "supabase" ? "/forgot-password" : undefined} />
         {cfg.isLocal ? (
           <p className="mt-6 text-xs text-ink-subtle">
             Local development accounts are listed in <code>docs/local-accounts.md</code> after running <code>pnpm seed:demo</code>.

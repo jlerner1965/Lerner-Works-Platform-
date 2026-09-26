@@ -47,6 +47,15 @@ export async function withAnon<T>(fn: (db: Db) => Promise<T>): Promise<T> {
   }) as Promise<T>;
 }
 
+/**
+ * Runs `fn` as the application's own connecting role, without switching to anon or
+ * authenticated. That role owns no table privileges; it may only execute the session
+ * functions in the private schema. Use this for session bookkeeping only.
+ */
+export async function withApp<T>(fn: (db: Db) => Promise<T>): Promise<T> {
+  return pool().begin(async (tx) => fn(tx as unknown as Db)) as Promise<T>;
+}
+
 /** Runs `fn` as the authenticated user identified by `userId`. */
 export async function withUser<T>(userId: string, fn: (db: Db) => Promise<T>): Promise<T> {
   if (!/^[0-9a-f-]{36}$/i.test(userId)) throw new DbAccessError("invalid user id", "invalid_user");

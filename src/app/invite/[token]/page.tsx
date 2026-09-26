@@ -31,13 +31,11 @@ export default async function InvitePage({ params }: { params: Promise<{ token: 
             ) : (
               <p className="text-sm text-danger">You are signed in as {user.email}, but this invitation is for {preview.email}. Sign out and use the invited account.</p>
             )
-          ) : cfg.AUTH_PROVIDER === "local" ? (
+          ) : (
             <>
               <InviteRegisterForm token={token} email={preview.email} />
-              <p className="text-xs text-ink-subtle">Already have an account with this email? <Link href={`/sign-in?next=${encodeURIComponent(`/invite/${token}`)}`} className="text-action underline">Sign in</Link> and come back to this link.</p>
+              <p className="text-xs text-ink-subtle">Already have an account with this email? <Link href={`/sign-in?next=${encodeURIComponent(`/invite/${token}`)}`} className="text-action underline">Sign in</Link> and come back to this link.{cfg.AUTH_PROVIDER === "supabase" ? " Accounts are managed by the hosted identity provider; the password you choose here is stored there." : ""}</p>
             </>
-          ) : (
-            <p className="text-sm">Sign in with the invited account to accept. <Link href={`/sign-in?next=${encodeURIComponent(`/invite/${token}`)}`} className="text-action underline">Sign in</Link></p>
           )}
         </div>
       )}

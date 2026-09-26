@@ -39,6 +39,7 @@ setup check, lint, typecheck, 28 unit tests, 35 integration tests against the is
 | Production build | `next build` succeeds; client bundles contain no database URL, password, session secret or provider key; dashboard and demo responses are `no-store` and `noindex`; public derivatives are immutable | section 4 below (OPS-03) |
 | Fresh install | Clone → `pnpm install` from the lockfile → `.env` → migrate → seed → typecheck → tests | section 4 below (OPS-01) |
 | Demonstration | The ten-step script in `docs/DEMO.md` runs end to end through the interface | `tests/e2e/demo.spec.ts`; screenshots in `docs/evidence/demo/` |
+| Launch readiness (repository side) | Hosted configuration enforced at startup; platform sessions for Supabase Auth unreachable by PostgREST roles; invitation account creation and password recovery; Supabase Storage adapter; authenticated job endpoints with a cron schedule; domain register → verify → activate workflow with explicit go-live; readiness report; first-owner bootstrap | unit `hosted-adapters.test`, integration `hosted.test`, e2e `routing.spec` (LAUNCH-01..05, 07); runbook `docs/LAUNCH-CHECKLIST.md` |
 
 The full matrix with per-row evidence is `docs/ACCEPTANCE.md`.
 
@@ -84,25 +85,31 @@ Field Core Web Vitals cannot be claimed from these runs.
 
 ## 5. Not verified here (hosted readiness)
 
-These parts exist in code but could not be exercised in this environment. They are listed as
-unverified, not as working:
+Every hosted integration is now implemented and configured through the environment
+(`.env.example`), and the application refuses to start in a hosted environment that still
+uses a development-only provider. The adapters are tested against recorded API shapes with
+an injected HTTP client, and the database side (sessions, domain workflow, go-live, job
+endpoints) is tested for real against PostgreSQL. What is **not** verified, because no
+account or credential exists in this environment and creating one needs the owner:
 
-- **Supabase Auth adapter** (`AUTH_PROVIDER=supabase`): no Supabase project or local stack
-  (no container runtime; the CLI download is blocked). The local shim proves the workflow,
-  not the hosted provider. Invitation acceptance for hosted accounts follows the same
-  functions but the email/identity step is unverified.
-- **Supabase Storage adapter** (`STORAGE_PROVIDER=supabase`): unverified; local disk storage
-  is verified.
-- **Transactional email** (`NOTIFY_PROVIDER=resend`): unverified; the local sink proves queue
-  processing, retries and status reporting only. No real email was sent.
-- **Domain verification and activation**: the registry, host routing, canonical redirects and
-  sitemaps are verified with test hostnames against the local server. No real DNS or
-  certificate work was done, and no domain is marked verified.
-- **Scheduled worker on a host**: the worker is verified as a process (`pnpm worker:dev`,
-  `--once`); the hosted scheduler and its limits are not.
+- **Supabase Auth** (`AUTH_PROVIDER=supabase`): the GoTrue password grant, administrative
+  user creation for invitations and the PKCE recovery flow have not been exercised against a
+  live project. The local shim proves the workflow.
+- **Supabase Storage** (`STORAGE_PROVIDER=supabase`): uploads, authenticated downloads,
+  recursive deletes and public URLs are unexercised against live buckets.
+- **Transactional email** (`NOTIFY_PROVIDER=resend`): no real email was sent. The queue,
+  retries and status reporting are verified with the local sink.
+- **Domain verification through the Vercel API** and real DNS: the dashboard workflow is
+  verified with recorded responses and test hostnames; no domain was registered anywhere.
+- **The scheduler itself**: the endpoints are verified; whether Vercel Cron runs at the
+  configured cadence depends on the plan the owner selects.
 - **Lighthouse on hosted infrastructure and field Core Web Vitals**: only local lab runs.
-- **Plan eligibility and prices** for Vercel, Supabase and an email provider: not checked;
-  no free-tier claim is made.
+- **Plan eligibility and prices** for Vercel, Supabase and Resend: not checked; no free-tier
+  claim is made.
+
+`docs/LAUNCH-CHECKLIST.md` turns each of these into a staging smoke test with a recorded
+result (ACCEPTANCE LAUNCH-06). Until those run, the release label stays **working local
+release**, not "hosted staging verified".
 
 ## 6. Known defects and limitations
 
@@ -117,6 +124,10 @@ unverified, not as working:
   surfaces. Editor forms are long on small screens (they scroll; nothing overflows).
 - Search is a snapshot-backed text match, not a ranked index. Adequate for the pilot sizes.
 - Only the latin subsets of the three typefaces are bundled.
+- Sessions issued for the hosted provider are not revoked by a password change at the
+  identity provider; an owner who suspects a compromised account should remove the
+  membership (takes effect on the next request) and the person signs in again after
+  recovery. `private.delete_user_sessions` exists for an operator to revoke all sessions.
 - Local demonstration accounts and the local auth provider are refused outside
   `APP_ENV=local`; they must never be deployed.
 
@@ -129,7 +140,8 @@ unverified, not as working:
 - Resume development: `docs/PROGRESS.md` (state, ledger, last results), `docs/DECISIONS.md`
   (D-001…D-009), `docs/OPERATIONS.md` (setup, resets, worker, backups), `pnpm verify`.
 - Remaining setup for a hosted staging environment (requires the owner's accounts and
-  approval): `docs/OPERATIONS.md` → "Hosted deployment".
+  approval): `docs/LAUNCH-CHECKLIST.md`, then `pnpm launch:check --env-file <file>` and
+  `pnpm bootstrap:owner` for the first owner.
 
 Local URLs only: `http://localhost:3000/app`, `http://localhost:3000/demo/pine-hollow`,
 `http://localhost:3000/demo/range-athletics`. No public URL exists for this project.

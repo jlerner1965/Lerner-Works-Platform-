@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { getConfig } from "@/server/config";
+import { SupabaseStorage } from "@/server/media/supabase-storage";
 
 /**
  * Object storage behind a small interface. Private objects hold originals and derivatives
@@ -21,7 +22,7 @@ export interface StorageProvider {
 
 const SAFE_SEGMENT = /^[A-Za-z0-9._-]+$/;
 
-function assertSafeKey(key: string): void {
+export function assertSafeKey(key: string): void {
   const parts = key.split("/");
   if (parts.length === 0 || parts.some((p) => !SAFE_SEGMENT.test(p) || p === "." || p === "..")) {
     throw new Error(`unsafe storage key: ${key}`);
@@ -98,7 +99,11 @@ export function getStorage(): StorageProvider {
     if (cfg.STORAGE_PROVIDER === "local") {
       globalThis.__lwStorage = new LocalDiskStorage(path.resolve(process.cwd(), cfg.STORAGE_LOCAL_DIR));
     } else {
-      throw new Error("Supabase storage provider is not configured in this build. See docs/OPERATIONS.md.");
+      if (!cfg.SUPABASE_URL || !cfg.SUPABASE_SERVICE_ROLE_KEY) throw new Error("STORAGE_PROVIDER=supabase requires SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.");
+      globalThis.__lwStorage = new SupabaseStorage(cfg.SUPABASE_URL, cfg.SUPABASE_SERVICE_ROLE_KEY, {
+        private: cfg.SUPABASE_STORAGE_PRIVATE_BUCKET,
+        public: cfg.SUPABASE_STORAGE_PUBLIC_BUCKET,
+      });
     }
   }
   return globalThis.__lwStorage;

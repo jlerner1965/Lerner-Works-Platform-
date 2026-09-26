@@ -165,7 +165,7 @@ export async function addDomainAction(_prev: SettingsState, formData: FormData):
     });
     if (!ok) return { error: "Only organization owners can register domains." };
     revalidatePath(`/app/sites/${siteId}/settings`);
-    return { message: `${host} registered with status "pending". Verification requires the hosted deployment step described in docs/OPERATIONS.md; nothing is marked verified automatically.` };
+    return { message: `${host} registered with status "pending". Next: register it with the hosting provider and add the records the provider asks for; nothing is marked verified without the provider's confirmation.` };
   } catch (err) {
     const d = describeDbError(err);
     return { error: d.code === "conflict" ? "That hostname is already registered." : d.message };

@@ -3,7 +3,7 @@
 import { useActionState, useId } from "react";
 import { signInAction, type SignInState } from "@/server/auth/actions";
 
-export function SignInForm({ next }: { next?: string }) {
+export function SignInForm({ next, recoveryHref }: { next?: string; recoveryHref?: string }) {
   const [state, action, pending] = useActionState<SignInState, FormData>(signInAction, {});
   const emailId = useId();
   const passwordId = useId();
@@ -64,6 +64,11 @@ export function SignInForm({ next }: { next?: string }) {
       >
         {pending ? "Signing in…" : "Sign in"}
       </button>
+      {recoveryHref ? (
+        <p className="mt-4 text-center text-sm">
+          <a href={recoveryHref} className="text-action underline">Forgot your password?</a>
+        </p>
+      ) : null}
     </form>
   );
 }

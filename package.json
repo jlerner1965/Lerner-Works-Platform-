@@ -25,7 +25,9 @@
     "verify": "tsx scripts/verify.ts",
     "retention": "tsx scripts/retention.ts",
     "backup:local": "tsx scripts/backup-local.ts",
-    "restore:rehearsal": "tsx scripts/restore-rehearsal.ts"
+    "restore:rehearsal": "tsx scripts/restore-rehearsal.ts",
+    "launch:check": "tsx scripts/launch-check.ts",
+    "bootstrap:owner": "tsx scripts/bootstrap-owner.ts"
   },
   "dependencies": {
     "csv-parse": "7.0.3",

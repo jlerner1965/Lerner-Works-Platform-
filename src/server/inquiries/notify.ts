@@ -44,11 +44,15 @@ export class FailingProvider implements NotificationProvider {
 /** Resend transactional email. Unverified in this environment: no API key exists here. */
 export class ResendProvider implements NotificationProvider {
   readonly name = "resend";
-  constructor(private readonly apiKey: string, private readonly from: string) {}
+  constructor(
+    private readonly apiKey: string,
+    private readonly from: string,
+    private readonly fetchImpl: typeof fetch = fetch,
+  ) {}
   async send(message: NotificationMessage): Promise<SendResult> {
     let res: Response;
     try {
-      res = await fetch("https://api.resend.com/emails", {
+      res = await this.fetchImpl("https://api.resend.com/emails", {
         method: "POST",
         headers: { Authorization: `Bearer ${this.apiKey}`, "Content-Type": "application/json", "Idempotency-Key": message.idempotencyKey },
         body: JSON.stringify({ from: this.from, to: message.to, subject: message.subject, text: message.text }),

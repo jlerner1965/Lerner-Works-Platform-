@@ -1,5 +1,6 @@
 import { getConfig } from "@/server/config";
 import { localAuthProvider } from "@/server/auth/local-provider";
+import { createSupabaseAuthProvider } from "@/server/auth/supabase-provider";
 
 export interface SessionUser {
   id: string;
@@ -25,15 +26,19 @@ export interface AuthProvider {
   resolveSession(cookieValue: string | undefined): Promise<SessionUser | null>;
   /** Revokes the session identified by the cookie value. */
   signOut(cookieValue: string | undefined): Promise<void>;
-  /** Creates the invited account (local provider only) and returns a session cookie. */
+  /** Creates the invited account with a password and returns a session cookie. */
   registerInvitedUser?(invitationToken: string, password: string): Promise<SignInResult | { ok: false; reason: "rejected"; message: string }>;
   readonly cookieName: string;
 }
 
+declare global {
+  var __lwAuthProvider: AuthProvider | undefined;
+}
+
 export function getAuthProvider(): AuthProvider {
-  const cfg = getConfig();
-  if (cfg.AUTH_PROVIDER === "local") return localAuthProvider;
-  // The hosted Supabase Auth adapter is wired in src/server/auth/supabase-provider.ts once a
-  // project is configured; until then the configuration check in getConfig() rejects it.
-  throw new Error("Supabase auth provider is not configured in this build. See docs/OPERATIONS.md.");
+  if (!globalThis.__lwAuthProvider) {
+    const cfg = getConfig();
+    globalThis.__lwAuthProvider = cfg.AUTH_PROVIDER === "local" ? localAuthProvider : createSupabaseAuthProvider();
+  }
+  return globalThis.__lwAuthProvider;
 }

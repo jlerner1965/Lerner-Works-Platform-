@@ -10,6 +10,7 @@ Resume point for the build. Update after every milestone and before any context 
 | M1 First complete publishing workflow | DONE (2026-09-26) | Edit → draft → approve → frozen candidate → preview → atomic activation → public demo route, verified by 28 unit, 21 integration and 2 browser tests. |
 | M2 Complete editing and public experiences | DONE (2026-09-26) | All six content kinds editable and rendered; media pipeline with validation and derivatives; two fully populated fictional pilots with original generated artwork; search/filters; settings; site creation; responsive screenshots at 390/768/1440 with no overflow; 28 unit, 25 integration, 6 browser tests. |
 | M3 Operational completion | DONE (2026-09-26) | Review queue, release restore, inquiry inbox + durable notification queue with worker, owner access management with local invitation flow, CSV import with dry run, portable site package export/import, audit log, retention job, backup + restore rehearsal. |
+| Launch readiness (post-M4) | DONE for the repository (2026-09-26); hosted verification BLOCKED on owner accounts | Supabase Auth provider with platform sessions, invitations and password recovery; Supabase Storage provider; scheduled job endpoints + `vercel.json`; domain registration/verification/activation via the Vercel API and explicit go-live; hosted configuration enforcement; `pnpm launch:check`; `pnpm bootstrap:owner`; `docs/LAUNCH-CHECKLIST.md`. Provider adapters are unit-tested against recorded API shapes only. |
 | M4 Verification and refinement | DONE (2026-09-26) | Acceptance matrix complete with evidence (38 PASS, 0 FAIL, 0 BLOCKED); ten-step demonstration automated with screenshots; browser suite moved to the production build; production build + secret inspection; Lighthouse lab runs; fresh-install rehearsal; release report in `docs/RELEASE-REPORT.md`. |
 
 ## Environment blockers (precise)
@@ -22,6 +23,14 @@ Resume point for the build. Update after every milestone and before any context 
   account or credential exists in this environment. Nothing was faked.
 
 ## Last verified results
+
+- 2026-09-26 (launch readiness) `pnpm test` 44 passed (adds GoTrue, Supabase Storage, Vercel
+  and Resend adapter tests with an injected fetch, hosted configuration validation, job
+  authorization); `pnpm test:integration` 42 passed (adds platform sessions, domain workflow
+  and go-live, scheduled job endpoints); `pnpm launch:check` and `pnpm bootstrap:owner`
+  executed locally (see ACCEPTANCE LAUNCH-07). `pnpm verify` GATE PASSED in 214 s: setup
+  check, lint, typecheck, 44 unit, 42 integration, 18 browser tests (production build),
+  production build.
 
 - 2026-09-26 (M4) `pnpm test:e2e` 17 passed against the production build (adds the ten-step
   demonstration in three serial tests with screenshots, keyboard/focus checks, 200% zoom
@@ -58,14 +67,16 @@ Resume point for the build. Update after every milestone and before any context 
 
 ## Current task
 
-All four milestones are done for the local release. Hosted staging remains blocked on
-owner-provided accounts (see "Environment blockers" and `docs/RELEASE-REPORT.md` §5).
+The repository is launch-ready: every hosted integration is implemented, configured through
+the environment, guarded at startup and covered by tests that do not need accounts. Hosted
+staging verification is blocked on owner-provided accounts (see "Environment blockers",
+`docs/LAUNCH-CHECKLIST.md` and `docs/RELEASE-REPORT.md` §5).
 
 ## Next action
 
-With the owner: create the staging Supabase and Vercel projects and an email provider
-account, then follow `docs/OPERATIONS.md` → "Hosted deployment" and verify the Supabase
-Auth/Storage adapters and the email provider against staging before any customer data.
+Owner: create the staging Supabase, Vercel and Resend accounts, approve the plans, then run
+`docs/LAUNCH-CHECKLIST.md` sections 1–6 with `pnpm launch:check --env-file .env.staging` and
+record the seven smoke tests in `docs/ACCEPTANCE.md` (LAUNCH-06).
 
 ## Restore rehearsal (OPS-02) — 2026-09-26
 
@@ -107,6 +118,11 @@ Columns: working UI · persistent backend · permission checks · tests · exter
 | Audit trail view | yes | append-only table | owner/publisher | manual | — |
 | Notification worker + retry + publisher re-queue | inquiry detail | lease-based queue | publisher retry | integration LEAD-02 | local sink; Resend adapter unverified |
 | Retention job, local backup, restore rehearsal | scripts | yes | local-target guard | OPS-02 executed | provider backups for hosted |
+| Hosted authentication (Supabase Auth + platform sessions, invitation account creation, password recovery) | sign-in, invite, forgot-password, recovery pages | `app_sessions` + private session functions | app-role-only functions; table unreachable by PostgREST roles | unit (GoTrue client), integration LAUNCH-02 | live GoTrue unverified (LAUNCH-06) |
+| Hosted storage (Supabase Storage buckets) | same media UI | `SupabaseStorage` | service key server-only | unit (API shapes) | live buckets unverified (LAUNCH-06) |
+| Scheduled job endpoints (`/api/jobs/deliver`, `/api/jobs/retention`) + `vercel.json` | — | elevated batch, bearer secret | constant-time secret check | integration LAUNCH-03 | cron cadence depends on plan |
+| Domain workflow (register → provider → verify → activate, canonical, disable, remove) and go-live | Settings → Domains / Publishing mode | SQL functions + Vercel provider | owner-only, audited | integration + e2e LAUNCH-04, unit (Vercel client) | live Vercel API unverified (LAUNCH-06) |
+| Hosted configuration enforcement, `pnpm launch:check`, `pnpm bootstrap:owner` | — | config validation, readiness script | refuses dev providers outside local | unit LAUNCH-01, LAUNCH-07 executed | — |
 
 ## Usage
 

@@ -103,3 +103,25 @@ test("private uploads and preview assets of another site are denied (AUTH-06)", 
   await ownerCtx.close();
   fs.mkdirSync("docs/evidence", { recursive: true });
 });
+
+test("owner registers a hostname; without a hosting provider it stays pending and the site cannot go live", async ({ page }) => {
+  const { sites } = seed();
+  await signIn(page, emails.owner);
+  await page.goto(`/app/sites/${sites.rangeAthletics}/settings`);
+  const host = `shop-${Date.now().toString(36)}.range.example`;
+  const domains = page.locator("form", { has: page.getByRole("button", { name: "Register hostname" }) });
+  await domains.getByLabel("Hostname").fill(host);
+  await domains.getByRole("button", { name: "Register hostname" }).click();
+  await expect(page.getByText(`${host} registered with status "pending"`)).toBeVisible();
+  const row = page.locator("li", { hasText: host });
+  await expect(row.getByText("pending", { exact: true })).toBeVisible();
+  await expect(row.getByText("not verified", { exact: true })).toBeVisible();
+  await expect(row.getByText(/No hosting provider is configured/)).toBeVisible();
+  await expect(row.getByRole("button", { name: "Activate" })).toHaveCount(0);
+  // Publishing mode: an active release exists, but no verified canonical domain, so going live is refused.
+  await expect(page.getByRole("button", { name: "Go live" })).toBeDisabled();
+  await expect(page.getByText("A verified, active canonical domain exists.")).toBeVisible();
+  await page.screenshot({ path: "docs/evidence/screenshots/dash-domains-1440.png", fullPage: true });
+  await row.getByRole("button", { name: "Remove" }).click();
+  await expect(page.locator("li", { hasText: host })).toHaveCount(0);
+});

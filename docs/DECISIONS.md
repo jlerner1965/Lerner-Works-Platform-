@@ -109,3 +109,36 @@ kept doing so for the life of that process. The same requests succeed against a 
 process and against the production build, whose route table is fixed. The production build
 is also the artifact a release gate should exercise. `E2E_USE_BUILD=0` restores the dev
 server for quick iteration on a single spec; results from that mode are not release evidence.
+
+## D-010 · 2026-09-26 · Hosted sessions are issued by the platform, not carried as GoTrue tokens
+
+With Supabase Auth the platform verifies credentials against GoTrue once (password grant)
+and then issues its own opaque session: a random token in an httpOnly cookie whose SHA-256
+hash lives in `public.app_sessions`. Resolving a request costs one indexed query and needs
+no token refresh in the browser or in the proxy. The table has row-level security with no
+policies and every PostgREST role revoked; the session functions in the private schema are
+executable only by the application's connecting role (`lw_app`), which PostgREST never
+assumes, so the hosted REST API cannot reach sessions. Elevated database access stays out of
+request paths. Invitations create accounts through the administrative API with the password
+the invitee chooses; password recovery uses GoTrue's PKCE recovery email so the platform
+never sees or stores a recovery secret beyond the verifier cookie.
+
+## D-011 · 2026-09-26 · Domain verification comes from the hosting provider's API; go-live is explicit
+
+A hostname moves through pending → verifying → active only through SQL functions that check
+organization ownership and write audit events. The "verified" fact is what the hosting
+provider (Vercel project domains and domain configuration endpoints) reports; the dashboard
+displays the provider's verification and DNS records verbatim and never infers a DNS value.
+Serving a domain requires the site to be in live mode, which an owner switches on only when
+an active release and an active, verified canonical domain exist. Leaving live mode stops
+serving immediately and returns the site to the demonstration route. Without provider
+credentials (local development) nothing is ever marked verified.
+
+## D-012 · 2026-09-26 · Hosted environments must be fully configured before the first request
+
+Outside `APP_ENV=local`, configuration validation requires https, a non-local database,
+the Supabase auth and storage providers, the Resend notifier, the elevated connection and
+the job secret, and it rejects the development-only providers. A hosted deployment with the
+local disk store or the local mail sink would look healthy while losing uploads and sending
+no email; failing fast at startup and reporting it in `pnpm launch:check` keeps that from
+being mistaken for a working launch.

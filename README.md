@@ -28,7 +28,8 @@ See `docs/OPERATIONS.md` for boundaries, resets, hosting steps and backups;
 `docs/DECISIONS.md` for architecture; `docs/PROGRESS.md` for milestone state and the
 feature ledger; `docs/ACCEPTANCE.md` for the acceptance matrix; `docs/DEMO.md` for the
 ten-minute demonstration; `docs/RELEASE-REPORT.md` for what is verified locally and what
-hosted readiness still requires. Evidence (screenshots, asset register) is in `docs/evidence/`.
+hosted readiness still requires; `docs/LAUNCH-CHECKLIST.md` for the hosted launch runbook.
+Evidence (screenshots, asset register, Lighthouse runs) is in `docs/evidence/`.
 
 ## Commands
 
@@ -46,6 +47,8 @@ hosted readiness still requires. Evidence (screenshots, asset register) is in `d
 | `pnpm verify` | Release gate: setup check, lint, typecheck, unit, integration, e2e, build (`--skip-e2e`, `--skip-build` for partial runs) |
 | `pnpm retention` | Purges rate-limit counters (1 day) and inquiries (90 days); refuses non-local targets without `--confirm-hosted` |
 | `pnpm backup:local` / `pnpm restore:rehearsal <dir>` | Local backup and restore rehearsal into a new local database |
+| `pnpm launch:check [--env-file <file>]` | Hosted readiness report: configuration, database privileges and RLS, identity, storage, email, scheduler, domain provider; no secrets printed |
+| `pnpm bootstrap:owner --email … --organization …` | Creates the first owner account and organization (`BOOTSTRAP_PASSWORD` env; `--confirm-hosted` outside local) |
 
 All demonstration content is fictional. Pine Hollow Guide and Range Athletics are not real
 businesses, and no live Lerner Works property is touched by this repository.

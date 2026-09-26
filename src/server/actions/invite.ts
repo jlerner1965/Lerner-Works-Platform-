@@ -24,7 +24,7 @@ export async function acceptInvitationAction(_prev: InviteState, formData: FormD
   redirect("/app?invited=1");
 }
 
-/** Local provider only: creates the invited account with a password, then accepts. */
+/** Creates the invited account with a password through the configured provider, then accepts. */
 export async function registerAndAcceptAction(_prev: InviteState, formData: FormData): Promise<InviteState> {
   const token = String(formData.get("token") ?? "");
   const password = String(formData.get("password") ?? "");

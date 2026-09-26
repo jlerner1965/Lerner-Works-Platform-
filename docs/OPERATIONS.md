@@ -67,23 +67,51 @@ this provider unless `APP_ENV=local` and the database host is local. It exists s
 workflow can be verified without a container runtime; hosted deployments must use Supabase
 Auth (`AUTH_PROVIDER=supabase`), which is not verified in this environment.
 
-## Hosted deployment (not performed; requires owner accounts and approval)
+## Hosted deployment (not performed here; requires owner accounts and approval)
 
-1. Create separate staging and production Supabase projects; apply `supabase/migrations/`
-   with the Supabase CLI (`supabase db push`). Do **not** apply `supabase/local/`.
-2. Configure Supabase Auth (email provider, redirect URLs) and Storage buckets `private`
-   and `public-assets`; set the storage provider to `supabase`.
-3. Deploy the Next.js application (Vercel selected in the guide) with `APP_ENV=staging`,
-   the database URLs (pooler connection string as `postgres`), `AUTH_PROVIDER=supabase`,
-   `SUPABASE_*` keys (service role key server-side only), and a transactional email
-   provider for `NOTIFY_PROVIDER`.
-4. Run the notification worker through an authenticated scheduled endpoint or job service;
-   verify scheduler limits before choosing a cadence.
-5. Domain workflow: add the hostname in Settings → Domains, complete provider verification,
-   then mark it active. Nothing in this repository infers DNS values or marks a domain
-   verified because it was typed.
-6. Check current plan eligibility and prices (Vercel, Supabase, email provider) and report
-   them for approval. No free-tier promise is made.
+The full runbook is `docs/LAUNCH-CHECKLIST.md`. In short: separate staging and production
+Supabase and Vercel projects; `supabase/hosted/0001_application_roles.sql` once per project,
+then `supabase db push` for `supabase/migrations/` (never `supabase/local/`); Supabase Auth
+with sign-ups disabled and `APP_URL/auth/recovery` allowed as a redirect; buckets `private`
+and `public-assets`; Resend with a verified sending domain; the Vercel project with the
+variables in `.env.example`, `CRON_SECRET` for the job endpoints and the Vercel API token for
+domain verification. `pnpm launch:check --env-file <file>` reports readiness without
+printing secrets; `pnpm bootstrap:owner` creates the first owner; the staging smoke tests in
+the checklist are the evidence that the hosted providers work. Outside `APP_ENV=local` the
+application refuses to start unless the hosted providers, https and the job secret are set.
+
+### Hosted authentication
+
+With `AUTH_PROVIDER=supabase`, Supabase Auth owns accounts and passwords. Sign-in verifies
+the password against GoTrue; the platform then issues its own opaque session (random token
+in an httpOnly cookie, SHA-256 hash in `public.app_sessions`, `SESSION_DAYS` lifetime). The
+table is unreachable by anon/authenticated and only the application's connecting role can
+call the session functions, so PostgREST never exposes sessions. Invitations create the
+account through the administrative API when the invitee chooses a password on the invitation
+page; "Forgot your password?" uses the provider's recovery email (PKCE) and lands on
+`/auth/recovery`. Signing out deletes the session row.
+
+### Scheduled jobs
+
+`/api/jobs/deliver` (one bounded delivery batch) and `/api/jobs/retention` (rate-limit
+counters older than a day, inquiries older than 90 days) require `Authorization: Bearer
+<JOB_TRIGGER_SECRET>`; Vercel Cron sends `CRON_SECRET` the same way on the schedule in
+`vercel.json` (every 5 minutes / daily). Plan limits decide the effective cadence: on plans
+that run crons only daily, call the delivery endpoint from another scheduler. Without a
+secret the endpoints answer 503 so a missing scheduler is visible, and `pnpm launch:check`
+reports it.
+
+### Domains and going live
+
+Settings → Domains: an owner registers a hostname (status `pending`), registers it with the
+hosting provider (`verifying`; the provider's verification and DNS records are shown exactly
+as returned), checks verification until the provider reports ownership verified and DNS
+configured, then activates it (`active`). One domain per site is canonical; aliases redirect
+to it. Settings → Publishing mode: "Go live" is allowed only with an active release and an
+active, verified canonical domain; it changes where the current release is served, nothing
+else. "Return to demonstration mode" stops serving the domains immediately. Every step is
+audited. Without `VERCEL_API_TOKEN`/`VERCEL_PROJECT_ID` (local development) domains stay
+pending and nothing is marked verified.
 
 ## Notification worker and delivery queue
 

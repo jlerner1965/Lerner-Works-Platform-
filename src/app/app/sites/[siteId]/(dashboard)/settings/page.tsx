@@ -8,6 +8,9 @@ import { SettingsSection } from "@/components/admin/settings-forms";
 import { saveBrandingAction, saveNavigationAction, saveModulesAction, saveMetadataAction, saveContactAction, addDomainAction } from "@/server/actions/settings";
 import { contrastRatio, formatRatio } from "@/lib/contrast";
 import { moduleIndexRoutes } from "@/modules/registry";
+import { getConfig } from "@/server/config";
+import { getDomainProvider, type DomainProviderStatus } from "@/server/domains/provider";
+import { DomainRow, SiteModeForm } from "@/components/admin/domain-forms";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +21,7 @@ export default async function SettingsPage({ params }: { params: Promise<{ siteI
   if (!ctx || !ctx.capabilities.canManageSettings) notFound();
   const data = await withUser(user.id, async (db) => {
     const config = await getCurrentSiteConfig(db, siteId);
-    const domains = await db<Array<{ id: string; normalizedHost: string; status: string; isCanonical: boolean; verifiedAt: Date | null; createdAt: Date }>>`select id, normalized_host, status::text, is_canonical, verified_at, created_at from public.domains where site_id = ${siteId} order by created_at`;
+    const domains = await db<Array<{ id: string; normalizedHost: string; status: "pending" | "verifying" | "active" | "disabled"; isCanonical: boolean; verifiedAt: Date | null; createdAt: Date; verificationInstructions: DomainProviderStatus | null }>>`select id, normalized_host, status::text, is_canonical, verified_at, created_at, verification_instructions from public.domains where site_id = ${siteId} order by created_at`;
     const assets = await db<Array<{ id: string; title: string | null }>>`select id, title from public.media_assets where site_id = ${siteId} and status = 'ready' order by created_at desc limit 100`;
     return { config, domains, assets };
   });
@@ -32,6 +35,11 @@ export default async function SettingsPage({ params }: { params: Promise<{ siteI
     { label: "Accent links on background", ratio: contrastRatio(c.accent, c.background) },
   ];
   const site = ctx.site;
+  const cfg = getConfig();
+  const providerConfigured = getDomainProvider() !== null;
+  const canonical = data.domains.find((d) => d.isCanonical && d.status === "active" && d.verifiedAt);
+  const demoUrl = `${cfg.APP_URL}/demo/${site.key}`;
+  const liveUrl = canonical ? `https://${canonical.normalizedHost}/` : null;
   return (
     <>
       <PageHeader eyebrow={ctx.organization.name} title="Settings" description={`Configuration revision ${data.config.version} (saved ${formatDateTime(data.config.createdAt, site.timeZone)}). Every save creates a new immutable configuration revision; the public site changes only when a release includes it.`} />
@@ -130,14 +138,19 @@ export default async function SettingsPage({ params }: { params: Promise<{ siteI
           </SettingsSection>
         </Card>
         <Card title="Domains">
-          <p className="mb-2 text-sm text-ink-muted">Mode: <Badge tone={site.mode === "demo" ? "warning" : "success"}>{site.mode}</Badge> {site.mode === "demo" ? `Served at /demo/${site.key}.` : "Served only on active verified domains."}</p>
+          <p className="mb-2 text-sm text-ink-muted">A hostname is registered here, then with the hosting provider, verified by the provider, and activated by an owner. Only active domains of a live site are served; aliases redirect to the canonical domain. No DNS value is inferred here: the records shown come from the provider.</p>
+          {!providerConfigured ? <p className="mb-2 text-xs text-ink-subtle">No hosting provider is configured in this environment, so registration and verification stop at the dashboard record.</p> : null}
           {data.domains.length === 0 ? <p className="text-sm text-ink-muted">No domains registered.</p> : (
-            <ul className="mb-3 divide-y divide-line text-sm">
+            <ul className="mb-3 divide-y divide-line">
               {data.domains.map((d) => (
-                <li key={d.id} className="flex items-center justify-between py-1.5">
-                  <span><code>{d.normalizedHost}</code>{d.isCanonical ? <Badge tone="info"> canonical</Badge> : null}</span>
-                  <Badge tone={d.status === "active" ? "success" : d.status === "disabled" ? "danger" : "warning"}>{d.status}</Badge>
-                </li>
+                <DomainRow
+                  key={d.id}
+                  siteId={siteId}
+                  siteMode={site.mode}
+                  providerConfigured={providerConfigured}
+                  canManage={ctx.capabilities.isOwner}
+                  domain={{ id: d.id, host: d.normalizedHost, status: d.status, isCanonical: d.isCanonical, verifiedAt: d.verifiedAt ? d.verifiedAt.toISOString() : null, provider: d.verificationInstructions }}
+                />
               ))}
             </ul>
           )}
@@ -145,9 +158,15 @@ export default async function SettingsPage({ params }: { params: Promise<{ siteI
             <SettingsSection action={addDomainAction} hidden={{ siteId }} submitLabel="Register hostname">
               <label className="block">Hostname<input name="host" className={inputClass} placeholder="www.example.com" /></label>
               <label className="flex items-center gap-2"><input type="checkbox" name="canonical" /> Canonical domain (one per site)</label>
-              <p className="text-xs text-ink-subtle">Registration records intent only. Ownership verification and activation happen during hosted deployment with the provider&apos;s instructions; no DNS value is inferred here.</p>
             </SettingsSection>
-          ) : <p className="text-xs text-ink-subtle">Only organization owners can register domains.</p>}
+          ) : <p className="text-xs text-ink-subtle">Only organization owners manage domains.</p>}
+        </Card>
+        <Card title="Publishing mode">
+          {ctx.capabilities.isOwner ? (
+            <SiteModeForm siteId={siteId} mode={site.mode} hasRelease={site.activeReleaseId !== null} hasCanonicalDomain={Boolean(canonical)} demoUrl={demoUrl} liveUrl={liveUrl} />
+          ) : (
+            <p className="text-sm">Mode: <Badge tone={site.mode === "live" ? "success" : "warning"}>{site.mode}</Badge> Only organization owners change the publishing mode.</p>
+          )}
         </Card>
       </div>
     </>
