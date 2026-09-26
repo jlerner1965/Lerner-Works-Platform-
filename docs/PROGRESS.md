@@ -12,6 +12,11 @@ Resume point for the build. Update after every milestone and before any context 
 | M3 Operational completion | DONE (2026-09-26) | Review queue, release restore, inquiry inbox + durable notification queue with worker, owner access management with local invitation flow, CSV import with dry run, portable site package export/import, audit log, retention job, backup + restore rehearsal. |
 | Launch readiness (post-M4) | DONE (2026-09-26); staging verified the same day (see the hosted setup log) | Supabase Auth provider with platform sessions, invitations and password recovery; Supabase Storage provider; scheduled job endpoints + `vercel.json`; domain registration/verification/activation via the Vercel API and explicit go-live; hosted configuration enforcement; `pnpm launch:check`; `pnpm bootstrap:owner`; `docs/LAUNCH-CHECKLIST.md`. Provider adapters are unit-tested against recorded API shapes only. |
 | M4 Verification and refinement | DONE (2026-09-26) | Acceptance matrix complete with evidence (38 PASS, 0 FAIL, 0 BLOCKED); ten-step demonstration automated with screenshots; browser suite moved to the production build; production build + secret inspection; Lighthouse lab runs; fresh-install rehearsal; release report in `docs/RELEASE-REPORT.md`. |
+| Production (hosted) | DONE (2026-09-26) | Production Supabase and Vercel projects configured and deployed; owner signed in; inquiries stored and delivered by Vercel Cron after the routing fix; readiness report green (see the hosted setup log). |
+| D0 Identity completeness | DONE (2026-09-26, on the branch; production after the pull request merges) | Design programme phase 0 (`docs/DESIGN-PLAN.md` section 4): logo rendered, typography preset applied, every theme colour a derived token with a 15-pairing contrast gate and a literal-colour audit, per-site favicon/share image/title/language, editable listing copy, Search link switch, external links, footer layouts, page header image, inquiries switch enforced in SQL. Snapshot schema version 2 with version-1 releases normalised at read time. |
+| D1 Bounded design options | PLANNED | Site-level design options, section variants and appearance, new section types (FAQ, quotes, CTA, gallery, facts, video, map link), media focal point, rich text emphasis, snapshot version bump with rendering-hash test. |
+| D2 Theme catalogue and design preview | PLANNED | Theme registry with capability declarations, one more composition per preset, theme switching per site, design preview of the draft configuration, more typography presets. |
+| D3 Visual in-context editing | PLANNED | Editable preview with keyboard-equivalent reordering, side-panel forms on the same schemas, live tokens, explicit save; same review and publication path. |
 
 ## Environment blockers (precise)
 
@@ -24,6 +29,19 @@ Resume point for the build. Update after every milestone and before any context 
 
 ## Last verified results
 
+- 2026-09-26 (design phase D0) `pnpm lint`, `pnpm typecheck` clean; `pnpm test` 59 passed
+  (adds derived brand tokens, pairings and the literal-colour audit of `src/themes`; the
+  contrast gate names every failing pairing; external navigation links); `pnpm test:integration`
+  43 passed (adds a site published with the Inquiries module off: `submit_inquiry` raises
+  P0002 and stores nothing); `pnpm test:e2e` 19 passed against a production build (adds the
+  public identity test: `lang`, own title, favicon, share image, logo, token variables).
+  Screenshot pass `scripts/screenshots.ts`: 13 public pages × 390/768/1440, all 200, no
+  horizontal overflow, no console errors (`docs/evidence/screenshots/`). Lighthouse after D0:
+  guide home median 96 / accessibility 100 / CLS 0.026 / LCP 2.82 s; store detail 99 / 100 /
+  0.011 / 1.87 s; script transfer 143 KiB per page recorded as the DES-14 baseline
+  (`docs/evidence/LIGHTHOUSE.md`). `pnpm verify` on the final code: GATE PASSED in 221 s
+  (setup check 2 s, lint 11 s, typecheck 2 s, unit 2 s, integration 26 s, browser 172 s,
+  production build 6 s).
 - 2026-09-26 (job endpoints on every hostname) `pnpm lint`, `pnpm typecheck` clean; `pnpm test`
   51 passed; `pnpm test:e2e tests/e2e/routing.spec.ts` 4 passed against a production build
   (ROUTE-01 now also asserts `/healthz` 200 and `/api/jobs/deliver` 401 or 503, never 404, on
@@ -75,29 +93,39 @@ Resume point for the build. Update after every milestone and before any context 
 
 ## Current task
 
-Production is live. The Vercel project `lerner-works-platform` is linked to the repository
-with `main` as production branch and serves `main` (commit `7f4caf7`, the commit staging's
-smoke tests passed) at `https://app.lernerworksplatform.dev` against the Supabase project
-`lerner-works-platform-production` (`fvpooyxkuvltjzjbevxf`, free tier, in the slot of the
-paused and retired staging project). The first owner account (the owner's address,
-organization "Lerner Works") exists; the owner sets a password through "Forgot your
-password?" (Resend SMTP). No customer organization, site or hostname exists yet.
+Design programme phase D0 (identity completeness) is implemented and verified on the branch
+`claude/lucid-darwin-cif2y6`: `pnpm verify` green, screenshots of both pilots at 390/768/1440
+with logos, fonts and derived colours, Lighthouse re-run recorded, acceptance rows DES-01 to
+DES-05 PASS with DES-13/14 baselines (`docs/ACCEPTANCE.md`). It reaches production when the
+pull request merges into `main` (Vercel deploys `main`); the new migration
+`20260926000100_inquiries_switch.sql` must be applied to the production database before or
+with that deploy (`pnpm db:migrate` against the production admin connection, as for the
+earlier migrations), and existing releases keep rendering because version-1 snapshots are
+normalised at read time.
+
+Production itself is unchanged since the cron fix: the Vercel project `lerner-works-platform`
+serves `main` at `https://app.lernerworksplatform.dev` against the Supabase project
+`lerner-works-platform-production` (`fvpooyxkuvltjzjbevxf`). No customer organization, site or
+hostname exists yet.
 
 ## Next action
 
-Owner (signed in to production on 2026-09-26; test site published, invitation sent): finish
-the production checks of `docs/LAUNCH-CHECKLIST.md` section 6: add your address as an
-inquiry recipient on the test site (Settings → Contact), submit the public contact form at
-`/demo/aragosan/contact` and confirm the inbox shows it delivered, and accept the pending
-invitation from its email; decide the
-backup routine (the free tier has no provider
-backups: `pnpm backup:local` on a schedule from a workstation, or an accepted gap recorded
-here); decide whether the paused staging project stays or is deleted; revoke the pasted
-Supabase access token in the Supabase dashboard; confirm the sending domain status at
-Resend; open or approve the pull request that brings this branch's documentation and
-tooling into `main` (a push to `main` deploys to production; the branch changes docs and
-scripts only). Then the customer work of section 7: organization and site with approved real
-content, the customer's hostname and DNS, activation and go-live, one pilot at a time.
+Owner: merge the D0 pull request (or say so and it will be merged and verified here), then
+apply the migration to production and check the pilot site's header, favicon and page titles
+on the live deployment. Then phase D1 (`docs/DESIGN-PLAN.md`: bounded design options,
+section variants, new section types, media focal point, rendering-hash test), about three
+sessions, starting on the owner's go. The plan's open points (fonts, video providers,
+delegation default) can be answered along the way.
+
+Owner: accept the pending invitation from its email (the last owner-session check of
+`docs/LAUNCH-CHECKLIST.md` section 6); decide the backup routine (the free tier has no
+provider backups: `pnpm backup:local` dumps the database from a workstation with the admin
+connection string but does not cover the storage buckets, so media relies on the per-site
+package export or on a plan with provider backups; or record the accepted gap here); decide
+whether the paused staging project stays or is deleted; revoke the pasted Supabase access
+token in the Supabase dashboard; confirm the sending domain status at Resend. Then the
+customer work of section 7: organization and site with approved real content, the customer's
+hostname and DNS, activation and go-live, one pilot at a time.
 
 ## Restore rehearsal (OPS-02) — 2026-09-26
 
@@ -382,10 +410,20 @@ deployment until the smoke tests in `docs/LAUNCH-CHECKLIST.md` run.
   branch restarted from `main`. The routing fix reaches production through the next merge;
   the pending scheduler-test job (LW-FEAD02A1) is the end-to-end proof once the first cron
   slot after that deployment delivers it.
-- Pending (owner): merge the routing fix into `main` (a pull request from this branch), then
-  the cron delivers the pending test inquiry by itself; acceptance of the pending invitation;
-  backup routine decision; keep or delete the paused staging project; revocation of the
-  pasted Supabase token; sending domain status confirmed at Resend.
+- 2026-09-26 Cron fix verified in production. Pull request #6 (opened on the owner's
+  instruction, merged by the owner at 13:06 UTC) redeployed production (`9b72435`, READY at
+  13:07); the job endpoint on the deployment's generated URL now answers 401 instead of 404;
+  `pnpm launch:check` on the live deployment: 24 rows OK including "Cron target", one WARN
+  (sending-only Resend key), READY
+  (`docs/evidence/production/launch-check-2026-09-26-after-cron-fix.txt`). The scheduler-test
+  job that had waited since 12:52 was delivered by Vercel Cron at 13:10:38 UTC without any
+  manual trigger (provider `resend`, accepted, reference stored). Inquiries therefore flow
+  end to end on production: public form → stored → delivered within five minutes. The two
+  jobs from before the recipient existed stay `failed` with the recipient message; the owner
+  can re-queue them from the inquiry detail or leave them. Browser routing spec: 4 passed.
+- Pending (owner): acceptance of the pending invitation; backup routine decision; keep or
+  delete the paused staging project; revocation of the pasted Supabase token; sending domain
+  status confirmed at Resend.
 
 ## Feature ledger
 

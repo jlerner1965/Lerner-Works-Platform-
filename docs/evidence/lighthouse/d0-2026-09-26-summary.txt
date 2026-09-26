@@ -1,0 +1,7 @@
+guide-home 1 perf 94 a11y 100 bp 100 seo 66 CLS 0.026 LCP 2.88s jsKiB 143 totalKiB 289
+guide-home 2 perf 96 a11y 100 bp 100 seo 66 CLS 0.026 LCP 2.82s jsKiB 143 totalKiB 289
+guide-home 3 perf 98 a11y 100 bp 100 seo 66 CLS 0.026 LCP 2.19s jsKiB 143 totalKiB 289
+store-detail 1 perf 97 a11y 100 bp 100 seo 66 CLS 0.011 LCP 2.29s jsKiB 143 totalKiB 222
+store-detail 2 perf 99 a11y 100 bp 100 seo 66 CLS 0.011 LCP 1.86s jsKiB 143 totalKiB 222
+store-detail 3 perf 99 a11y 100 bp 100 seo 66 CLS 0.011 LCP 1.87s jsKiB 143 totalKiB 222
+exit 0

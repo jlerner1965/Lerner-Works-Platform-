@@ -58,6 +58,10 @@ Local demonstration routes: `/demo/pine-hollow` and `/demo/range-athletics`. Das
   spec land in `docs/evidence/demo/`.
 - `pnpm verify` — the release gate, in order: setup check, lint, typecheck, unit,
   integration, e2e, production build.
+- `pnpm exec tsx scripts/screenshots.ts --base <url>` — responsive screenshot pass over the
+  two pilots (13 public pages × 390/768/1440) into `docs/evidence/screenshots/`; fails on a
+  non-200 response, horizontal overflow or a console error. Run it against a server that
+  serves a database seeded with `pnpm seed:demo` (each design phase re-runs it).
 
 ## Local auth provider
 

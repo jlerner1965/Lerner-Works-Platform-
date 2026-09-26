@@ -1,0 +1,87 @@
+import type { CSSProperties, ReactNode } from "react";
+import type { RenderContext } from "@/themes/shared/types";
+import { href } from "@/themes/shared/types";
+import type { SnapshotItem, SnapshotMedia } from "@/server/publishing/snapshot";
+import type { ContentKind } from "@/modules/registry";
+import { kindRegistry } from "@/modules/registry";
+import { isExternalLink, type IndexModuleKey } from "@/modules/site-config";
+import { brandCssVariables, deriveBrandTokens } from "@/lib/brand-tokens";
+import { typographyPresets } from "@/themes/fonts";
+import { Picture } from "@/themes/shared/picture";
+
+/**
+ * Root element of every public page: derived brand tokens as CSS custom properties, the
+ * chosen typography preset as `--font-heading` / `--font-body`, and the site's language.
+ * Themes use only these variables; no literal colours or font names live in theme code.
+ */
+export function SiteRoot({ ctx, themeClass, children }: { ctx: RenderContext; themeClass: string; children: ReactNode }) {
+  const { branding, metadata } = ctx.snapshot.config;
+  const type = typographyPresets[branding.typography] ?? typographyPresets["editorial-serif"];
+  const style = {
+    ...brandCssVariables(deriveBrandTokens(branding.colors)),
+    "--font-heading": `var(${type.headingVariable})`,
+    "--font-body": `var(${type.bodyVariable})`,
+  } as CSSProperties;
+  return (
+    <div lang={metadata.language} className={`lw-site ${themeClass} ${type.classNames} min-h-screen bg-(--brand-bg) text-(--brand-text) font-(family-name:--font-body)`} style={style}>
+      {children}
+    </div>
+  );
+}
+
+export function siteLogo(ctx: RenderContext): SnapshotMedia | null {
+  const id = ctx.snapshot.config.branding.logoAssetId;
+  const media = id ? ctx.snapshot.media[id] ?? null : null;
+  return media && Object.keys(media.variants).length > 0 ? media : null;
+}
+
+/**
+ * The site's mark: the uploaded logo when the release carries one, otherwise the wordmark
+ * as text. A logo's alternative text is its recorded alt text or the wordmark; a logo marked
+ * decorative keeps the wordmark for assistive technology.
+ */
+export function BrandMark({ ctx, imageClass, textClass }: { ctx: RenderContext; imageClass: string; textClass: string }) {
+  const { branding } = ctx.snapshot.config;
+  const logo = siteLogo(ctx);
+  if (!logo) return <span className={textClass}>{branding.wordmark}</span>;
+  const alt = logo.decorative ? "" : logo.alt.trim() || branding.wordmark;
+  return (
+    <>
+      <Picture ctx={ctx} media={logo} sizes="240px" alt={alt} className={`${imageClass} w-auto max-w-60 object-contain object-left`} loading="eager" />
+      {alt ? null : <span className="sr-only">{branding.wordmark}</span>}
+    </>
+  );
+}
+
+/** Anchor attributes for a navigation or footer link; external links never leak the referrer. */
+export function linkProps(ctx: RenderContext, path: string): { href: string; rel?: string } {
+  return isExternalLink(path) ? { href: path, rel: "noreferrer" } : { href: href(ctx, path) };
+}
+
+export function showSearchLink(ctx: RenderContext): boolean {
+  return ctx.snapshot.config.navigation.showSearch !== false;
+}
+
+/** Title and intro for a module listing page: the owner's copy when set, else the theme's default. */
+export function indexCopy(ctx: RenderContext, kind: ContentKind, fallback: { title: string; intro: string }): { title: string; intro: string } {
+  const moduleKey = kindRegistry[kind].module as IndexModuleKey | null;
+  const copy = moduleKey ? ctx.snapshot.config.indexes?.[moduleKey] : undefined;
+  return { title: copy?.title?.trim() || fallback.title, intro: copy?.intro?.trim() || fallback.intro };
+}
+
+/**
+ * A page's featured image is its header image, unless the page opens with an image hero
+ * (which already carries the page's main picture).
+ */
+export function pageHeaderImage(ctx: RenderContext, item: SnapshotItem): SnapshotMedia | null {
+  const id = item.payload.featuredImageAssetId;
+  if (typeof id !== "string") return null;
+  const sections = item.payload.sections as Array<{ type?: string }> | undefined;
+  if (sections?.[0]?.type === "image_hero") return null;
+  const media = ctx.snapshot.media[id];
+  return media && Object.keys(media.variants).length > 0 ? media : null;
+}
+
+export function inquiriesEnabled(ctx: RenderContext): boolean {
+  return ctx.snapshot.config.modules.inquiries !== false;
+}

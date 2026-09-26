@@ -150,7 +150,14 @@ export function CommonFields({ payload, set, ctx, issues, kind }: { payload: Pay
         <TextInput label={kind === "article" ? "Headline" : "Title"} value={s("title")} onChange={(v) => set({ title: v })} required error={issues.title} />
         <TextInput label="Slug" value={s("slug")} onChange={(v) => set({ slug: v })} required error={issues.slug} hint="Changing a published slug creates a redirect from the old address in the next release." />
         <TextArea label="Summary" value={s("summary")} onChange={(v) => set({ summary: v })} rows={2} error={issues.summary} hint="Shown in listings and used as the default description." />
-        <MediaPicker label="Featured image" value={(payload.featuredImageAssetId as string | null) ?? null} onChange={(v) => set({ featuredImageAssetId: v })} assets={ctx.assets} siteId={ctx.siteId} />
+        <MediaPicker
+          label="Featured image"
+          value={(payload.featuredImageAssetId as string | null) ?? null}
+          onChange={(v) => set({ featuredImageAssetId: v })}
+          assets={ctx.assets}
+          siteId={ctx.siteId}
+          hint={kind === "page" ? "Shown as the page's header image (unless the page opens with an image hero) and as its share image for links." : "Shown in listings, on the detail page and as the share image for links."}
+        />
       </Fieldset>
       {showBody ? (
         <Fieldset legend="Body">

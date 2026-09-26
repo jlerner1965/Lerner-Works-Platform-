@@ -140,7 +140,7 @@ export async function loadDemoContent(userId: string, siteId: string, opts: { no
   // Images first (they are referenced by items and the hero).
   const assetIds = new Map<string, string>();
   await withUser(userId, async (db) => {
-    const images: FixtureImage[] = fixture.items.flatMap((i) => (i.image ? [i.image] : []));
+    const images: FixtureImage[] = [...fixture.items.flatMap((i) => (i.image ? [i.image] : [])), ...(fixture.images ?? [])];
     if (fixture.key === "pine-hollow") images.push(pineHollowHero);
     for (const img of images) {
       const before = await db<{ id: string }[]>`select id from public.media_assets where site_id = ${site.id} and source_url = ${`fixture://${fixture.key}/${img.key}`}`;
@@ -209,6 +209,8 @@ export async function loadDemoContent(userId: string, siteId: string, opts: { no
     next.footer.text = fixture.config.footerText;
     next.metadata.defaultDescription = fixture.config.defaultDescription;
     next.metadata.defaultTitle = site.name;
+    if (fixture.config.logoImageKey) next.branding.logoAssetId = assetIds.get(fixture.config.logoImageKey) ?? null;
+    if (fixture.config.shareImageKey) next.metadata.shareImageAssetId = assetIds.get(fixture.config.shareImageKey) ?? null;
     if (stable(next) !== stable(current.config)) {
       const saved = await saveSiteConfig(db, { siteId: site.id, organizationId: site.organizationId, baseRevisionId: current.id, config: next, authorId: userId, changeNote: "Demonstration configuration" });
       if (!saved.ok) throw new Error("configuration changed concurrently");

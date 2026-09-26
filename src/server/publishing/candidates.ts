@@ -4,7 +4,7 @@ import type { SiteRow } from "@/server/data/access";
 import { buildManifest, resolveDefaultSelection, type Selection, type SelectionNote } from "@/server/publishing/manifest";
 import { validateManifest, type Finding, type ValidationResult } from "@/server/publishing/validate";
 import { summarizeChanges, type ChangeSummary } from "@/server/publishing/diff";
-import { isSupportedSnapshot, type ReleaseSnapshot } from "@/server/publishing/snapshot";
+import { normalizeSnapshot, type ReleaseSnapshot } from "@/server/publishing/snapshot";
 
 export interface CandidateRow {
   id: string;
@@ -88,7 +88,7 @@ export async function buildCandidate(userId: string, site: SiteRow, opts: { sele
     if (!fresh) throw new Error("site not found");
     if (!fresh.currentConfigRevisionId) throw new Error("site has no configuration revision");
     const baseRelease = await getActiveRelease(db, fresh);
-    const base = baseRelease && isSupportedSnapshot(baseRelease.snapshot) ? baseRelease.snapshot : null;
+    const base = baseRelease ? normalizeSnapshot(baseRelease.snapshot) : null;
     let selection: Selection;
     let notes: SelectionNote[];
     if (opts.selection) {

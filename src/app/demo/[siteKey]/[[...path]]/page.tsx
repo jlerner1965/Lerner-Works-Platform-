@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { resolveDemoRelease, resolveRoute, normalizePublicPath } from "@/server/publishing/public-site";
-import { makeRenderContext, queryRecord, routeMetadata, toNextMetadata } from "@/server/publishing/render";
+import { makeRenderContext, queryRecord, publicMetadata } from "@/server/publishing/render";
+import { getConfig } from "@/server/config";
 import { getTheme } from "@/themes";
 
 export const dynamic = "force-dynamic";
@@ -14,7 +15,7 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   const release = await resolveDemoRelease(siteKey);
   if (!release) return { title: "Not found", robots: { index: false, follow: false } };
   const route = resolveRoute(release.snapshot, normalizePublicPath(path));
-  return toNextMetadata(routeMetadata(release.snapshot, route), { forceNoindex: true });
+  return publicMetadata(release.snapshot, route, { metadataBase: new URL(getConfig().APP_URL), basePath: `/demo/${siteKey}`, forceNoindex: true });
 }
 
 export default async function DemoSitePage({ params, searchParams }: { params: Promise<Params>; searchParams: Promise<Record<string, string | string[] | undefined>> }) {

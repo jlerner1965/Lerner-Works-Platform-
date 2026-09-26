@@ -462,7 +462,10 @@ export function pineHollowFixture(now: Date): FixtureSite {
       footerText: "Pine Hollow is fictional. This guide demonstrates a community website: verified listings, honest unknowns, and events that stay visible when cancelled.",
       defaultDescription: "A resident-written guide to Pine Hollow, Colorado (fictional): places, events and short articles.",
       heroImageKey: "hero",
+      logoImageKey: "logo",
+      shareImageKey: "hero",
     },
+    images: [{ key: "logo", title: "Pine Hollow Guide logo", alt: "Pine Hollow Guide", scene: { type: "logo", lines: ["Pine Hollow", "GUIDE"], fg: "#2f5d3a", accent: "#a4502b", emblem: "pine" } }],
     items: [...pages, ...places, ...events, ...articles, draft, pendingReview],
     secondRelease: {
       note: "Ridge House extends Friday hours for the harvest season",

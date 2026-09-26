@@ -1,4 +1,33 @@
-# Lighthouse lab runs (local production build, 2026-09-26)
+# Lighthouse lab runs (local production build)
+
+## After design phase D0 (2026-09-26, later the same day)
+
+Same tool and conditions as the M4 runs below (Lighthouse 13.5.0, Chromium 141 headless,
+mobile preset, simulated throttling, three runs per page, `next start` of the production
+build on `http://127.0.0.1:3200` with the seeded development database, now including the
+pilots' generated logos and the guide's share image). Raw per-run summary:
+`docs/evidence/lighthouse/d0-2026-09-26-summary.txt`.
+
+| Page | Performance (3 runs) | Median | Accessibility | Best practices | SEO | CLS | LCP (3 runs) | Median LCP |
+|---|---|---|---|---|---|---|---|---|
+| `/demo/pine-hollow` (guide home) | 94 / 96 / 98 | 96 | 100 | 100 | 66 | 0.026 | 2.88 s / 2.82 s / 2.19 s | 2.82 s |
+| `/demo/range-athletics/locations/longmont` (store detail) | 97 / 99 / 99 | 99 | 100 | 100 | 66 | 0.011 | 2.29 s / 1.86 s / 1.87 s | 1.87 s |
+
+Against the targets (median performance ≥ 90, CLS ≤ 0.1, lab LCP ≤ 2.5 s): performance and
+CLS met on both pages; LCP met on the store page and missed on the guide home by 0.32 s in
+the median (the three runs spread from 2.19 s to 2.88 s, the same band as the M4 runs). The
+guide home now also loads the logo (one more image request); accessibility stays at 100 with
+the derived colours. SEO 66 remains the intentional `noindex` on demonstration routes.
+
+Public JavaScript budget baseline (DES-14), measured from the Lighthouse network requests on
+these runs: **143 KiB of script transfer** on both pages (the client runtime; the pages
+themselves ship no page-specific JavaScript beyond the inquiry form). Total first-visit
+transfer: guide home 289 KiB (document 36, images 31, script 143, fonts 79), store detail
+222 KiB (document 32, images 20, script 143, fonts 27). Every request is same-origin. Later
+phases record their script transfer against this baseline; the allowance is 20 KiB per phase
+unless a phase records a reason.
+
+## M4 runs (2026-09-26)
 
 Lighthouse 13.5.0 via `pnpm dlx`, Chromium 1194 (`--headless=new`), against
 `next start` of the production build on `http://127.0.0.1:3200` with the seeded development

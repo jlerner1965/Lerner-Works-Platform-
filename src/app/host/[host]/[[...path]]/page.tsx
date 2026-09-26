@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { notFound, permanentRedirect } from "next/navigation";
 import { resolveLiveRelease, resolveRoute, normalizePublicPath, normalizeHost } from "@/server/publishing/public-site";
-import { makeRenderContext, queryRecord, routeMetadata, toNextMetadata } from "@/server/publishing/render";
+import { makeRenderContext, queryRecord, publicMetadata } from "@/server/publishing/render";
+import { getConfig } from "@/server/config";
 import { getTheme } from "@/themes";
 
 export const dynamic = "force-dynamic";
@@ -22,7 +23,9 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   const currentPath = normalizePublicPath(path);
   const route = resolveRoute(release.snapshot, currentPath);
   const canonicalHost = release.canonicalHost ?? normalizeHost(host);
-  return toNextMetadata(routeMetadata(release.snapshot, route), {
+  return publicMetadata(release.snapshot, route, {
+    metadataBase: new URL(canonicalHost ? `https://${canonicalHost}` : getConfig().APP_URL),
+    basePath: "",
     forceNoindex: !release.isCanonical,
     canonical: canonicalHost ? `https://${canonicalHost}${currentPath === "/" ? "" : currentPath}` : undefined,
   });

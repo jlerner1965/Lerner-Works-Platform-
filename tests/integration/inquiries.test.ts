@@ -1,8 +1,10 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { seedInfo, withAnon, withUser, endPool, adminClient, key, approveAll, publish } from "./helpers";
 import { resolveDemoRelease } from "@/server/publishing/public-site";
+import { createSiteFromPreset, getCurrentSiteConfig, saveSiteConfig } from "@/server/data/sites";
+import { getItem, saveRevision } from "@/server/data/content";
 
-const { users, sites } = seedInfo();
+const { users, sites, organizations } = seedInfo();
 const owner = users.owner;
 
 beforeAll(async () => {
@@ -53,6 +55,31 @@ describe("inquiry intake (LEAD-01, LEAD-03, LEAD-04, LEAD-05)", () => {
     } finally {
       await admin.end();
     }
+  });
+
+  it("refuses submissions for a site whose active release has the Inquiries module off (D0-7)", async () => {
+    // A fresh site: drop the starter contact form, switch the module off, publish, then submit.
+    const siteKey = `inq-off-${key().slice(0, 8)}`;
+    const { siteId } = await createSiteFromPreset(owner, { organizationId: organizations.rangeAthletics, key: siteKey, name: "Inquiries Off", preset: "location_business", timeZone: "America/Denver", mode: "demo", contact: {} });
+    await withUser(owner, async (db) => {
+      const [contact] = await db<{ id: string }[]>`select i.id from public.content_items i join public.content_revisions r on r.id = i.current_revision_id where i.site_id = ${siteId} and r.slug = 'contact'`;
+      const found = (await getItem(db, contact!.id))!;
+      const sections = (found.revision.payload.sections as Array<{ type: string }>).filter((s) => s.type !== "inquiry_form");
+      const saved = await saveRevision(db, { itemId: found.item.id, baseRevisionId: found.revision.id, payload: { ...found.revision.payload, sections }, authorId: owner });
+      expect(saved.ok).toBe(true);
+      const current = (await getCurrentSiteConfig(db, siteId))!;
+      const config = structuredClone(current.config);
+      config.modules.inquiries = false;
+      const result = await saveSiteConfig(db, { siteId, organizationId: organizations.rangeAthletics, baseRevisionId: current.id, config, authorId: owner, changeNote: "Inquiries off" });
+      expect(result.ok).toBe(true);
+    });
+    await approveAll(owner, siteId);
+    await publish(owner, siteId, "inquiries off");
+    const rel = await resolveDemoRelease(siteKey);
+    expect(rel?.snapshot.config.modules.inquiries).toBe(false);
+    await expect(withAnon((db) => db`select * from public.submit_inquiry(${siteKey}, null, ${db.json(payload())}, 'hash-off', ${key()})`)).rejects.toMatchObject({ code: "P0002" });
+    const stored = await withUser(owner, (db) => db<{ n: number }[]>`select count(*)::int as n from public.inquiries where site_id = ${siteId}`);
+    expect(stored[0]!.n).toBe(0);
   });
 
   it("applies the persistent per-requester rate limit", async () => {

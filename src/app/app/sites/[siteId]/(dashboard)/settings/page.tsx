@@ -5,9 +5,12 @@ import { withUser } from "@/server/data/db";
 import { getCurrentSiteConfig } from "@/server/data/sites";
 import { Badge, Card, PageHeader, inputClass, selectClass, formatDateTime } from "@/components/admin/ui";
 import { SettingsSection } from "@/components/admin/settings-forms";
-import { saveBrandingAction, saveNavigationAction, saveModulesAction, saveMetadataAction, saveContactAction, addDomainAction } from "@/server/actions/settings";
-import { contrastRatio, formatRatio } from "@/lib/contrast";
+import { saveBrandingAction, saveNavigationAction, saveModulesAction, saveIndexesAction, saveMetadataAction, saveContactAction, addDomainAction } from "@/server/actions/settings";
+import { formatRatio } from "@/lib/contrast";
+import { brandPairings } from "@/lib/brand-tokens";
 import { moduleIndexRoutes } from "@/modules/registry";
+import type { IndexModuleKey } from "@/modules/site-config";
+import { typographyPresets } from "@/themes/fonts";
 import { getConfig } from "@/server/config";
 import { getDomainProvider, type DomainProviderStatus } from "@/server/domains/provider";
 import { DomainRow, SiteModeForm } from "@/components/admin/domain-forms";
@@ -22,119 +25,165 @@ export default async function SettingsPage({ params }: { params: Promise<{ siteI
   const data = await withUser(user.id, async (db) => {
     const config = await getCurrentSiteConfig(db, siteId);
     const domains = await db<Array<{ id: string; normalizedHost: string; status: "pending" | "verifying" | "active" | "disabled"; isCanonical: boolean; verifiedAt: Date | null; createdAt: Date; verificationInstructions: DomainProviderStatus | null }>>`select id, normalized_host, status::text, is_canonical, verified_at, created_at, verification_instructions from public.domains where site_id = ${siteId} order by created_at`;
-    const assets = await db<Array<{ id: string; title: string | null }>>`select id, title from public.media_assets where site_id = ${siteId} and status = 'ready' order by created_at desc limit 100`;
+    const assets = await db<Array<{ id: string; title: string | null; width: number; height: number }>>`select id, title, width, height from public.media_assets where site_id = ${siteId} and status = 'ready' order by created_at desc limit 100`;
     return { config, domains, assets };
   });
   if (!data.config) notFound();
   const { config } = data.config;
   const hidden = { siteId, baseRevisionId: data.config.id };
   const c = config.branding.colors;
-  const checks = [
-    { label: "Body text on background", ratio: contrastRatio(c.text, c.background) },
-    { label: "White text on primary", ratio: contrastRatio("#ffffff", c.primary) },
-    { label: "Accent links on background", ratio: contrastRatio(c.accent, c.background) },
-  ];
+  const pairings = brandPairings(c);
+  const failing = pairings.filter((p) => !p.passes).length;
   const site = ctx.site;
   const cfg = getConfig();
   const providerConfigured = getDomainProvider() !== null;
   const canonical = data.domains.find((d) => d.isCanonical && d.status === "active" && d.verifiedAt);
   const demoUrl = `${cfg.APP_URL}/demo/${site.key}`;
   const liveUrl = canonical ? `https://${canonical.normalizedHost}/` : null;
+  const assetLabel = (a: { id: string; title: string | null; width: number; height: number }) => `${a.title || a.id.slice(0, 8)} (${a.width}×${a.height})`;
+  const enabledIndexes = moduleIndexRoutes.filter((m) => config.modules[m.module]).map((m) => ({ ...m, module: m.module as IndexModuleKey }));
   return (
     <>
       <PageHeader eyebrow={ctx.organization.name} title="Settings" description={`Configuration revision ${data.config.version} (saved ${formatDateTime(data.config.createdAt, site.timeZone)}). Every save creates a new immutable configuration revision; the public site changes only when a release includes it.`} />
       <div className="grid gap-4 lg:grid-cols-2">
         <Card title="Brand">
           <SettingsSection action={saveBrandingAction} hidden={hidden}>
-                          <>
-                <label className="block">Wordmark<input name="wordmark" defaultValue={config.branding.wordmark} className={inputClass} required maxLength={60} /></label>
-                <label className="block">Tagline<input name="tagline" defaultValue={config.branding.tagline} className={inputClass} maxLength={120} /></label>
-                <label className="block">Logo image (raster upload; leave empty for the text wordmark)
-                  <select name="logoAssetId" defaultValue={config.branding.logoAssetId ?? ""} className={selectClass}>
-                    <option value="">Text wordmark</option>
-                    {data.assets.map((a) => <option key={a.id} value={a.id}>{a.title || a.id.slice(0, 8)}</option>)}
-                  </select>
-                </label>
-                <div className="grid grid-cols-2 gap-3">
-                  {(["primary", "accent", "background", "text"] as const).map((k) => (
-                    <label key={k} className="block capitalize">{k}
-                      <span className="flex items-center gap-2"><input type="color" name={k} defaultValue={c[k]} aria-label={`${k} color`} className="h-9 w-12 border border-line-strong" /><code className="text-xs">{c[k]}</code></span>
-                      
-                    </label>
+            <>
+              <label className="block">Wordmark<input name="wordmark" defaultValue={config.branding.wordmark} className={inputClass} required maxLength={60} /></label>
+              <label className="block">Tagline<input name="tagline" defaultValue={config.branding.tagline} className={inputClass} maxLength={120} /></label>
+              <label className="block">Logo image
+                <select name="logoAssetId" defaultValue={config.branding.logoAssetId ?? ""} className={selectClass}>
+                  <option value="">Text wordmark (no logo)</option>
+                  {data.assets.map((a) => <option key={a.id} value={a.id}>{assetLabel(a)}</option>)}
+                </select>
+              </label>
+              <p className="text-xs text-ink-subtle">The logo replaces the wordmark in the header and footer of the public site, shown 40–48 px tall; a wide image (about 3:1) with a transparent background works best. The wordmark stays the logo&apos;s alternative text unless the image has its own.</p>
+              <div className="grid grid-cols-2 gap-3">
+                {(["primary", "accent", "background", "text"] as const).map((k) => (
+                  <label key={k} className="block capitalize">{k}
+                    <span className="flex items-center gap-2"><input type="color" name={k} defaultValue={c[k]} aria-label={`${k} color`} className="h-9 w-12 border border-line-strong" /><code className="text-xs">{c[k]}</code></span>
+                  </label>
+                ))}
+              </div>
+              <label className="block">Typography preset
+                <select name="typography" defaultValue={config.branding.typography} className={selectClass}>
+                  {Object.values(typographyPresets).map((t) => <option key={t.key} value={t.key}>{t.label} — {t.description}</option>)}
+                </select>
+              </label>
+              <div className="rounded border border-line bg-surface-muted p-2 text-xs">
+                <p className="font-medium">
+                  Contrast of the saved colours and the colours derived from them (WCAG 2.2 AA: 4.5:1 for text, 3:1 for focus rings and field borders).{" "}
+                  {failing === 0 ? <Badge tone="success">all {pairings.length} pairings pass</Badge> : <Badge tone="danger">{failing} of {pairings.length} pairings block publishing</Badge>}
+                </p>
+                <ul className="mt-1 space-y-0.5">
+                  {pairings.map((p) => (
+                    <li key={p.id} className="flex items-center justify-between gap-2">
+                      <span className="flex items-center gap-1.5">
+                        <span aria-hidden="true" className="inline-flex h-4 w-6 items-center justify-center border border-line text-[10px] font-bold leading-none" style={{ background: p.bg, color: p.fg }}>Aa</span>
+                        {p.label}
+                      </span>
+                      <span className="shrink-0">{formatRatio(p.ratio)} <Badge tone={p.passes ? "success" : "danger"}>{p.passes ? "pass" : `needs ${p.minimum}:1`}</Badge></span>
+                    </li>
                   ))}
-                </div>
-                <label className="block">Typography preset
-                  <select name="typography" defaultValue={config.branding.typography} className={selectClass}>
-                    <option value="editorial-serif">Editorial serif (guide)</option>
-                    <option value="utility-sans">Utility sans (retail)</option>
-                  </select>
-                </label>
-                <div className="rounded border border-line bg-surface-muted p-2 text-xs">
-                  <p className="font-medium">Contrast of the saved colors (WCAG 2.2 AA needs 4.5:1)</p>
-                  <ul className="mt-1 space-y-0.5">
-                    {checks.map((ch) => (
-                      <li key={ch.label} className="flex items-center justify-between"><span>{ch.label}</span><span>{formatRatio(ch.ratio)} <Badge tone={ch.ratio >= 4.5 ? "success" : "danger"}>{ch.ratio >= 4.5 ? "pass" : "blocks publishing"}</Badge></span></li>
-                    ))}
-                  </ul>
-                </div>
-              </>
+                </ul>
+              </div>
+            </>
           </SettingsSection>
         </Card>
         <Card title="Navigation and footer">
           <SettingsSection action={saveNavigationAction} hidden={hidden}>
-                          <>
-                <p className="text-xs text-ink-subtle">Known routes: {["/", ...moduleIndexRoutes.filter((m) => config.modules[m.module]).map((m) => m.path), "/search"].join(", ")} plus page slugs. Links to missing routes block publishing.</p>
-                <fieldset><legend className="font-medium">Navigation (up to 8)</legend>
-                  {Array.from({ length: 8 }).map((_, i) => (
-                    <div key={i} className="mt-1 grid grid-cols-2 gap-2">
-                      <input name={`navLabel${i}`} defaultValue={config.navigation.items[i]?.label ?? ""} placeholder="Label" aria-label={`Navigation label ${i + 1}`} className={inputClass} maxLength={40} />
-                      <input name={`navPath${i}`} defaultValue={config.navigation.items[i]?.path ?? ""} placeholder="/path" aria-label={`Navigation path ${i + 1}`} className={inputClass} />
-                    </div>
-                  ))}
-                </fieldset>
-                <label className="block">Footer text<textarea name="footerText" defaultValue={config.footer.text} className={`${inputClass} min-h-16`} maxLength={400} /></label>
-                <fieldset><legend className="font-medium">Footer links (up to 8)</legend>
-                  {Array.from({ length: 8 }).map((_, i) => (
-                    <div key={i} className="mt-1 grid grid-cols-2 gap-2">
-                      <input name={`footerLabel${i}`} defaultValue={config.footer.links[i]?.label ?? ""} placeholder="Label" aria-label={`Footer label ${i + 1}`} className={inputClass} maxLength={40} />
-                      <input name={`footerPath${i}`} defaultValue={config.footer.links[i]?.path ?? ""} placeholder="/path" aria-label={`Footer path ${i + 1}`} className={inputClass} />
-                    </div>
-                  ))}
-                </fieldset>
-                <label className="flex items-center gap-2"><input type="checkbox" name="showContactDetails" defaultChecked={config.footer.showContactDetails} /> Show contact details in the footer</label>
-              </>
+            <>
+              <p className="text-xs text-ink-subtle">Known routes: {["/", ...enabledIndexes.map((m) => m.path), "/search"].join(", ")} plus page slugs. Links to missing routes block publishing; a full https:// address makes an external link (opened without a referrer).</p>
+              <fieldset><legend className="font-medium">Navigation (up to 8)</legend>
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <div key={i} className="mt-1 grid grid-cols-2 gap-2">
+                    <input name={`navLabel${i}`} defaultValue={config.navigation.items[i]?.label ?? ""} placeholder="Label" aria-label={`Navigation label ${i + 1}`} className={inputClass} maxLength={40} />
+                    <input name={`navPath${i}`} defaultValue={config.navigation.items[i]?.path ?? ""} placeholder="/path or https://…" aria-label={`Navigation path ${i + 1}`} className={inputClass} />
+                  </div>
+                ))}
+              </fieldset>
+              <label className="flex items-center gap-2"><input type="checkbox" name="showSearch" defaultChecked={config.navigation.showSearch} /> Show a Search link in the navigation (the /search page stays reachable by address)</label>
+              <label className="block">Footer text<textarea name="footerText" defaultValue={config.footer.text} className={`${inputClass} min-h-16`} maxLength={400} /></label>
+              <fieldset><legend className="font-medium">Footer links (up to 8)</legend>
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <div key={i} className="mt-1 grid grid-cols-2 gap-2">
+                    <input name={`footerLabel${i}`} defaultValue={config.footer.links[i]?.label ?? ""} placeholder="Label" aria-label={`Footer label ${i + 1}`} className={inputClass} maxLength={40} />
+                    <input name={`footerPath${i}`} defaultValue={config.footer.links[i]?.path ?? ""} placeholder="/path or https://…" aria-label={`Footer path ${i + 1}`} className={inputClass} />
+                  </div>
+                ))}
+              </fieldset>
+              <label className="block">Footer layout
+                <select name="footerVariant" defaultValue={config.footer.variant} className={selectClass}>
+                  <option value="columns">Columns — brand, contact details and links in three columns</option>
+                  <option value="compact">Compact — one row with inline links</option>
+                </select>
+              </label>
+              <label className="flex items-center gap-2"><input type="checkbox" name="showContactDetails" defaultChecked={config.footer.showContactDetails} /> Show contact details in the footer</label>
+            </>
           </SettingsSection>
         </Card>
         <Card title="Modules">
           <SettingsSection action={saveModulesAction} hidden={hidden}>
-                          <>
-                <p className="text-xs text-ink-subtle">Disabling a module removes its routes from the next release. Pages that still depend on it are reported as blockers; nothing is deleted.</p>
-                {(["places", "events", "articles", "stores", "services", "inquiries"] as const).map((m) => (
-                  <label key={m} className="flex items-center gap-2 capitalize"><input type="checkbox" name={m} defaultChecked={config.modules[m]} /> {m}</label>
-                ))}
-              </>
+            <>
+              <p className="text-xs text-ink-subtle">Disabling a module removes its routes from the next release. Pages that still depend on it are reported as blockers; nothing is deleted. With Inquiries off, the published site rejects form submissions and store pages show no form.</p>
+              {(["places", "events", "articles", "stores", "services", "inquiries"] as const).map((m) => (
+                <label key={m} className="flex items-center gap-2 capitalize"><input type="checkbox" name={m} defaultChecked={config.modules[m]} /> {m}</label>
+              ))}
+            </>
+          </SettingsSection>
+        </Card>
+        <Card title="Listing pages">
+          <SettingsSection action={saveIndexesAction} hidden={hidden}>
+            <>
+              <p className="text-xs text-ink-subtle">Title and introduction of each module&apos;s listing page. Leave a field empty to keep the theme&apos;s default text.</p>
+              {enabledIndexes.length === 0 ? <p className="text-sm text-ink-muted">No content module is enabled.</p> : null}
+              {enabledIndexes.map((m) => (
+                <fieldset key={m.module} className="rounded border border-line p-2">
+                  <legend className="px-1 font-medium">{m.label} <span className="font-normal text-ink-subtle">({m.path})</span></legend>
+                  <label className="block">Title<input name={`${m.module}Title`} defaultValue={config.indexes[m.module].title} className={inputClass} maxLength={80} placeholder={m.label} /></label>
+                  <label className="mt-1 block">Introduction<textarea name={`${m.module}Intro`} defaultValue={config.indexes[m.module].intro} className={`${inputClass} min-h-12`} maxLength={400} /></label>
+                </fieldset>
+              ))}
+            </>
           </SettingsSection>
         </Card>
         <Card title="Site metadata">
           <SettingsSection action={saveMetadataAction} hidden={hidden}>
-                          <>
-                <label className="block">Default title<input name="defaultTitle" defaultValue={config.metadata.defaultTitle} className={inputClass} required maxLength={70} /></label>
-                <label className="block">Title suffix<input name="titleSuffix" defaultValue={config.metadata.titleSuffix} className={inputClass} maxLength={40} /></label>
-                <label className="block">Default description<textarea name="defaultDescription" defaultValue={config.metadata.defaultDescription} className={`${inputClass} min-h-16`} maxLength={200} /></label>
-              </>
+            <>
+              <label className="block">Default title<input name="defaultTitle" defaultValue={config.metadata.defaultTitle} className={inputClass} required maxLength={70} /></label>
+              <label className="block">Title suffix<input name="titleSuffix" defaultValue={config.metadata.titleSuffix} className={inputClass} maxLength={40} /></label>
+              <p className="text-xs text-ink-subtle">Page titles read “Page title · suffix”; the home page uses the default title alone. The platform&apos;s name never appears on a customer site.</p>
+              <label className="block">Default description<textarea name="defaultDescription" defaultValue={config.metadata.defaultDescription} className={`${inputClass} min-h-16`} maxLength={200} /></label>
+              <label className="block">Language<input name="language" defaultValue={config.metadata.language} className={inputClass} maxLength={35} placeholder="en" /></label>
+              <p className="text-xs text-ink-subtle">Language tag of the site&apos;s content, such as en, es or pt-BR; set on every public page for browsers and assistive technology.</p>
+              <label className="block">Favicon image
+                <select name="faviconAssetId" defaultValue={config.metadata.faviconAssetId ?? ""} className={selectClass}>
+                  <option value="">Generated monogram in the brand colours</option>
+                  {data.assets.filter((a) => a.width === a.height).map((a) => <option key={a.id} value={a.id}>{assetLabel(a)}</option>)}
+                </select>
+              </label>
+              <p className="text-xs text-ink-subtle">Square images from the media library are offered; 256×256 or larger works best. Without one, browsers get a monogram of the wordmark&apos;s first letter on the primary colour.</p>
+              <label className="block">Share image
+                <select name="shareImageAssetId" defaultValue={config.metadata.shareImageAssetId ?? ""} className={selectClass}>
+                  <option value="">None</option>
+                  {data.assets.map((a) => <option key={a.id} value={a.id}>{assetLabel(a)}</option>)}
+                </select>
+              </label>
+              <p className="text-xs text-ink-subtle">Shown when a link to the site is shared; a page&apos;s own featured image takes precedence. 1200×630 works best.</p>
+            </>
           </SettingsSection>
         </Card>
         <Card title="Identity and contact defaults">
           <SettingsSection action={saveContactAction} hidden={{ siteId }}>
-                          <>
-                <label className="block">Site name<input name="name" defaultValue={site.name} className={inputClass} required maxLength={120} /></label>
-                <label className="block">Time zone (IANA)<input name="timeZone" defaultValue={site.timeZone} className={inputClass} required /></label>
-                <label className="block">Contact email<input name="contactEmail" type="email" defaultValue={site.contactEmail ?? ""} className={inputClass} /></label>
-                <label className="block">Contact phone<input name="contactPhone" defaultValue={site.contactPhone ?? ""} className={inputClass} maxLength={40} /></label>
-                <label className="block">Contact address<input name="contactAddress" defaultValue={site.contactAddress ?? ""} className={inputClass} maxLength={300} /></label>
-                <label className="block">Inquiry notification recipients (comma-separated)<input name="inquiryRecipients" defaultValue={site.inquiryRecipients.join(", ")} className={inputClass} /></label>
-                <p className="text-xs text-ink-subtle">Recipients are resolved server-side when an inquiry is stored; visitors can never choose them.</p>
-              </>
+            <>
+              <label className="block">Site name<input name="name" defaultValue={site.name} className={inputClass} required maxLength={120} /></label>
+              <label className="block">Time zone (IANA)<input name="timeZone" defaultValue={site.timeZone} className={inputClass} required /></label>
+              <label className="block">Contact email<input name="contactEmail" type="email" defaultValue={site.contactEmail ?? ""} className={inputClass} /></label>
+              <label className="block">Contact phone<input name="contactPhone" defaultValue={site.contactPhone ?? ""} className={inputClass} maxLength={40} /></label>
+              <label className="block">Contact address<input name="contactAddress" defaultValue={site.contactAddress ?? ""} className={inputClass} maxLength={300} /></label>
+              <label className="block">Inquiry notification recipients (comma-separated)<input name="inquiryRecipients" defaultValue={site.inquiryRecipients.join(", ")} className={inputClass} /></label>
+              <p className="text-xs text-ink-subtle">Recipients are resolved server-side when an inquiry is stored; visitors can never choose them.</p>
+            </>
           </SettingsSection>
         </Card>
         <Card title="Domains">
