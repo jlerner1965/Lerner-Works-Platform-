@@ -118,7 +118,7 @@ primary-coloured; a dark logo on it needs a light variant, which the D1 token ov
 header/footer style options cover); configurable "Find a store" header button (D1 header
 style).
 
-### D1 · Bounded design options — BUILT 2026-09-26, on production after the owner's go
+### D1 · Bounded design options — DONE 2026-09-26 (on production)
 
 The main flexibility step, without a page builder. About three sessions.
 

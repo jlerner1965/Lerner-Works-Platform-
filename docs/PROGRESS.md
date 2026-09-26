@@ -14,7 +14,7 @@ Resume point for the build. Update after every milestone and before any context 
 | M4 Verification and refinement | DONE (2026-09-26) | Acceptance matrix complete with evidence (38 PASS, 0 FAIL, 0 BLOCKED); ten-step demonstration automated with screenshots; browser suite moved to the production build; production build + secret inspection; Lighthouse lab runs; fresh-install rehearsal; release report in `docs/RELEASE-REPORT.md`. |
 | Production (hosted) | DONE (2026-09-26) | Production Supabase and Vercel projects configured and deployed; owner signed in; inquiries stored and delivered by Vercel Cron after the routing fix; readiness report green (see the hosted setup log). |
 | D0 Identity completeness | DONE (2026-09-26, on production: pull request #7 merged as `9c49d7a`, migration applied, live checks in `docs/evidence/production/d0-2026-09-26-live-checks.txt`) | Design programme phase 0 (`docs/DESIGN-PLAN.md` section 4): logo rendered, typography preset applied, every theme colour a derived token with a 15-pairing contrast gate and a literal-colour audit, per-site favicon/share image/title/language, editable listing copy, Search link switch, external links, footer layouts, page header image, inquiries switch enforced in SQL. Snapshot schema version 2 with version-1 releases normalised at read time. |
-| D1 Bounded design options | BUILT (2026-09-26); on production after the owner's go (pull request, migration `20260926000200_media_focal_point.sql`, live check) | Site-wide design options (owners only, audited), section styles and appearance validated against each theme's declared vocabulary on save, import and publication, seven new section types (FAQ, quotes, call to action, gallery, facts, click-to-load video, map link), media focal points, bold and italic in rich text, snapshot schema version 3 with a rendering-hash test over six frozen releases and a screenshot comparison of the restored D0-era releases (identical), both pilots re-composed. DES-06 to DES-09 PASS; Lighthouse and the 143 KiB script budget recorded (unchanged). |
+| D1 Bounded design options | DONE (2026-09-26, on production: pull request #8 merged as `1f8407d`, migration `20260926000200_media_focal_point.sql` applied, live checks in `docs/evidence/production/d1-2026-09-26-live-checks.txt`) | Site-wide design options (owners only, audited), section styles and appearance validated against each theme's declared vocabulary on save, import and publication, seven new section types (FAQ, quotes, call to action, gallery, facts, click-to-load video, map link), media focal points, bold and italic in rich text, snapshot schema version 3 with a rendering-hash test over six frozen releases and a screenshot comparison of the restored D0-era releases (identical), both pilots re-composed. DES-06 to DES-09 PASS; Lighthouse and the 143 KiB script budget recorded (unchanged). |
 | D2 Theme catalogue and design preview | PLANNED | Theme registry with capability declarations, one more composition per preset, theme switching per site, design preview of the draft configuration, more typography presets. |
 | D3 Visual in-context editing | PLANNED | Editable preview with keyboard-equivalent reordering, side-panel forms on the same schemas, live tokens, explicit save; same review and publication path. |
 
@@ -116,16 +116,22 @@ Resume point for the build. Update after every milestone and before any context 
 
 ## Current task
 
-Design programme phase D1 (bounded design options) is built and verified locally on the
-working branch `claude/lucid-darwin-cif2y6`; see the D1 row above, `docs/DESIGN-PLAN.md`
+Design programme phase D1 (bounded design options) is on production. With the owner's go
+(2026-09-26): migration `20260926000200_media_focal_point.sql` applied to the production
+project through the Management API at 16:11 UTC (1 applied, 8 already applied; the two
+nullable columns confirmed through the API afterwards), pull request #8 merged into `main`
+as `1f8407d` at 16:11 UTC, Vercel deployment `dpl_Bzgnvhr3o3Vsi4pLj2cmneB9zfCr` READY at
+16:12 UTC, then live checks on `https://app.lernerworksplatform.dev` (evidence
+`docs/evidence/production/d1-2026-09-26-live-checks.txt`): the owner's test site's
+version-1 release renders through the schema-version-3 renderer with the design scale
+variables (`--radius`, `--section-gap`, `--band-pad`, `--container`), the default section
+colours and the brand and font variables on the theme root, `lang="en"`, its own title and
+no platform name; favicon, listing and search routes answer 200, an unknown site 404, the
+sign-in page and `/healthz` 200, the cron target 401. The dashboard-side controls (Settings →
+Design, section styles in the page editor, the focal point editor in the media library) need
+the owner's session and are the owner's look. See the D1 row above, `docs/DESIGN-PLAN.md`
 section 4 (what shipped, and where), decisions D-015 and D-016, and the DES-06 to DES-09,
-DES-13 and DES-14 rows of `docs/ACCEPTANCE.md`. It is not on production: that needs the
-owner's go for the pull request into `main`, the migration
-`20260926000200_media_focal_point.sql` on the production project (`pnpm db:migrate
---project-ref fvpooyxkuvltjzjbevxf`; it adds two nullable columns, nothing else) and a look at
-the live deployment afterwards. The owner's production test site has no design settings yet,
-so it renders as before (its releases are normalised at read time); the D1 controls appear
-in Settings → Design and in the page editor after the deployment.
+DES-13 and DES-14 rows of `docs/ACCEPTANCE.md`.
 
 Rendering-hash re-record (D-015): the hashes in `tests/fixtures/releases/hashes.json` were
 re-recorded for the version-1 and version-2 fixtures because D1 changes the markup of every
@@ -142,10 +148,10 @@ organization, site or hostname exists yet.
 
 ## Next action
 
-Owner: say the word for the pull request and the production migration; then look at a
-pilot-style composition on the test site (Settings → Design; a page with a coloured
-call-to-action band, an FAQ and a gallery; the media library's focal point editor). Then phase
-D2 (`docs/DESIGN-PLAN.md`: theme catalogue with capability declarations, a second composition
+Owner: look at the D1 controls on the production test site (Settings → Design; a page with
+a coloured call-to-action band, an FAQ and a gallery; the media library's focal point
+editor) and publish a release to see them live. Then phase D2 (`docs/DESIGN-PLAN.md`: theme
+catalogue with capability declarations, a second composition
 per preset, theme switching per site, design preview of the draft configuration, more
 typography presets), starting on the owner's go. Open points carried from D1: header overlaid
 on the hero and the configurable "Find a store" button (D2 compositions), a dark-surface logo
