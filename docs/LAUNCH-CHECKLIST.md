@@ -27,11 +27,16 @@ smoke tests; customer domains one site at a time.
 
 ## 1. Supabase project (per environment)
 
-1. Run `supabase/hosted/0001_application_roles.sql` in the SQL editor after replacing the
-   password placeholder. This creates the `lw_app` connecting role (no table privileges).
-2. Apply the migrations with the Supabase CLI: `supabase link --project-ref <ref>` then
-   `supabase db push` (applies `supabase/migrations/*.sql`; **never** apply
-   `supabase/local/`, which is the local-only auth shim).
+1. Apply the migrations. Either with the Supabase CLI (`supabase link --project-ref <ref>`
+   then `supabase db push`, which applies `supabase/migrations/*.sql`; **never** apply
+   `supabase/local/`, the local-only auth shim) or, without the CLI, through the Management
+   API with a personal access token:
+   `SUPABASE_ACCESS_TOKEN=... pnpm db:migrate --project-ref <ref>`.
+2. Create the `lw_app` connecting role (no table privileges):
+   `LW_APP_PASSWORD=$(openssl rand -hex 24) SUPABASE_ACCESS_TOKEN=... pnpm hosted:roles --project-ref <ref>`
+   (or run `supabase/hosted/0001_application_roles.sql` in the SQL editor with the password
+   placeholder replaced). Keep the password for `DATABASE_URL`. The script can run before or
+   after the migrations; run it again after any migration that adds session functions.
 3. Authentication → Settings: **disable new user sign-ups** (onboarding is invitation-only);
    set Site URL to `APP_URL`; add `APP_URL/auth/recovery` to the redirect allow-list; keep
    email confirmation on. Configure the auth email sender (SMTP or the default limits) and

@@ -88,6 +88,42 @@ parts before a hosted launch: managed database backups, bucket versioning, and t
 provider's user store (local auth users are included in the dump; Supabase Auth users would
 not be).
 
+## Hosted setup log (staging)
+
+Actions performed with owner-supplied credentials, recorded without secrets. Each line is a
+fact verified through the provider's API at the time; nothing below claims a working
+deployment until the smoke tests in `docs/LAUNCH-CHECKLIST.md` run.
+
+- 2026-09-26 Vercel team "ARProject" (Pro plan): token verified read-only; the team also
+  hosts the existing live properties, which are not touched. Vercel's GitHub app has access
+  to the platform repository. Creating the project through the API was blocked by the
+  session's safety check; the owner creates it in the dashboard (name
+  `lerner-works-platform-staging`).
+- 2026-09-26 Domain `lernerworksplatform.dev` is Vercel-managed (nameservers
+  ns1/ns2.vercel-dns.com, verified, wildcard alias to Vercel). Decided hostnames:
+  `staging.lernerworksplatform.dev` (staging) and `app.lernerworksplatform.dev` (production).
+- 2026-09-26 Resend: domain `lernerworksplatform.dev` registered (region us-east-1); with the
+  owner's approval the four DNS records Resend required (DKIM TXT, MX and SPF TXT on `send`,
+  CNAME `rsend`) were added to the Vercel zone through its API; Resend reports the domain
+  **verified**. Sender for the platform: `notifications@lernerworksplatform.dev`.
+- 2026-09-26 Supabase project `Lerner-Works-Platform-` (ref `pgnffhnlgxqpsvgloshz`, us-east-1,
+  PostgreSQL 17; created by the owner) used as the staging project: through the Management
+  API the seven migrations were applied (`pnpm db:migrate --project-ref`), the `lw_app` role
+  created (`pnpm hosted:roles`), Auth set to sign-ups disabled with the staging site URL and
+  recovery redirect, buckets `private` (private) and `public-assets` (public) created.
+  Verified state: 19 tables all with RLS, no PostgREST grants on `app_sessions`, `lw_app`
+  can execute the session functions, no local auth shim. A separate production project is
+  still to be created before launch.
+- 2026-09-26 Vercel project `lerner-works-platform-staging` (`prj_3o7NzqXkOF4OWCiMeXrJ40e68UYL`)
+  created through the API without a Git link (the linked variant was refused by the session's
+  safety check as a deployment); Next.js, Node 22, `pnpm install --frozen-lockfile` /
+  `pnpm build`; all 21 environment variables set (secrets as sensitive); hostname
+  `staging.lernerworksplatform.dev` attached and reported as configured. The database password
+  of the Supabase project was rotated with the owner's approval so the elevated connection
+  string could be set. Sender: `notifications@lernerworksplatform.dev`.
+- Pending: connect the repository to the Vercel project (first deployment); first owner;
+  smoke tests.
+
 ## Feature ledger
 
 Columns: working UI · persistent backend · permission checks · tests · external configuration.

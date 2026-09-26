@@ -23,12 +23,27 @@ grant anon to lw_app;
 grant authenticated to lw_app;
 
 -- Session bookkeeping functions (created by migration 20260925000700). The same grants are
--- attempted by that migration when the role already exists; repeating them is harmless.
-grant usage on schema private to lw_app;
-grant execute on function private.create_app_session(uuid, text, interval, text) to lw_app;
-grant execute on function private.resolve_app_session(text) to lw_app;
-grant execute on function private.delete_app_session(text) to lw_app;
-grant execute on function private.delete_user_sessions(uuid) to lw_app;
+-- attempted by that migration when the role already exists, so this script works before or
+-- after the migrations; the guards below skip objects that do not exist yet.
+do $$
+begin
+  if exists (select 1 from pg_namespace where nspname = 'private') then
+    grant usage on schema private to lw_app;
+  end if;
+  if to_regprocedure('private.create_app_session(uuid, text, interval, text)') is not null then
+    grant execute on function private.create_app_session(uuid, text, interval, text) to lw_app;
+  end if;
+  if to_regprocedure('private.resolve_app_session(text)') is not null then
+    grant execute on function private.resolve_app_session(text) to lw_app;
+  end if;
+  if to_regprocedure('private.delete_app_session(text)') is not null then
+    grant execute on function private.delete_app_session(text) to lw_app;
+  end if;
+  if to_regprocedure('private.delete_user_sessions(uuid)') is not null then
+    grant execute on function private.delete_user_sessions(uuid) to lw_app;
+  end if;
+end;
+$$;
 
 -- Verification (expected: rolcanlogin = t, rolinherit = f, rolbypassrls = f)
 -- select rolname, rolcanlogin, rolinherit, rolbypassrls from pg_roles where rolname = 'lw_app';
