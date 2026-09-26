@@ -174,6 +174,14 @@ deployment until the smoke tests in `docs/LAUNCH-CHECKLIST.md` run.
   recovery fix and the later log entries were pushed; those commits and this entry go to
   `main` through a follow-up pull request. `main` is not yet the default branch (a
   repository setting the owner changes).
+- 2026-09-26 Long-lived Vercel token: the session started to set `VERCEL_API_TOKEN` on both
+  Vercel projects and redeploy staging, but no token variable was present in the build
+  environment (`VERCEL_API_TOKEN` and `VERCEL_TOKEN` were both unset/empty), so nothing
+  was sent to Vercel: no environment variable was written on either project, no deployment
+  was created, and the domain check (`tokencheck.lernerworksplatform.dev`) was not run. The
+  staging project still carries the owner's 24-hour token (expires 2026-09-27 03:16 UTC).
+  The owner adds the long-lived token to the cloud environment as `VERCEL_API_TOKEN` and
+  the step is repeated.
 - Pending (owner): Supabase Auth SMTP through Resend entered in the dashboard (a Resend key
   the owner creates there); Supabase plan; production Supabase project; long-lived Vercel
   token on both projects; revocation of the pasted Supabase token; default branch `main`.
