@@ -22,7 +22,7 @@ export function InviteRegisterForm({ token, email }: { token: string; email: str
     <form action={action} className="space-y-3">
       <input type="hidden" name="token" value={token} />
       {state.error ? <Alert tone="danger" role="alert">{state.error}</Alert> : null}
-      <p className="text-sm">Create your account for <strong>{email}</strong> (local development sign-in).</p>
+      <p className="text-sm">Create your account for <strong>{email}</strong>.</p>
       <label htmlFor={`${id}-pw`} className="block text-sm font-medium">Password (12+ characters)</label>
       <input id={`${id}-pw`} name="password" type="password" minLength={12} required autoComplete="new-password" className={inputClass} />
       <label htmlFor={`${id}-confirm`} className="block text-sm font-medium">Confirm password</label>

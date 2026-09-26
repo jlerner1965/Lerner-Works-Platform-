@@ -2,7 +2,10 @@
  * Creates the first agency owner and organization on an environment that has no members
  * yet (production onboarding is invite-only, so the very first owner cannot be invited).
  *
- *   BOOTSTRAP_PASSWORD='<at least 12 characters>' pnpm bootstrap:owner --email owner@agency.example --organization "Agency name" [--confirm-hosted]
+ *   BOOTSTRAP_PASSWORD='<at least 12 characters>' pnpm bootstrap:owner --email owner@agency.example --organization "Agency name" [--confirm-hosted] [--project-ref <ref>]
+ *
+ * With --project-ref (and SUPABASE_ACCESS_TOKEN) the database statements run through the
+ * Supabase Management API instead of DATABASE_ADMIN_URL.
  *
  * Local: the account is created in the local auth shim. Hosted: the account is created in
  * Supabase Auth through the administrative API (confirmed, with the given password; the
@@ -10,8 +13,9 @@
  * existing account or organization is reused and the owner membership is ensured.
  * Refuses non-local targets without --confirm-hosted. Never prints the password.
  */
-import postgres from "postgres";
+import postgres, { type Sql } from "postgres";
 import { loadEnv, requireEnv, isLocalDatabaseUrl, redactUrl } from "./lib/env";
+import { assertProjectRef, executeSql, managementToken } from "./lib/supabase-management";
 
 loadEnv();
 
@@ -32,14 +36,16 @@ async function main(): Promise<void> {
     console.error("BOOTSTRAP_PASSWORD must be set (at least 12 characters).");
     process.exit(2);
   }
-  const adminUrl = requireEnv("DATABASE_ADMIN_URL");
-  if (!isLocalDatabaseUrl(adminUrl) && !process.argv.includes("--confirm-hosted")) {
-    console.error(`Refusing to bootstrap on non-local target ${redactUrl(adminUrl)} without --confirm-hosted.`);
+  const refIndex = process.argv.indexOf("--project-ref");
+  const projectRef = refIndex >= 0 ? assertProjectRef(process.argv[refIndex + 1]) : null;
+  const adminUrl = projectRef ? null : requireEnv("DATABASE_ADMIN_URL");
+  if ((projectRef || !isLocalDatabaseUrl(adminUrl!)) && !process.argv.includes("--confirm-hosted")) {
+    console.error(`Refusing to bootstrap on non-local target ${projectRef ?? redactUrl(adminUrl!)} without --confirm-hosted.`);
     process.exit(1);
   }
   const { getConfig } = await import("@/server/config");
   const cfg = getConfig();
-  const admin = postgres(adminUrl, { max: 1, onnotice: () => {} });
+  const admin = adminUrl ? postgres(adminUrl, { max: 1, onnotice: () => {} }) : managedSql(projectRef!, managementToken());
   try {
     let userId: string;
     if (cfg.AUTH_PROVIDER === "local") {
@@ -66,7 +72,8 @@ async function main(): Promise<void> {
     const membership = await admin`insert into public.memberships (organization_id, user_id, organization_role, created_by)
       values (${org.id}, ${userId}, 'owner', ${userId})
       on conflict (organization_id, user_id) do update set organization_role = 'owner'
-      where public.memberships.organization_role is distinct from 'owner'`;
+      where public.memberships.organization_role is distinct from 'owner'
+      returning organization_id`;
     const changed = !existingOrg || membership.count > 0;
     if (changed) {
       await admin`insert into public.audit_events (organization_id, site_id, actor_id, action, entity_type, entity_id, metadata)
@@ -76,6 +83,25 @@ async function main(): Promise<void> {
   } finally {
     await admin.end();
   }
+}
+
+/**
+ * A minimal tagged-template shim over the Management API SQL endpoint, so the same statements
+ * run where no direct database connection exists. Parameters are inlined as quoted literals
+ * (values here are ids, emails and names produced by this script).
+ */
+function managedSql(ref: string, token: string): Sql {
+  const quote = (v: unknown): string => {
+    if (v === null || v === undefined) return "null";
+    if (typeof v === "object" && v !== null && "__json" in (v as Record<string, unknown>)) return `'${JSON.stringify((v as { __json: unknown }).__json).replace(/'/g, "''")}'::jsonb`;
+    return `'${String(v).replace(/'/g, "''")}'`;
+  };
+  const fn = async (strings: TemplateStringsArray, ...values: unknown[]) => {
+    const text = strings.reduce((acc, part, i) => acc + part + (i < values.length ? quote(values[i]) : ""), "");
+    const rows = await executeSql(ref, token, text);
+    return Object.assign(rows, { count: rows.length });
+  };
+  return Object.assign(fn, { json: (v: unknown) => ({ __json: v }), end: async () => {} }) as unknown as Sql;
 }
 
 main().catch((err) => {

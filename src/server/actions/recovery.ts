@@ -35,7 +35,7 @@ export async function requestPasswordRecoveryAction(_prev: RecoveryState, formDa
   const verifier = base64url(randomBytes(48));
   const challenge = base64url(createHash("sha256").update(verifier).digest());
   const jar = await cookies();
-  jar.set(PKCE_COOKIE, verifier, { httpOnly: true, sameSite: "lax", secure: cfg.APP_URL.startsWith("https://"), path: "/auth", maxAge: 60 * 30 });
+  jar.set(PKCE_COOKIE, verifier, { httpOnly: true, sameSite: "lax", secure: cfg.APP_URL.startsWith("https://"), path: "/auth", maxAge: 60 * 60 });
   const result = await gotrueFromConfig().requestPasswordRecovery(email.data.toLowerCase(), `${cfg.APP_URL}/auth/recovery`, challenge);
   if (!result.ok && /network error|responded 5\d\d/.test(result.message ?? "")) {
     return { error: "The identity provider could not be reached. Try again in a few minutes." };
@@ -43,22 +43,32 @@ export async function requestPasswordRecoveryAction(_prev: RecoveryState, formDa
   return { message: NEUTRAL };
 }
 
-/** Completes recovery: exchanges the code with the stored verifier, sets the password, signs in. */
+/**
+ * Completes recovery and signs in. Two link formats are accepted: a token hash from the
+ * provider's email template (`?token_hash=…&type=recovery`, usable from any browser) or a
+ * PKCE code (`?code=…`) exchanged with the verifier cookie set when the request was made.
+ */
 export async function completePasswordRecoveryAction(_prev: RecoveryState, formData: FormData): Promise<RecoveryState> {
   const cfg = getConfig();
   if (cfg.AUTH_PROVIDER !== "supabase") return { error: "Password recovery is not available in this environment." };
   const code = String(formData.get("code") ?? "").trim();
+  const tokenHash = String(formData.get("tokenHash") ?? "").trim();
   const password = String(formData.get("password") ?? "");
   const confirm = String(formData.get("confirm") ?? "");
-  if (!code || code.length > 512) return { error: "The recovery link is incomplete. Request a new one." };
+  if ((!code && !tokenHash) || code.length > 512 || tokenHash.length > 512) return { error: "The recovery link is incomplete. Request a new one." };
   if (password.length < 12) return { error: "Use at least 12 characters." };
   if (password !== confirm) return { error: "The passwords do not match." };
   if (await getSessionUser()) return { error: "You are already signed in. Sign out before using a recovery link." };
   const jar = await cookies();
-  const verifier = jar.get(PKCE_COOKIE)?.value;
-  if (!verifier) return { error: "This browser did not start the recovery, or the request expired. Request a new link from the same browser." };
   const gotrue = gotrueFromConfig();
-  const exchanged = await gotrue.exchangeCodeForSession(code, verifier);
+  let exchanged;
+  if (tokenHash) {
+    exchanged = await gotrue.verifyRecoveryTokenHash(tokenHash);
+  } else {
+    const verifier = jar.get(PKCE_COOKIE)?.value;
+    if (!verifier) return { error: "This browser did not start the recovery, or the request expired. Request a new link from the same browser." };
+    exchanged = await gotrue.exchangeCodeForSession(code, verifier);
+  }
   if (!exchanged.ok) {
     return { error: exchanged.reason === "invalid_code" ? "The recovery link is invalid or has expired. Request a new one." : "The identity provider could not be reached. Try again in a few minutes." };
   }

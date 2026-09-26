@@ -10,7 +10,7 @@ Resume point for the build. Update after every milestone and before any context 
 | M1 First complete publishing workflow | DONE (2026-09-26) | Edit → draft → approve → frozen candidate → preview → atomic activation → public demo route, verified by 28 unit, 21 integration and 2 browser tests. |
 | M2 Complete editing and public experiences | DONE (2026-09-26) | All six content kinds editable and rendered; media pipeline with validation and derivatives; two fully populated fictional pilots with original generated artwork; search/filters; settings; site creation; responsive screenshots at 390/768/1440 with no overflow; 28 unit, 25 integration, 6 browser tests. |
 | M3 Operational completion | DONE (2026-09-26) | Review queue, release restore, inquiry inbox + durable notification queue with worker, owner access management with local invitation flow, CSV import with dry run, portable site package export/import, audit log, retention job, backup + restore rehearsal. |
-| Launch readiness (post-M4) | DONE for the repository (2026-09-26); hosted verification BLOCKED on owner accounts | Supabase Auth provider with platform sessions, invitations and password recovery; Supabase Storage provider; scheduled job endpoints + `vercel.json`; domain registration/verification/activation via the Vercel API and explicit go-live; hosted configuration enforcement; `pnpm launch:check`; `pnpm bootstrap:owner`; `docs/LAUNCH-CHECKLIST.md`. Provider adapters are unit-tested against recorded API shapes only. |
+| Launch readiness (post-M4) | DONE (2026-09-26); staging verified the same day (see the hosted setup log) | Supabase Auth provider with platform sessions, invitations and password recovery; Supabase Storage provider; scheduled job endpoints + `vercel.json`; domain registration/verification/activation via the Vercel API and explicit go-live; hosted configuration enforcement; `pnpm launch:check`; `pnpm bootstrap:owner`; `docs/LAUNCH-CHECKLIST.md`. Provider adapters are unit-tested against recorded API shapes only. |
 | M4 Verification and refinement | DONE (2026-09-26) | Acceptance matrix complete with evidence (38 PASS, 0 FAIL, 0 BLOCKED); ten-step demonstration automated with screenshots; browser suite moved to the production build; production build + secret inspection; Lighthouse lab runs; fresh-install rehearsal; release report in `docs/RELEASE-REPORT.md`. |
 
 ## Environment blockers (precise)
@@ -67,16 +67,22 @@ Resume point for the build. Update after every milestone and before any context 
 
 ## Current task
 
-The repository is launch-ready: every hosted integration is implemented, configured through
-the environment, guarded at startup and covered by tests that do not need accounts. Hosted
-staging verification is blocked on owner-provided accounts (see "Environment blockers",
-`docs/LAUNCH-CHECKLIST.md` and `docs/RELEASE-REPORT.md` §5).
+Hosted staging is set up and verified (see "Hosted setup log"); the owner has signed in.
+The production environment is prepared as far as it can be without a production Supabase
+project: the Vercel project `lerner-works-platform` exists with `app.lernerworksplatform.dev`
+attached and its non-database configuration set. It is not linked to the repository and
+has no deployment, so nothing is served on that hostname yet.
 
 ## Next action
 
-Owner: create the staging Supabase, Vercel and Resend accounts, approve the plans, then run
-`docs/LAUNCH-CHECKLIST.md` sections 1–6 with `pnpm launch:check --env-file .env.staging` and
-record the seven smoke tests in `docs/ACCEPTANCE.md` (LAUNCH-06).
+Owner: create the production Supabase project in the Supabase dashboard (the access token
+shared during setup can neither list organizations nor create projects), enter the Supabase
+Auth SMTP settings for staging, choose the Supabase plan, make `main` the default branch and
+provide long-lived provider tokens through the build environment's secrets, never in chat.
+Then: `pnpm db:migrate --project-ref <prod>`, `pnpm hosted:roles --project-ref <prod>`, auth
+settings and buckets, the remaining production variables, repository link, deployment,
+`pnpm launch:check`, `pnpm bootstrap:owner`, and the smoke tests against production
+(`docs/LAUNCH-CHECKLIST.md` section 7).
 
 ## Restore rehearsal (OPS-02) — 2026-09-26
 
@@ -121,8 +127,56 @@ deployment until the smoke tests in `docs/LAUNCH-CHECKLIST.md` run.
   `staging.lernerworksplatform.dev` attached and reported as configured. The database password
   of the Supabase project was rotated with the owner's approval so the elevated connection
   string could be set. Sender: `notifications@lernerworksplatform.dev`.
-- Pending: connect the repository to the Vercel project (first deployment); first owner;
-  smoke tests.
+- 2026-09-26 Repository connected to the Vercel project with `main` as production branch;
+  first deployment `dpl_HFYpGUZLcbDM8eambuoJVxZ6oVEe` from `main` (commit `bf928e5`) READY;
+  `https://staging.lernerworksplatform.dev/healthz` answers `{"ok":true,"database":"reachable"}`
+  through the pooler as the application role; `/app` redirects to sign-in.
+  `pnpm launch:check --env-file … --project-ref` reported every item OK before deploying.
+  Supabase Auth SMTP through Resend was not set (the session's safety check refused the
+  secret write); the default Supabase mailer remains until the owner enters it.
+- 2026-09-26 First owner created on staging (`pnpm bootstrap:owner --project-ref … --confirm-hosted`,
+  Supabase Auth account + organization "Lerner Works"); password kept out of the chat, the
+  owner takes over through "Forgot your password?". Smoke tests 1–6 (`pnpm smoke`, see
+  ACCEPTANCE LAUNCH-06) passed against staging; screenshots in `docs/evidence/staging/`.
+  Test messages went only to the owner's mailbox (invitee: a plus-address of it). Browser
+  runs from the build environment needed its proxy authority in the NSS store (not a TLS
+  bypass). Left on staging: three `smoke-*` sites (one published), the invitee account
+  (membership removed), test inquiries and invitations. Supabase Auth SMTP still uses the
+  default mailer. The `VERCEL_API_TOKEN` in the project environment is the owner's
+  24-hour token and must be replaced with a long-lived one for the domain workflow.
+- 2026-09-26 The Supabase project is on the **free tier** (the Management API refuses email
+  template changes there without custom SMTP): idle projects pause, there are no daily
+  backups, and auth email is limited to a few messages an hour. The owner's first password
+  recovery did not complete. Fix shipped: `/auth/recovery` also accepts the provider's
+  `token_hash` link, which works from any browser; a one-time link generated through the
+  admin API replaces the rate-limited email for the owner's first sign-in.
+- 2026-09-26 Owner set a password through the one-time token-hash link and signed in to
+  staging (reported by the owner; provider shows the password update and a live session).
+- 2026-09-26 Email key rotation: a new sending-only Resend key restricted to
+  `lernerworksplatform.dev` replaced the key shared during setup on the staging project;
+  staging was redeployed from the branch tip (`dpl_F7Vhp1z4hJuMhFi2jgLmzRPMP2gP`), a test
+  inquiry on the smoke site was delivered through the job endpoint with the new key
+  (provider event `delivered`, receipt LW-3B6E91AC, to the owner's mailbox), and the old
+  key was deleted at the provider (it is now refused). The pasted Supabase access token
+  cannot be revoked through the API: the owner revokes it in the Supabase dashboard. The
+  24-hour Vercel token expires on its own (2026-09-27 03:16 UTC); creating a long-lived
+  token through the API was refused because the token is team-scoped (`403`, "must be
+  authenticated to scope"), so the owner creates one in Account Settings → Tokens and sets
+  `VERCEL_API_TOKEN` on both projects. The production Vercel project
+  `lerner-works-platform` (`prj_OHSZEIrlDPAuUOrEOg3P7Q9AGXqn`, same team, Node 22.x) has
+  `app.lernerworksplatform.dev` attached and verified (the zone is on Vercel DNS) and these
+  variables for the production target only: APP_ENV/APP_URL/APP_HOST, providers, a separate
+  sending-only Resend key, sender address, bucket names, fresh SESSION_SECRET and
+  CRON_SECRET, VERCEL_PROJECT_ID/TEAM_ID. It is deliberately not linked to the repository
+  and has no deployment until a production Supabase project exists: creating one through
+  the Management API returned `Forbidden` and the token lists no organizations.
+- 2026-09-26 PR #3 was merged by the owner at 03:41 UTC, before the smoke suite, the
+  recovery fix and the later log entries were pushed; those commits and this entry go to
+  `main` through a follow-up pull request. `main` is not yet the default branch (a
+  repository setting the owner changes).
+- Pending (owner): Supabase Auth SMTP through Resend entered in the dashboard (a Resend key
+  the owner creates there); Supabase plan; production Supabase project; long-lived Vercel
+  token on both projects; revocation of the pasted Supabase token; default branch `main`.
 
 ## Feature ledger
 

@@ -48,7 +48,10 @@ smoke tests; customer domains one site at a time.
 
 ## 2. Email and domain providers
 
-- [ ] Resend: add and verify the sending domain of `NOTIFY_FROM_ADDRESS`; create an API key.
+- [ ] Resend: add and verify the sending domain of `NOTIFY_FROM_ADDRESS`; create one
+      sending-only API key per environment, restricted to that domain (the smoke suite's
+      `SMOKE_RESEND_API_KEY` needs a full-access key to read messages back; keep it out of
+      the deployed environment).
 - [ ] Vercel: create an API token scoped to the team; note the project id and team id. With
       these set, the dashboard registers customer hostnames on the project and shows the
       provider's own verification and DNS records (nothing is inferred locally).
@@ -125,11 +128,25 @@ through the notification queue.
 7. Take a database backup (Supabase dashboard) and confirm the storage buckets are included
    in the backup plan; note the restore procedure in `docs/OPERATIONS.md`.
 
+`pnpm smoke` automates 1–6 against a deployed environment (`tests/smoke/staging.spec.ts`,
+variables `SMOKE_BASE_URL`, `SMOKE_OWNER_EMAIL`, `SMOKE_OWNER_PASSWORD`, `SMOKE_JOB_SECRET`,
+optional `SMOKE_INVITEE_EMAIL`, `SMOKE_HOSTNAME`, `SMOKE_RESEND_API_KEY`, `SMOKE_SITE_ID` /
+`SMOKE_SITE_KEY` to reuse a site). Every message it sends goes to the owner's own mailbox;
+the invitee must be a mailbox the owner controls. Screenshots land in `docs/evidence/staging/`.
+Behind a TLS-inspecting proxy, import the proxy's authority into the browser NSS store
+rather than ignoring certificate errors.
+
 Only after all seven pass can the release be labelled **hosted staging verified**.
 
 ## 7. Production
 
-- [ ] Repeat sections 1–5 on the production project with production secrets.
+- [ ] Repeat sections 1–5 on the production project with production secrets. State on
+      2026-09-26: Vercel project `lerner-works-platform` exists with
+      `app.lernerworksplatform.dev` attached, Node 22.x, and every variable of section 3 set
+      for the production target except `DATABASE_URL`, `DATABASE_ADMIN_URL`, `SUPABASE_URL`,
+      `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` and `VERCEL_API_TOKEN`. Do not link the
+      repository or deploy before the production Supabase project exists and those are set;
+      with the link in place every push to `main` deploys to production.
 - [ ] `pnpm launch:check --env-file .env.production` reports no FAIL and no `.example` accounts.
 - [ ] Deploy the same commit that passed staging. Vercel keeps previous deployments for an
       application rollback; content rollback is a release restore in the dashboard.
