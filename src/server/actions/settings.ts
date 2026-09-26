@@ -144,6 +144,26 @@ export async function setDesignDelegationAction(_prev: SettingsState, formData: 
   }
 }
 
+/** Review policy (B1): owners decide whether every revision needs an explicit approval or publishers' saves count as approved. */
+export async function setReviewPolicyAction(_prev: SettingsState, formData: FormData): Promise<SettingsState> {
+  const user = await requireUser();
+  const siteId = String(formData.get("siteId") ?? "");
+  if (!uuid.safeParse(siteId).success) return { error: "Invalid request." };
+  const required = formData.get("reviewRequired") === "on";
+  try {
+    return await withUser(user.id, async (db) => {
+      const ctx = await loadSiteContext(db, siteId);
+      if (!ctx?.capabilities.isOwner) return { error: "Only organization owners change the review policy." };
+      await db`select public.set_review_policy(${siteId}, ${required})`;
+      revalidatePath(`/app/sites/${siteId}/settings`);
+      revalidatePath(`/app/sites/${siteId}`);
+      return { message: required ? "Review required: every saved revision now needs an explicit approval before it can publish, including your own." : "Review not required: saves by owners and publishers are approved as they are saved; editors' work still needs a publisher's approval." };
+    });
+  } catch (err) {
+    return { error: describeDbError(err).message };
+  }
+}
+
 /** A media asset id from a select, or null for "none". Asset ownership is enforced when the release is built. */
 function assetId(form: FormData, name: string): string | null {
   const value = String(form.get(name) ?? "");

@@ -33,7 +33,7 @@ export default async function InquiriesPage({ params, searchParams }: { params: 
     <>
       <PageHeader
         eyebrow={ctx.site.name}
-        title="Inquiries"
+        title="Inbox"
         description="Stored submissions from the public forms. Storage and email notification are separate facts: an inquiry can be safely stored while its notification is still pending or failed."
         actions={<LinkButton variant="secondary" href={`/app/sites/${siteId}/inquiries/export?${query}`}>Export CSV</LinkButton>}
       />

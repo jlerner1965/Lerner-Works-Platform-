@@ -30,7 +30,7 @@ export default async function DesignPreviewPage({ params, searchParams }: { para
   return (
     <div className="flex min-h-screen flex-col bg-surface-raised">
       <div className="flex flex-wrap items-center gap-3 border-b border-line bg-surface px-4 py-2 text-sm">
-        <Link href={`/app/sites/${siteId}/settings`} className="text-action underline">← Settings</Link>
+        <Link href={`/app/sites/${siteId}/look`} className="text-action underline">← Look</Link>
         <span className="font-medium">Design preview</span>
         {preview ? (
           <span className="text-ink-subtle">

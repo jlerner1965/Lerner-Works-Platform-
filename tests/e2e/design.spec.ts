@@ -12,7 +12,8 @@ test.beforeAll(() => {
 async function openPageEditor(page: Page, siteId: string, title: string): Promise<void> {
   await page.goto(`/app/sites/${siteId}/content?kind=page&q=${encodeURIComponent(title)}`);
   await page.getByRole("link", { name: title, exact: true }).first().click();
-  await expect(page.getByRole("button", { name: "Save draft" })).toBeVisible();
+  // "Save" for people who may publish on a site without required review (B1), "Save draft" otherwise.
+  await expect(page.getByRole("button", { name: /^Save( draft)?$/ })).toBeVisible();
 }
 
 test("the editor offers only the styles the site's theme renders (DES-06)", async ({ page }) => {
@@ -36,7 +37,7 @@ test("the editor offers only the styles the site's theme renders (DES-06)", asyn
 test("owners set site-wide design options; the change is audited and only owners see the card (DES-06)", async ({ page }) => {
   const { sites } = seed();
   await signIn(page, emails.owner);
-  await page.goto(`/app/sites/${sites.pineHollow}/settings`);
+  await page.goto(`/app/sites/${sites.pineHollow}/look`);
   const designCard = () => page.locator("section").filter({ has: page.getByRole("heading", { name: "Design", exact: true }) });
   await expect(designCard().getByLabel("Corner radius")).toHaveValue("none");
   await designCard().getByLabel("Corner radius").selectOption("medium");
@@ -49,14 +50,14 @@ test("owners set site-wide design options; the change is audited and only owners
   await page.goto(`/app/sites/${sites.pineHollow}/audit`);
   await expect(page.getByText("design.updated").first()).toBeVisible();
   // Put the fixture values back so later tests and screenshots see the composed pilot.
-  await page.goto(`/app/sites/${sites.pineHollow}/settings`);
+  await page.goto(`/app/sites/${sites.pineHollow}/look`);
   await designCard().getByLabel("Corner radius").selectOption("none");
   await designCard().getByLabel("Spacing").selectOption("regular");
   await designCard().getByRole("button", { name: "Save", exact: true }).click();
   await expect(page.getByText(/Design saved as configuration revision/)).toBeVisible();
   await page.getByRole("button", { name: "Sign out" }).click();
   await signIn(page, emails.editorA);
-  await page.goto(`/app/sites/${sites.pineHollow}/settings`);
+  await page.goto(`/app/sites/${sites.pineHollow}/look`);
   await expect(page.getByRole("heading", { name: "Design", exact: true })).toHaveCount(0);
 });
 
@@ -86,12 +87,11 @@ test("a video section loads nothing from the provider until the visitor activate
   const posterOptions = await poster.locator("option").allTextContents();
   expect(posterOptions.length).toBeGreaterThan(1);
   await poster.selectOption({ index: 1 });
-  await page.getByRole("button", { name: "Save draft" }).click();
-  await expect(page.getByText(/Saved version \d+/)).toBeVisible();
-  await page.getByRole("button", { name: /^Approve/ }).click();
-  await expect(page.getByText("Revision approved.")).toBeVisible();
+  // The owner's save is approved on save (review not required for the pilot, B1).
+  await page.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(page.getByText(/Saved version \d+.*It is approved/)).toBeVisible();
   await page.goto(`/app/sites/${sites.pineHollow}/publishing`);
-  await page.getByRole("button", { name: "Build candidate" }).click();
+  await page.getByRole("button", { name: "Build a candidate" }).click();
   await expect(page).toHaveURL(/\/publishing\/candidates\//);
   await expect(page.getByText(/Ready to activate/)).toBeVisible();
   const previewUrl = page.url().replace("/publishing/candidates/", "/previews/") + "/render/about";
@@ -134,8 +134,6 @@ test("a video section loads nothing from the provider until the visitor activate
   await expect(removeButtons.last()).toBeVisible();
   await removeButtons.last().click();
   await expect(page.getByLabel("Video id")).toHaveCount(0);
-  await page.getByRole("button", { name: "Save draft" }).click();
-  await expect(page.getByText(/Saved version \d+/)).toBeVisible();
-  await page.getByRole("button", { name: /^Approve/ }).click();
-  await expect(page.getByText("Revision approved.")).toBeVisible();
+  await page.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(page.getByText(/Saved version \d+.*It is approved/)).toBeVisible();
 });

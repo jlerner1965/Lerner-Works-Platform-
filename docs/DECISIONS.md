@@ -258,3 +258,24 @@ fallback face with computed metrics, declaring the family in `src/themes/fonts.t
 extending `public/fonts/LICENSE.md`. The change altered the theme root's class names and
 added the preload links to every page, so the rendering hashes were re-recorded after the
 screenshot comparison of D-015 (result in `docs/PROGRESS.md`).
+
+## D-020 · 2026-09-26 · Site-building programme: the bar is the owner choosing the platform, built to last
+
+The owner's bar, set after D2: the platform has to be good enough that they would use it to
+build a client site instead of building the site by hand, and the result has to be
+launch-ready and not look templated. An honest assessment against that bar
+(`docs/SITE-BUILDING-PLAN.md`, section 1) found the fully populated pilots respectable but
+template-like, a fresh site an empty scaffold, and the effort to populate a site higher than
+hand-building. The programme in that plan fixes this in the order of impact, and every change
+is built to last: migrations for data, services for rules, tests at the unit, integration and
+browser levels, documentation and the release gate; no temporary screens or flags. Two rules
+decided with phase B1. (1) A per-site review policy, off by default: a revision saved by
+someone who may publish is approved on save, recorded as an immutable review row on that
+exact revision and audited (`review.approved_on_save`); editors' work still needs a
+publisher; with review required, nothing is approved without an explicit decision. Approval
+never transfers to different bytes. (2) Publishing is one action: the next release is computed
+from the saved and approved work without writing anything, blockers stop it before a candidate
+exists, and the same computation is persisted as the candidate that is activated atomically;
+the careful path (frozen preview, waivers) and restore remain. The dashboard is organised by
+task: content by kind, Look, Publish, Inbox, Settings, Team, Import and export, Activity log.
+D-017 stands throughout the programme.

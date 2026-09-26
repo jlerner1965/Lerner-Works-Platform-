@@ -1,7 +1,7 @@
 import { withUser, type Db } from "@/server/data/db";
 import { presets, type PresetKey } from "@/modules/presets";
 import { siteConfigSchema, type SiteConfig } from "@/modules/site-config";
-import { createContentItem } from "@/server/data/content";
+import { createContentItem, approveOnSave } from "@/server/data/content";
 
 export interface ConfigRevisionRow {
   id: string;
@@ -43,8 +43,10 @@ export async function createSiteFromPreset(userId: string, input: CreateSiteInpu
         })}, ${db.json(config as never)}) as create_site`;
     if (!row) throw new Error("create_site returned nothing");
     const siteId = row.createSite;
+    // The creator is an organization owner; unless the site requires review, its starter pages are approved on creation (B1).
+    const [policy] = await db<{ reviewRequired: boolean }[]>`select review_required from public.sites where id = ${siteId}`;
     for (const page of preset.initialPages({ siteName: input.name })) {
-      await createContentItem(db, {
+      const { item, revision } = await createContentItem(db, {
         siteId,
         organizationId: input.organizationId,
         kind: "page",
@@ -52,6 +54,7 @@ export async function createSiteFromPreset(userId: string, input: CreateSiteInpu
         authorId: userId,
         changeNote: "Created from preset",
       });
+      if (policy && !policy.reviewRequired) await approveOnSave(db, { item, revisionId: revision.id, actorId: userId });
     }
     return { siteId };
   });

@@ -38,9 +38,9 @@ export default async function ContentListPage({ params, searchParams }: { params
     <>
       <PageHeader
         eyebrow={ctx.site.name}
-        title="Content"
-        description="Working revisions for this site. Published state is shown separately: an item can be live and have a newer draft at the same time."
-        actions={ctx.capabilities.canEdit ? <LinkButton href={`${base}/new${kind ? `?kind=${kind}` : ""}`}>New item</LinkButton> : null}
+        title={kind ? kindRegistry[kind].plural : "Content"}
+        description={kind ? `${kindRegistry[kind].plural} of this site as saved. Published state is shown separately: an item can be live and have a newer version at the same time.` : "Everything saved for this site. Published state is shown separately: an item can be live and have a newer version at the same time."}
+        actions={ctx.capabilities.canEdit ? <LinkButton href={`${base}/new${kind ? `?kind=${kind}` : ""}`}>{kind ? `New ${kindRegistry[kind].label.toLowerCase()}` : "New item"}</LinkButton> : null}
       />
       {sp.notice === "archived" ? <div className="mb-4"><Alert tone="success">Archived {sp.count} item(s). Archiving is a draft change until the next release removes them from public routes.</Alert></div> : null}
       {sp.notice === "restored" ? <div className="mb-4"><Alert tone="success">Restored {sp.count} item(s) from the archive.</Alert></div> : null}

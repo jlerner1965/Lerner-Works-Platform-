@@ -6,7 +6,8 @@ import { z } from "zod";
 import { requireUser } from "@/server/auth/session";
 import { withUser, describeDbError } from "@/server/data/db";
 import { loadSiteContext } from "@/server/data/access";
-import { buildCandidate, discardCandidate, waiveWarning } from "@/server/publishing/candidates";
+import crypto from "node:crypto";
+import { buildCandidate, discardCandidate, waiveWarning, previewCandidate, getRelease } from "@/server/publishing/candidates";
 import { activateCandidate, restoreRelease, type ActivationResult } from "@/server/publishing/activate";
 
 const uuid = z.uuid();
@@ -52,6 +53,50 @@ export async function activateCandidateAction(_prev: PublishState, formData: For
   }
   const failure = result as Exclude<ActivationResult, { outcome: "activated" | "already_activated" }>;
   return { result, error: failure.message };
+}
+
+export interface PublishNowState {
+  outcome?: "activated" | "nothing" | "blocked" | "failed";
+  message?: string;
+  error?: string;
+  releaseId?: string;
+  version?: number;
+  candidateId?: string;
+}
+
+/**
+ * One-step publishing (site-building programme B1): the next release is computed from the
+ * saved and approved work, a candidate is built from exactly that computation and activated
+ * in the same action. Blockers stop it before anything is written; warnings are recorded with
+ * the release as they are on the careful path. Nothing is published when the manifest equals
+ * the active release.
+ */
+export async function publishNowAction(_prev: PublishNowState, formData: FormData): Promise<PublishNowState> {
+  const user = await requireUser();
+  const siteId = String(formData.get("siteId") ?? "");
+  const note = String(formData.get("note") ?? "").trim().slice(0, 300);
+  if (!uuid.safeParse(siteId).success) return { outcome: "failed", error: "Invalid request." };
+  const ctx = await withUser(user.id, (db) => loadSiteContext(db, siteId));
+  if (!ctx?.capabilities.canPublish) return { outcome: "failed", error: "You do not have permission to publish this site." };
+  try {
+    const preview = await withUser(user.id, (db) => previewCandidate(db, ctx.site));
+    if (!preview.differs) return { outcome: "nothing", message: "Nothing to publish: the public site already matches the saved and approved work." };
+    if (preview.state === "blocked") return { outcome: "blocked", error: `${preview.validation.blockers.length} problem${preview.validation.blockers.length === 1 ? "" : "s"} block publishing. Fix them from the list on this page, then publish again.` };
+    const { candidate } = await buildCandidate(user.id, ctx.site);
+    if (candidate.state !== "ready") return { outcome: "blocked", candidateId: candidate.id, error: "Publishing is blocked; the candidate lists the findings." };
+    const result = await activateCandidate(user.id, candidate.id, crypto.randomUUID(), note || "Published from the dashboard");
+    revalidatePath(`/app/sites/${siteId}/publishing`);
+    revalidatePath(`/app/sites/${siteId}/content`);
+    revalidatePath(`/app/sites/${siteId}`);
+    if (result.outcome === "activated" || result.outcome === "already_activated") {
+      const release = await withUser(user.id, (db) => getRelease(db, result.releaseId));
+      return { outcome: "activated", releaseId: result.releaseId, version: release?.version, candidateId: candidate.id, message: release ? `Published as release v${release.version}.` : "Published." };
+    }
+    const failure = result as Exclude<ActivationResult, { outcome: "activated" | "already_activated" }>;
+    return { outcome: "failed", candidateId: candidate.id, error: failure.message };
+  } catch (err) {
+    return { outcome: "failed", error: describeDbError(err).message };
+  }
 }
 
 export async function discardCandidateAction(formData: FormData): Promise<void> {

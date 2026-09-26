@@ -35,6 +35,8 @@ export interface SiteRow {
   activeReleaseId: string | null;
   /** Owner's per-site delegation of the design controls to publishers (D2). */
   designDelegated: boolean;
+  /** Review policy (B1): true means every revision needs an explicit approval; false approves publishers' saves on save. */
+  reviewRequired: boolean;
   demoContentLoadedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;

@@ -1,7 +1,7 @@
 import { withUser, type Db } from "@/server/data/db";
 import { hashCanonical } from "@/lib/canonical-json";
 import type { SiteRow } from "@/server/data/access";
-import { buildManifest, resolveDefaultSelection, type Selection, type SelectionNote } from "@/server/publishing/manifest";
+import { buildManifest, resolveDefaultSelection, type BuiltManifest, type Selection, type SelectionNote } from "@/server/publishing/manifest";
 import { validateManifest, type Finding, type ValidationResult } from "@/server/publishing/validate";
 import { summarizeChanges, type ChangeSummary } from "@/server/publishing/diff";
 import { normalizeSnapshot, type ReleaseSnapshot } from "@/server/publishing/snapshot";
@@ -77,41 +77,66 @@ export interface BuildCandidateResult {
   candidate: CandidateRow;
 }
 
+/** What a candidate built now would contain: computed from the current approved work without writing anything. */
+export interface CandidatePreview {
+  site: SiteRow;
+  baseRelease: ReleaseRow | null;
+  selection: Selection;
+  notes: SelectionNote[];
+  built: BuiltManifest;
+  validation: ValidationResult;
+  summary: ChangeSummary;
+  manifestHash: string;
+  state: "ready" | "blocked";
+  /** False when the manifest equals the active release's snapshot: nothing would change by publishing. */
+  differs: boolean;
+}
+
+/**
+ * Computes the next release from the default selection (or a given one): frozen manifest,
+ * hash, validation and change summary, without inserting a candidate. The Publish page shows
+ * this before anything is written, and `buildCandidate` persists exactly this computation.
+ */
+export async function previewCandidate(db: Db, site: SiteRow, opts: { selection?: Selection; now?: Date } = {}): Promise<CandidatePreview> {
+  const now = opts.now ?? new Date();
+  const [fresh] = await db<SiteRow[]>`select * from public.sites where id = ${site.id}`;
+  if (!fresh) throw new Error("site not found");
+  if (!fresh.currentConfigRevisionId) throw new Error("site has no configuration revision");
+  const baseRelease = await getActiveRelease(db, fresh);
+  const base = baseRelease ? normalizeSnapshot(baseRelease.snapshot) : null;
+  let selection: Selection;
+  let notes: SelectionNote[];
+  if (opts.selection) {
+    selection = opts.selection;
+    notes = [];
+  } else {
+    const resolved = await resolveDefaultSelection(db, fresh.id, base, fresh.currentConfigRevisionId);
+    selection = resolved.selection;
+    notes = resolved.notes;
+  }
+  const built = await buildManifest(db, fresh, selection, base, notes);
+  const validation = validateManifest(built, { now });
+  const summary = summarizeChanges(base, built.manifest);
+  const manifestHash = hashCanonical(built.manifest);
+  const state = validation.blockers.length > 0 ? "blocked" : "ready";
+  return { site: fresh, baseRelease, selection, notes, built, validation, summary, manifestHash, state, differs: baseRelease ? baseRelease.snapshotHash !== manifestHash : true };
+}
+
 /**
  * Builds a release candidate: default selection, frozen manifest, hash, validation and a
  * human-readable change summary. The candidate never reads mutable content again.
  */
 export async function buildCandidate(userId: string, site: SiteRow, opts: { selection?: Selection; now?: Date } = {}): Promise<BuildCandidateResult> {
-  const now = opts.now ?? new Date();
   return withUser(userId, async (db) => {
-    const [fresh] = await db<SiteRow[]>`select * from public.sites where id = ${site.id}`;
-    if (!fresh) throw new Error("site not found");
-    if (!fresh.currentConfigRevisionId) throw new Error("site has no configuration revision");
-    const baseRelease = await getActiveRelease(db, fresh);
-    const base = baseRelease ? normalizeSnapshot(baseRelease.snapshot) : null;
-    let selection: Selection;
-    let notes: SelectionNote[];
-    if (opts.selection) {
-      selection = opts.selection;
-      notes = [];
-    } else {
-      const resolved = await resolveDefaultSelection(db, fresh.id, base, fresh.currentConfigRevisionId);
-      selection = resolved.selection;
-      notes = resolved.notes;
-    }
-    const built = await buildManifest(db, fresh, selection, base, notes);
-    const validation = validateManifest(built, { now });
-    const summary = summarizeChanges(base, built.manifest);
-    const manifestHash = hashCanonical(built.manifest);
-    const state = validation.blockers.length > 0 ? "blocked" : "ready";
+    const p = await previewCandidate(db, site, opts);
     const [candidate] = await db<CandidateRow[]>`
       insert into public.release_candidates (organization_id, site_id, base_release_id, config_revision_id, manifest, manifest_hash, schema_version, selection, summary, validation, state, created_by)
-      values (${fresh.organizationId}, ${fresh.id}, ${baseRelease?.id ?? null}, ${selection.configRevisionId}, ${db.json(built.manifest as never)}, ${manifestHash}, ${built.manifest.schemaVersion},
-        ${db.json({ selection, notes } as never)}, ${db.json(summary as never)}, ${db.json(validation as never)}, ${state}, ${userId})
+      values (${p.site.organizationId}, ${p.site.id}, ${p.baseRelease?.id ?? null}, ${p.selection.configRevisionId}, ${db.json(p.built.manifest as never)}, ${p.manifestHash}, ${p.built.manifest.schemaVersion},
+        ${db.json({ selection: p.selection, notes: p.notes } as never)}, ${db.json(p.summary as never)}, ${db.json(p.validation as never)}, ${p.state}, ${userId})
       returning *`;
     if (!candidate) throw new Error("candidate insert returned no row");
     await db`insert into public.audit_events (organization_id, site_id, actor_id, action, entity_type, entity_id, metadata)
-      values (${fresh.organizationId}, ${fresh.id}, ${userId}, 'candidate.built', 'release_candidate', ${candidate.id}, ${db.json({ state, blockers: validation.blockers.length, warnings: validation.warnings.length, manifestHash })})`;
+      values (${p.site.organizationId}, ${p.site.id}, ${userId}, 'candidate.built', 'release_candidate', ${candidate.id}, ${db.json({ state: p.state, blockers: p.validation.blockers.length, warnings: p.validation.warnings.length, manifestHash: p.manifestHash })})`;
     return { candidate };
   });
 }

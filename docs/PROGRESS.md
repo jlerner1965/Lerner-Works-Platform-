@@ -17,6 +17,7 @@ Resume point for the build. Update after every milestone and before any context 
 | D1 Bounded design options | DONE (2026-09-26, on production: pull request #8 merged as `1f8407d`, migration `20260926000200_media_focal_point.sql` applied, live checks in `docs/evidence/production/d1-2026-09-26-live-checks.txt`) | Site-wide design options (owners only, audited), section styles and appearance validated against each theme's declared vocabulary on save, import and publication, seven new section types (FAQ, quotes, call to action, gallery, facts, click-to-load video, map link), media focal points, bold and italic in rich text, snapshot schema version 3 with a rendering-hash test over six frozen releases and a screenshot comparison of the restored D0-era releases (identical), both pilots re-composed. DES-06 to DES-09 PASS; Lighthouse and the 143 KiB script budget recorded (unchanged). |
 | D2 Theme catalogue and design preview | BUILT (2026-09-26, verified in the repository; production on the owner's go: pull request, migration `20260926000300_design_delegation.sql`, live checks) | Theme registry with capability declarations (four compositions, two per preset: magazine for the guide, storefront for the retail business), theme switching per site with migration notes and compatibility checks on save, import and publication, design preview of the draft configuration over the active release at 390/768/1440, per-site design delegation (owner-only switch, database trigger, audit), header button, overlay header, dark-surface logo, three more self-hosted typography presets, snapshot schema version 4 with eight frozen releases in the rendering-hash test, fonts served from `public/fonts/` with a per-preset preload (D-019). DES-10 and DES-11 PASS; Lighthouse and the 143 KiB script budget recorded. Bounded by D-017 (not a page builder). |
 | D3 Visual in-context editing | OPTIONAL (owner's decision 2026-09-26; decided after D2 is in customer use, D-017) | Editable preview with keyboard-equivalent reordering, side-panel forms on the same schemas, live tokens, explicit save; same review and publication path; nothing beyond the same validated structures. |
+| B1 Publish in one step, navigate by task (`docs/SITE-BUILDING-PLAN.md`) | BUILT (2026-09-26, verified in the repository; production with D2 on the owner's go) | Per-site review policy with approval on save for people who may publish (migration `20260926000400_review_policy.sql`, D-020); Publish page computing the next release without writing and publishing it in one action; sidebar grouped by task, overview built around content, look and publish with a checklist of actual missing data; Look page with brand, design and the preview together; Settings without the design cards and with a section index; editor labels following the policy. SB-01 to SB-03 PASS (integration and browser tests, screenshots in `docs/evidence/dashboard/`); SB-06 measured by `tests/e2e/walkthrough.spec.ts` (create, brand, five places, publish: 19 screens, 30 fields, 25 actions after B1; 4 empty-state notices on the published fresh home, for B2 to remove). |
 
 ## Environment blockers (precise)
 
@@ -29,6 +30,27 @@ Resume point for the build. Update after every milestone and before any context 
 
 ## Last verified results
 
+- 2026-09-26 (site-building phase B1) `pnpm verify` on the final code: GATE PASSED in 402 s
+  (setup check 1 s, lint 15 s, typecheck 3 s, unit 4 s, integration 31 s, browser 316 s,
+  production build 32 s): 95 unit tests (adds `site-nav.test`: the sidebar grouped by task per
+  preset and role), 58 integration tests (adds `site-building.test`: approval on save for
+  owners and publishers and never for editors, the review-required policy owner-only and
+  audited, a fresh site's starter pages approved at creation, the next release computed
+  without writing, one-step publishing with the note as the release reason, nothing to
+  publish on a second call, a blocker refusing publication before any candidate exists,
+  editors refused; `import-export.test` now expects the starter pages' approvals on save in
+  the fresh site and none on the revisions the import writes), 30 browser tests against a
+  production build (adds `site-building.spec`: SB-01 to SB-03 with screenshots in
+  `docs/evidence/dashboard/`, and `walkthrough.spec`: the SB-06 measurement in
+  `docs/evidence/walkthrough/`; `design.spec`, `themes.spec`, `demo.spec` and
+  `publishing.spec` follow the policy: "Save" with approval on save for owners and
+  publishers, "Build a candidate" for the careful path). The first gate run failed in the
+  integration step twice: the package-import test expected no review rows in a fresh site
+  (the starter pages are now approved at creation), and the site-building tests worked on
+  pilot pages whose slug another file changes; both were made order-independent (the
+  site-building tests use a page and a site they create). Walk-through after B1 (SB-06):
+  19 screens, 30 fields, 25 actions, 5.2 s scripted; 4 empty-state notices on the published
+  fresh home.
 - 2026-09-26 (design phase D2) `pnpm verify` on the final code: GATE PASSED in 318 s (setup
   check 1 s, lint 14 s, typecheck 3 s, unit 4 s, integration 30 s, browser 260 s, production
   build 6 s): 91 unit tests (adds `themes.test`: catalogue invariants, theme resolution and
@@ -144,6 +166,19 @@ Resume point for the build. Update after every milestone and before any context 
 
 ## Current task
 
+Site-building programme (`docs/SITE-BUILDING-PLAN.md`, decision D-020), started on the
+owner's go of 2026-09-26 after the honest assessment recorded in the plan's section 1 (the
+check itself: two fresh sites created from the presets on the local development database,
+`cedar-bend` and `northfork-outfitters`, published as empty scaffolds and screenshotted).
+Phase B1 is built: review policy per site (`sites.review_required`, off by default) with
+approval on save for people who may publish; the Publish page with the next release computed
+without writing and published in one action; the dashboard grouped by task with a rebuilt
+overview, a Look page and a settings index; editor controls following the policy. Next is B2
+(from empty to launch: starter structure, onboarding package, bulk media, editor speed).
+Production for D2 and B1 together needs the owner's go: migrations
+`20260926000300_design_delegation.sql` and `20260926000400_review_policy.sql` applied to the
+production project first, then the pull request, the deployment and the live checks.
+
 Design programme phase D2 (theme catalogue and design preview) is built and verified in the
 repository on branch `claude/lucid-darwin-cif2y6`; it is not on production. Production needs
 the owner's go for: the pull request into `main`; the migration
@@ -206,14 +241,19 @@ organization, site or hostname exists yet.
 
 ## Next action
 
-Owner: give the go for D2 on production: pull request from `claude/lucid-darwin-cif2y6` into
-`main`, migration `20260926000300_design_delegation.sql` applied to the production project
-first, deployment, live checks (a version-1 release still renders; `/fonts/*.woff2` answer 200
-with the immutable cache header; the preload links sit in the head), then look at the D2
-controls on the production test site: Settings → Design → Theme with the compatible
-compositions and the "Open the design preview" link, the delegation switch, the header button
-and the dark logo. Open points: further video providers; whether D3 happens at all (decided
-after D2 is in customer use, D-017).
+Site-building programme phase B2 (from empty to launch) continues on the branch: starter
+pages with a real structure, the onboarding package, multi-file media upload, editor speed
+(`docs/SITE-BUILDING-PLAN.md` section 3). Owner: give the go for production when wanted: pull
+request from `claude/lucid-darwin-cif2y6` into `main`, migrations
+`20260926000300_design_delegation.sql` and `20260926000400_review_policy.sql` applied to the
+production project first, deployment, live checks (a version-1 release still renders;
+`/fonts/*.woff2` answer 200 with the immutable cache header; the preload links sit in the
+head; the dashboard sidebar shows the task groups), then look at the D2 and B1 controls on
+the production test site: Look → Theme with the compatible compositions and the preview
+beside it, the Publish page with "Publish now", Settings → Publishing → review policy, the
+delegation switch, the header button and the dark logo. Open points: the default of the
+review policy for organizations with editors; photography for the proof site; further video
+providers; whether D3 happens at all (after the site-building programme, D-017).
 
 Owner: accept the pending invitation from its email (the last owner-session check of
 `docs/LAUNCH-CHECKLIST.md` section 6); decide the backup routine (the free tier has no

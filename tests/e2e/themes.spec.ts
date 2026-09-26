@@ -12,7 +12,7 @@ test.beforeAll(() => {
 const designCard = (page: Page) => page.locator("section").filter({ has: page.getByRole("heading", { name: "Design", exact: true }) });
 
 async function saveTheme(page: Page, siteId: string, themeLabel: string): Promise<void> {
-  await page.goto(`/app/sites/${siteId}/settings`);
+  await page.goto(`/app/sites/${siteId}/look`);
   // By role and accessible name: the wrapping label's text also contains the option texts, so a label-text match cannot be exact.
   await designCard(page).getByRole("combobox", { name: "Theme", exact: true }).selectOption({ label: themeLabel });
   await designCard(page).getByRole("button", { name: "Save", exact: true }).click();
@@ -21,7 +21,7 @@ async function saveTheme(page: Page, siteId: string, themeLabel: string): Promis
 
 async function publishNow(page: Page, siteId: string): Promise<void> {
   await page.goto(`/app/sites/${siteId}/publishing`);
-  await page.getByRole("button", { name: "Build candidate" }).click();
+  await page.getByRole("button", { name: "Build a candidate" }).click();
   await expect(page).toHaveURL(/\/publishing\/candidates\//);
   await expect(page.getByText(/Ready to activate/)).toBeVisible();
   await page.getByRole("button", { name: "Activate this candidate" }).click();
@@ -93,14 +93,14 @@ test("the retail pilot under the storefront composition keeps the store finder, 
 test("design is owner-only until the owner delegates it to a site's publishers (DES-11)", async ({ page }) => {
   const { sites } = seed();
   await signIn(page, emails.publisherB);
-  await page.goto(`/app/sites/${sites.rangeAthletics}/settings`);
-  await expect(page.getByRole("heading", { name: "Design", exact: true })).toHaveCount(0);
+  await page.goto(`/app/sites/${sites.rangeAthletics}/look`);
+  await expect(page.getByRole("combobox", { name: "Theme", exact: true })).toHaveCount(0); // no design controls
   const denied = await page.goto(`/app/sites/${sites.rangeAthletics}/previews/design`);
   expect(denied?.status()).toBe(404);
   await signOut(page);
 
   await signIn(page, emails.owner);
-  await page.goto(`/app/sites/${sites.rangeAthletics}/settings`);
+  await page.goto(`/app/sites/${sites.rangeAthletics}/look`);
   await designCard(page).getByLabel(/Let this site's publishers change its design/).check();
   await designCard(page).getByRole("button", { name: "Save delegation" }).click();
   await expect(page.getByText(/Design delegated/)).toBeVisible();
@@ -109,8 +109,8 @@ test("design is owner-only until the owner delegates it to a site's publishers (
   await signOut(page);
 
   await signIn(page, emails.publisherB);
-  await page.goto(`/app/sites/${sites.rangeAthletics}/settings`);
-  await expect(page.getByRole("heading", { name: "Design", exact: true })).toBeVisible();
+  await page.goto(`/app/sites/${sites.rangeAthletics}/look`);
+  await expect(page.getByRole("combobox", { name: "Theme", exact: true })).toBeVisible(); // design controls now offered
   await expect(page.getByText("Delegation", { exact: true })).toHaveCount(0); // the switch itself stays with the owner
   await designCard(page).getByLabel("Corner radius").selectOption("medium");
   await designCard(page).getByRole("button", { name: "Save", exact: true }).click();
@@ -120,7 +120,7 @@ test("design is owner-only until the owner delegates it to a site's publishers (
   await signOut(page);
 
   await signIn(page, emails.owner);
-  await page.goto(`/app/sites/${sites.rangeAthletics}/settings`);
+  await page.goto(`/app/sites/${sites.rangeAthletics}/look`);
   await designCard(page).getByLabel(/Let this site's publishers change its design/).uncheck();
   await designCard(page).getByRole("button", { name: "Save delegation" }).click();
   await expect(page.getByText(/only organization owners/)).toBeVisible();
@@ -129,6 +129,6 @@ test("design is owner-only until the owner delegates it to a site's publishers (
   await expect(page.getByText(/Design saved as configuration revision/)).toBeVisible();
   await signOut(page);
   await signIn(page, emails.publisherB);
-  await page.goto(`/app/sites/${sites.rangeAthletics}/settings`);
-  await expect(page.getByRole("heading", { name: "Design", exact: true })).toHaveCount(0);
+  await page.goto(`/app/sites/${sites.rangeAthletics}/look`);
+  await expect(page.getByRole("combobox", { name: "Theme", exact: true })).toHaveCount(0); // no design controls
 });

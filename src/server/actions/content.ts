@@ -6,7 +6,7 @@ import { z } from "zod";
 import { requireUser } from "@/server/auth/session";
 import { withUser, describeDbError } from "@/server/data/db";
 import { loadSiteContext } from "@/server/data/access";
-import { createContentItem, saveRevision, getItem, setArchived, findSlugCollision, ContentValidationError, validatePayload, type RevisionRow } from "@/server/data/content";
+import { createContentItem, saveRevision, getItem, setArchived, findSlugCollision, ContentValidationError, validatePayload, approvesOnSave, approveOnSave, type RevisionRow } from "@/server/data/content";
 import { isContentKind, kindRegistry, type ContentKind } from "@/modules/registry";
 import { presets } from "@/modules/presets";
 import { slugify } from "@/lib/slug";
@@ -20,6 +20,8 @@ export interface SaveState {
   revisionId?: string;
   version?: number;
   savedAt?: string;
+  /** True when the save was approved on save (site review policy off, author may publish). */
+  approved?: boolean;
   message?: string;
   issues?: Array<{ path: string; message: string }>;
   latest?: { revisionId: string; version: number; createdAt: string; authorEmail?: string; payload: Record<string, unknown> };
@@ -60,8 +62,11 @@ export async function saveItemAction(input: { itemId: string; baseRevisionId: st
       if (!result.ok) {
         return { status: "conflict", message: "Someone saved a newer version while you were editing. Your input is kept below for comparison.", latest: result.latest ? serializeRevision(result.latest) : undefined };
       }
+      // Approval on save (B1): the site's review policy and the author's capability decide, in the same transaction as the revision.
+      const approved = approvesOnSave(ctx.site, ctx.capabilities);
+      if (approved) await approveOnSave(db, { item: current.item, revisionId: result.revision.id, actorId: user.id });
       revalidatePath(`/app/sites/${current.item.siteId}/content`);
-      return { status: "saved", revisionId: result.revision.id, version: result.revision.version, savedAt: result.revision.createdAt.toISOString() };
+      return { status: "saved", revisionId: result.revision.id, version: result.revision.version, savedAt: result.revision.createdAt.toISOString(), approved };
     });
   } catch (err) {
     const d = describeDbError(err);
@@ -93,7 +98,8 @@ export async function createItemAction(_prev: CreateItemState, formData: FormDat
       const collision = await findSlugCollision(db, siteId, kind as ContentKind, slug, null);
       if (collision) return { fieldErrors: { slug: `The slug "${slug}" is already used by "${collision.title}".` } };
       const payload = defaultPayload(kind as ContentKind, title, slug, ctx.site.timeZone);
-      const { item } = await createContentItem(db, { siteId, organizationId: ctx.site.organizationId, kind: kind as ContentKind, payload, authorId: user.id });
+      const { item, revision } = await createContentItem(db, { siteId, organizationId: ctx.site.organizationId, kind: kind as ContentKind, payload, authorId: user.id });
+      if (approvesOnSave(ctx.site, ctx.capabilities)) await approveOnSave(db, { item, revisionId: revision.id, actorId: user.id });
       newId = item.id;
       return {};
     });

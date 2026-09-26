@@ -22,6 +22,8 @@ export interface ItemEditorProps {
   ctx: EditorContext;
   timeZone: string;
   isOwnRevision: boolean;
+  /** The site's review policy (B1): with review not required, a save by someone who may publish is approved on save. */
+  reviewRequired: boolean;
 }
 
 export function ItemEditor(props: ItemEditorProps) {
@@ -76,12 +78,19 @@ export function ItemEditor(props: ItemEditorProps) {
   };
 
   const reviewTone = props.reviewState === "approved" ? "success" : props.reviewState === "submitted" ? "info" : props.reviewState === "changes_requested" ? "warning" : "neutral";
+  // With review not required, a person who may publish saves approved work and publishes when ready (B1).
+  const directPublish = props.capabilities.canPublish && !props.reviewRequired;
 
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
       <div>
         <div ref={statusRef} tabIndex={-1} aria-live="polite" className="mb-4 space-y-2 outline-none">
-          {state.status === "saved" ? <Alert tone="success">Saved version {base.version} at {formatDateTime(base.createdAt, props.timeZone)}. The public page is unchanged until a release includes this revision.</Alert> : null}
+          {state.status === "saved" ? (
+            <Alert tone="success">
+              Saved version {base.version} at {formatDateTime(base.createdAt, props.timeZone)}.{" "}
+              {state.approved ? <>It is approved and goes out with the next publish. <Link href={`/app/sites/${props.siteId}/publishing`} className="underline">Publish</Link> when you are ready.</> : "The public page is unchanged until an approved version of it is published."}
+            </Alert>
+          ) : null}
           {state.status === "conflict" ? (
             <Alert tone="warning" title="Save conflict" role="alert">
               <p>{state.message}</p>
@@ -124,14 +133,16 @@ export function ItemEditor(props: ItemEditorProps) {
             <div className="mt-4 space-y-2">
               <label className="block text-xs font-medium text-ink-subtle" htmlFor="change-note">Change note (optional)</label>
               <input id="change-note" value={changeNote} onChange={(e) => setChangeNote(e.target.value)} className="w-full rounded border border-line-strong px-2 py-1 text-sm" maxLength={300} />
-              <Button type="button" onClick={save} disabled={pending || !dirty} className="w-full">{pending ? "Saving…" : "Save draft"}</Button>
+              <Button type="button" onClick={save} disabled={pending || !dirty} className="w-full">{pending ? "Saving…" : directPublish ? "Save" : "Save draft"}</Button>
+              {directPublish ? <p className="text-xs text-ink-subtle">Saves are approved as you save; publish when you are ready.</p> : null}
             </div>
           ) : (
             <p className="mt-3 text-xs text-ink-subtle">You can view but not edit this item.</p>
           )}
           <div className="mt-3 space-y-2">
-            <LinkButton variant="secondary" href={`/app/sites/${props.siteId}/content/${props.item.id}/preview`} className="w-full">Preview draft</LinkButton>
+            <LinkButton variant="secondary" href={`/app/sites/${props.siteId}/content/${props.item.id}/preview`} className="w-full">{directPublish ? "Preview" : "Preview draft"}</LinkButton>
             {dirty ? <p className="text-xs text-ink-subtle">Preview shows the last saved version; save first to preview these changes.</p> : null}
+            {props.capabilities.canPublish ? <LinkButton variant="secondary" href={`/app/sites/${props.siteId}/publishing`} className="w-full">Publish…</LinkButton> : null}
           </div>
         </div>
         <ReviewPanel {...props} baseRevisionId={base.id} baseVersion={base.version} dirty={dirty} />
@@ -153,6 +164,7 @@ function ReviewPanel(props: ItemEditorProps & { baseRevisionId: string; baseVers
   return (
     <div className="mt-4 rounded border border-line bg-surface p-4">
       <p className="text-xs font-semibold uppercase tracking-wide text-ink-subtle">Review</p>
+      {cap.canPublish && !props.reviewRequired ? <p className="mt-2 text-xs text-ink-subtle">This site does not require a separate review: your saves are approved as you save. Use this panel to leave a comment or ask a colleague for changes.</p> : null}
       {props.dirty ? <p className="mt-2 text-xs text-warning">Save your changes before submitting or approving; review decisions are tied to a saved version.</p> : null}
       {state.message ? <p role="status" className="mt-2 text-sm text-success">{state.message}</p> : null}
       {state.error ? <p role="alert" className="mt-2 text-sm text-danger">{state.error}</p> : null}
