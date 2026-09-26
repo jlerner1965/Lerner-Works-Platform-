@@ -247,7 +247,7 @@ export function GuideCollection({ ctx, kind, items, mode }: { ctx: RenderContext
                   {path ? <a href={href(ctx, path)} className="hover:underline">{ev.title}</a> : ev.title}
                   {ev.payload.status === "cancelled" ? <span className="ml-2 align-middle text-xs font-bold uppercase tracking-wider text-[#8a2b16]">Cancelled</span> : null}
                 </p>
-                <p className="text-sm text-(--brand-text)/80">{formatEventTimeRange(String(ev.payload.startsAt), String(ev.payload.endsAt), tz)} · {String(ev.payload.venueText || "")}</p>
+                <p className="text-sm text-(--brand-text)/80">{formatEventTimeRange(String(ev.payload.startsAt), String(ev.payload.endsAt), tz)}{venueLabel(ctx, ev) ? ` · ${venueLabel(ctx, ev)}` : ""}</p>
                 {ev.payload.summary ? <p className="mt-1 text-sm">{String(ev.payload.summary)}</p> : null}
               </div>
             </li>
@@ -303,6 +303,12 @@ export function GuideCollection({ ctx, kind, items, mode }: { ctx: RenderContext
       })}
     </ul>
   );
+}
+
+function venueLabel(ctx: RenderContext, ev: SnapshotItem): string {
+  const venueId = ev.payload.venueItemId;
+  if (typeof venueId === "string" && ctx.snapshot.items[venueId]) return ctx.snapshot.items[venueId]!.title;
+  return String(ev.payload.venueText ?? "");
 }
 
 export const guideTheme: Theme = {

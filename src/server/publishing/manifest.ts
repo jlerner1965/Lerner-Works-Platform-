@@ -33,6 +33,8 @@ export interface MediaAssetRow {
   siteId: string;
   organizationId: string;
   status: "processing" | "ready" | "withdrawn";
+  originalKey: string;
+  mimeType: string;
   sha256: string;
   width: number;
   height: number;

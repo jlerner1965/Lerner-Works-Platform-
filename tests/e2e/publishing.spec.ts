@@ -22,12 +22,12 @@ test("edit → draft → frozen preview → publish → public page (PUB-01, PUB
   const res = await pub.goto("/demo/pine-hollow");
   expect(res?.status()).toBe(200);
   expect(res?.headers()["x-robots-tag"]).toContain("noindex");
-  await expect(pub.locator("h1").first()).toHaveText("Pine Hollow Guide");
+  await expect(pub.locator("h1").first()).toContainText("Pine Hollow");
 
   // Edit and save: public unchanged.
   const marker = `Quiet mornings ${Date.now()}`;
-  await page.goto(`/app/sites/${sites.pineHollow}/content`);
-  await page.getByRole("link", { name: "Home", exact: true }).click();
+  await page.goto(`/app/sites/${sites.pineHollow}/content?kind=page&q=Home`);
+  await page.getByRole("link", { name: "Home", exact: true }).first().click();
   await page.getByLabel("Subheading").first().fill(marker);
   await page.getByRole("button", { name: "Save draft" }).click();
   await expect(page.getByText(/Saved version \d+/)).toBeVisible();
@@ -42,8 +42,8 @@ test("edit → draft → frozen preview → publish → public page (PUB-01, PUB
   await expect(page).toHaveURL(/\/publishing\/candidates\//);
   const candidateUrl = page.url();
   await expect(page.getByText("Changed (1)")).toBeVisible();
-  await page.goto(`/app/sites/${sites.pineHollow}/content`);
-  await page.getByRole("link", { name: "Home", exact: true }).click();
+  await page.goto(`/app/sites/${sites.pineHollow}/content?kind=page&q=Home`);
+  await page.getByRole("link", { name: "Home", exact: true }).first().click();
   await page.getByLabel("Subheading").first().fill(`${marker} LATER EDIT`);
   await page.getByRole("button", { name: "Save draft" }).click();
   await expect(page.getByText(/Saved version \d+/)).toBeVisible();

@@ -9,11 +9,17 @@ import { loadSiteContext } from "@/server/data/access";
 export interface SeedInfo {
   organizations: { pineHollow: string; rangeAthletics: string };
   sites: { pineHollow: string; rangeAthletics: string };
-  users: Record<string, string>;
+  users: { owner: string; editorA: string; reviewerA: string; publisherB: string; stranger: string };
 }
 
 export function seedInfo(): SeedInfo {
-  return JSON.parse(fs.readFileSync(".data/test-seed.json", "utf8")) as SeedInfo;
+  const raw = JSON.parse(fs.readFileSync(".data/test-seed.json", "utf8")) as { organizations: SeedInfo["organizations"]; sites: SeedInfo["sites"]; users: Record<string, string> };
+  const need = (k: string): string => {
+    const v = raw.users[k];
+    if (!v) throw new Error(`seed is missing user ${k}`);
+    return v;
+  };
+  return { organizations: raw.organizations, sites: raw.sites, users: { owner: need("owner"), editorA: need("editorA"), reviewerA: need("reviewerA"), publisherB: need("publisherB"), stranger: need("stranger") } };
 }
 
 export function adminClient(): Sql {

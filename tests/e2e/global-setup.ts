@@ -9,10 +9,12 @@ const TEST_PASSWORD = "correct-horse-battery-staple-2026";
  */
 export default async function globalSetup(): Promise<void> {
   fs.mkdirSync("tests/e2e/.auth", { recursive: true });
+  // Storage must be cleared before seeding: the seed writes derivatives the fixtures reference.
+  fs.rmSync(".data/test-storage", { recursive: true, force: true });
+  fs.rmSync(".data/test-mail", { recursive: true, force: true });
   execFileSync("pnpm", ["exec", "tsx", "scripts/db-reset.ts", "--test", "--yes"], { stdio: "inherit" });
   execFileSync("pnpm", ["exec", "tsx", "scripts/seed-demo.ts", "--test", "--out", "tests/e2e/.auth/seed.json"], {
     stdio: "inherit",
     env: { ...process.env, SEED_FIXED_PASSWORD: TEST_PASSWORD },
   });
-  fs.rmSync(".data/test-storage", { recursive: true, force: true });
 }

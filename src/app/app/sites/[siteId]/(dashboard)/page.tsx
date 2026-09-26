@@ -2,11 +2,14 @@ import { notFound } from "next/navigation";
 import { requireUser } from "@/server/auth/session";
 import { getSiteContext } from "@/server/data/access";
 import { withUser } from "@/server/data/db";
-import { Badge, Card, DescriptionList, PageHeader, StatTile, formatDateTime } from "@/components/admin/ui";
+import { Alert, Badge, Button, Card, DescriptionList, PageHeader, StatTile, formatDateTime } from "@/components/admin/ui";
 import { presets } from "@/modules/presets";
+import { loadDemoContentAction } from "@/server/actions/demo";
+import { fixtureForSite } from "@/server/demo/load";
 
-export default async function SiteOverviewPage({ params }: { params: Promise<{ siteId: string }> }) {
+export default async function SiteOverviewPage({ params, searchParams }: { params: Promise<{ siteId: string }>; searchParams: Promise<{ demo?: string; demoError?: string; created?: string }> }) {
   const { siteId } = await params;
+  const sp = await searchParams;
   const user = await requireUser(`/app/sites/${siteId}`);
   const ctx = await getSiteContext(user.id, siteId);
   if (!ctx) notFound();
@@ -41,8 +44,12 @@ export default async function SiteOverviewPage({ params }: { params: Promise<{ s
   });
 
   const base = `/app/sites/${site.id}`;
+  const hasFixture = site.mode === "demo" && cap.isOwner && fixtureForSite(site.key, new Date()) !== null;
   return (
     <>
+      {sp.created ? <div className="mb-4"><Alert tone="success">Site created from the {presets[site.preset].label} preset. Work through the setup checklist below.</Alert></div> : null}
+      {sp.demo ? <div className="mb-4"><Alert tone="success">Demonstration content loaded: {sp.demo}.</Alert></div> : null}
+      {sp.demoError ? <div className="mb-4"><Alert tone="danger">Demonstration content could not be loaded: {sp.demoError}</Alert></div> : null}
       <PageHeader
         eyebrow={ctx.organization.name}
         title={site.name}
@@ -76,6 +83,13 @@ export default async function SiteOverviewPage({ params }: { params: Promise<{ s
         </Card>
         <Card title="Setup checklist">
           <SetupChecklist siteId={site.id} facts={{ items: stats.items, release: stats.latestReleaseVersion, contactEmail: site.contactEmail, recipients: site.inquiryRecipients.length }} />
+          {hasFixture ? (
+            <form action={loadDemoContentAction} className="mt-4 border-t border-line pt-3 text-sm">
+              <input type="hidden" name="siteId" value={site.id} />
+              <p className="mb-2 text-ink-muted">This is a demonstration site. Loading demo content creates clearly fictional items and images through the normal editing and publishing services{site.demoContentLoadedAt ? ` (last loaded ${formatDateTime(site.demoContentLoadedAt, site.timeZone)})` : ""}. Repeating it updates changed fixtures only.</p>
+              <Button type="submit" variant="secondary">{site.demoContentLoadedAt ? "Reload demo content" : "Load demo content"}</Button>
+            </form>
+          ) : null}
         </Card>
       </div>
     </>

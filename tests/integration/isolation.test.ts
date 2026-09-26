@@ -10,7 +10,7 @@ afterAll(async () => {
 
 describe("tenant isolation through the request role (AUTH-02, AUTH-04, PUB-08)", () => {
   it("editor A sees no rows for site B and cannot read its private tables", async () => {
-    const counts = await withUser(users.editorA!, async (db) => ({
+    const counts = await withUser(users.editorA, async (db) => ({
       sites: (await db`select id from public.sites where id = ${sites.rangeAthletics}`).length,
       items: (await db`select id from public.content_items where site_id = ${sites.rangeAthletics}`).length,
       revisions: (await db`select id from public.content_revisions where site_id = ${sites.rangeAthletics}`).length,
@@ -27,10 +27,10 @@ describe("tenant isolation through the request role (AUTH-02, AUTH-04, PUB-08)",
     const before = (await admin0`select count(*)::int as n from public.content_items where site_id = ${sites.rangeAthletics}`)[0]!.n as number;
     await admin0.end();
     await expect(
-      withUser(users.editorA!, (db) => db`insert into public.content_items (organization_id, site_id, kind, created_by) values (${organizations.rangeAthletics}, ${sites.rangeAthletics}, 'page', ${users.editorA})`),
+      withUser(users.editorA, (db) => db`insert into public.content_items (organization_id, site_id, kind, created_by) values (${organizations.rangeAthletics}, ${sites.rangeAthletics}, 'page', ${users.editorA})`),
     ).rejects.toMatchObject({ code: "42501" });
     await expect(
-      withUser(users.editorA!, (db) => db`insert into public.content_items (organization_id, site_id, kind, created_by) values (${organizations.rangeAthletics}, ${sites.pineHollow}, 'page', ${users.editorA})`),
+      withUser(users.editorA, (db) => db`insert into public.content_items (organization_id, site_id, kind, created_by) values (${organizations.rangeAthletics}, ${sites.pineHollow}, 'page', ${users.editorA})`),
     ).rejects.toMatchObject({ code: "42501" });
     const admin = adminClient();
     try {
@@ -43,9 +43,9 @@ describe("tenant isolation through the request role (AUTH-02, AUTH-04, PUB-08)",
 
   it("reviewer A cannot edit content; stranger sees nothing", async () => {
     await expect(
-      withUser(users.reviewerA!, (db) => db`insert into public.content_items (organization_id, site_id, kind, created_by) values (${organizations.pineHollow}, ${sites.pineHollow}, 'page', ${users.reviewerA})`),
+      withUser(users.reviewerA, (db) => db`insert into public.content_items (organization_id, site_id, kind, created_by) values (${organizations.pineHollow}, ${sites.pineHollow}, 'page', ${users.reviewerA})`),
     ).rejects.toMatchObject({ code: "42501" });
-    const n = await withUser(users.stranger!, (db) => db`select id from public.sites`);
+    const n = await withUser(users.stranger, (db) => db`select id from public.sites`);
     expect(n.length).toBe(0);
   });
 
@@ -61,33 +61,33 @@ describe("tenant isolation through the request role (AUTH-02, AUTH-04, PUB-08)",
 
 describe("publish and membership authority (AUTH-03, AUTH-05, AUTH-07)", () => {
   it("editor cannot activate a candidate or build one", async () => {
-    await expect(withUser(users.editorA!, (db) => db`select * from public.activate_release_candidate(${key()}::uuid, 'abcdefghij', null)`)).rejects.toMatchObject({ code: "P0002" });
+    await expect(withUser(users.editorA, (db) => db`select * from public.activate_release_candidate(${key()}::uuid, 'abcdefghij', null)`)).rejects.toMatchObject({ code: "P0002" });
     await expect(
-      withUser(users.editorA!, (db) => db`insert into public.release_candidates (organization_id, site_id, config_revision_id, manifest, manifest_hash, schema_version, created_by, state)
+      withUser(users.editorA, (db) => db`insert into public.release_candidates (organization_id, site_id, config_revision_id, manifest, manifest_hash, schema_version, created_by, state)
         select organization_id, id, current_config_revision_id, '{}'::jsonb, 'x', 1, ${users.editorA}, 'ready' from public.sites where id = ${sites.pineHollow}`),
     ).rejects.toMatchObject({ code: "42501" });
-    await expect(withUser(users.editorA!, (db) => db`update public.sites set active_release_id = null where id = ${sites.pineHollow}`)).rejects.toMatchObject({ code: "42501" });
+    await expect(withUser(users.editorA, (db) => db`update public.sites set active_release_id = null where id = ${sites.pineHollow}`)).rejects.toMatchObject({ code: "42501" });
   });
 
   it("members cannot promote themselves; the last owner cannot be removed or demoted", async () => {
-    await expect(withUser(users.editorA!, (db) => db`select public.set_organization_membership(${organizations.pineHollow}, ${users.editorA}, 'owner')`)).rejects.toMatchObject({ code: "42501" });
-    await expect(withUser(users.editorA!, (db) => db`insert into public.memberships (organization_id, user_id, organization_role) values (${organizations.pineHollow}, ${users.editorA}, 'owner')`)).rejects.toMatchObject({ code: "42501" });
-    await expect(withUser(users.editorA!, (db) => db`update public.memberships set organization_role = 'owner' where user_id = ${users.editorA}`)).rejects.toMatchObject({ code: "42501" });
-    await expect(withUser(users.owner!, (db) => db`select public.remove_organization_membership(${organizations.pineHollow}, ${users.owner})`)).rejects.toMatchObject({ code: "P0001" });
-    await expect(withUser(users.owner!, (db) => db`select public.set_organization_membership(${organizations.pineHollow}, ${users.owner}, 'member')`)).rejects.toMatchObject({ code: "P0001" });
+    await expect(withUser(users.editorA, (db) => db`select public.set_organization_membership(${organizations.pineHollow}, ${users.editorA}, 'owner')`)).rejects.toMatchObject({ code: "42501" });
+    await expect(withUser(users.editorA, (db) => db`insert into public.memberships (organization_id, user_id, organization_role) values (${organizations.pineHollow}, ${users.editorA}, 'owner')`)).rejects.toMatchObject({ code: "42501" });
+    await expect(withUser(users.editorA, (db) => db`update public.memberships set organization_role = 'owner' where user_id = ${users.editorA}`)).rejects.toMatchObject({ code: "42501" });
+    await expect(withUser(users.owner, (db) => db`select public.remove_organization_membership(${organizations.pineHollow}, ${users.owner})`)).rejects.toMatchObject({ code: "P0001" });
+    await expect(withUser(users.owner, (db) => db`select public.set_organization_membership(${organizations.pineHollow}, ${users.owner}, 'member')`)).rejects.toMatchObject({ code: "P0001" });
   });
 
   it("revoking a membership takes effect on the next request", async () => {
     // Give editor A a temporary site role on site B via the owner, then revoke it.
-    await withUser(users.owner!, async (db) => {
+    await withUser(users.owner, async (db) => {
       await db`select public.set_organization_membership(${organizations.rangeAthletics}, ${users.editorA}, 'member')`;
       await db`select public.set_site_membership(${sites.rangeAthletics}, ${users.editorA}, 'editor')`;
     });
-    expect((await withUser(users.editorA!, (db) => db`select id from public.sites where id = ${sites.rangeAthletics}`)).length).toBe(1);
-    await withUser(users.owner!, (db) => db`select public.remove_organization_membership(${organizations.rangeAthletics}, ${users.editorA})`);
-    expect((await withUser(users.editorA!, (db) => db`select id from public.sites where id = ${sites.rangeAthletics}`)).length).toBe(0);
+    expect((await withUser(users.editorA, (db) => db`select id from public.sites where id = ${sites.rangeAthletics}`)).length).toBe(1);
+    await withUser(users.owner, (db) => db`select public.remove_organization_membership(${organizations.rangeAthletics}, ${users.editorA})`);
+    expect((await withUser(users.editorA, (db) => db`select id from public.sites where id = ${sites.rangeAthletics}`)).length).toBe(0);
     await expect(
-      withUser(users.editorA!, (db) => db`insert into public.content_items (organization_id, site_id, kind, created_by) values (${organizations.rangeAthletics}, ${sites.rangeAthletics}, 'page', ${users.editorA})`),
+      withUser(users.editorA, (db) => db`insert into public.content_items (organization_id, site_id, kind, created_by) values (${organizations.rangeAthletics}, ${sites.rangeAthletics}, 'page', ${users.editorA})`),
     ).rejects.toMatchObject({ code: "42501" });
   });
 });

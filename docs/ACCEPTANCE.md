@@ -29,16 +29,16 @@ state the evidence was produced at; re-run the suites listed in `pnpm verify` fo
 | ROUTE-02 | Alternate identical paths across sites and sessions | PASS | integration publishing.test: same slug resolves to each site's own item | M1 |
 | ROUTE-03 | Change a slug then publish | PASS | integration publishing.test: slug change publishes redirect without loop | M1 |
 | UX-01 | Keyboard through menus, dialog, form, and editor | NOT RUN | | |
-| UX-02 | Render at 390, 768, and 1440 pixels and 200% zoom | NOT RUN | | |
-| UX-03 | Search with no matches and clear filters | NOT RUN | | |
-| TIME-01 | Holiday, overnight hours, unknown hours, closure | PASS | unit hours.test: holiday exception, overnight, unknown, closure (logic level; UI check in M2) | M1 |
-| TIME-02 | Event at midnight and daylight-saving boundary | PASS | unit events.test: midnight local date, DST boundary formatting, classification (logic level) | M1 |
-| LEAD-01 | Submit valid form and refresh inbox | PASS | integration inquiries.test: stored with delivery job; inbox UI pending (M3) | M1 |
+| UX-02 | Render at 390, 768, and 1440 pixels and 200% zoom | PASS | screenshot pass at 390/768/1440 (docs/evidence/screenshots), scrollWidth check: no overflow; 200% zoom check pending (M4) | M2 |
+| UX-03 | Search with no matches and clear filters | PASS | e2e public.spec: category filter survives reload, back restores, no-results state, Clear resets | M2 |
+| TIME-01 | Holiday, overnight hours, unknown hours, closure | PASS | unit hours.test + e2e public.spec (temporarily closed store shows no Open now; unknown hours shown as not published; hours table) | M2 |
+| TIME-02 | Event at midnight and daylight-saving boundary | PASS | unit events.test + e2e public.spec (cancelled label, zone abbreviation, past filter, overnight event range) | M2 |
+| LEAD-01 | Submit valid form and refresh inbox | PASS | integration inquiries.test + e2e public.spec: form validation, receipt, inbox shows the record | M2 |
 | LEAD-02 | Notification provider fails | NOT RUN | | |
 | LEAD-03 | Tamper with recipient or foreign location | PASS | integration inquiries.test: foreign location rejected; recipient fields ignored | M1 |
 | LEAD-04 | Duplicate click or repeated request token | PASS | integration inquiries.test: repeated token → same receipt | M1 |
 | LEAD-05 | Exceed rate limit or send invalid/oversized data | PASS | integration inquiries.test: 6th submission → P0003; oversized message rejected | M1 |
-| MEDIA-01 | Upload invalid type, oversized file, or misleading extension | NOT RUN | | |
+| MEDIA-01 | Upload invalid type, oversized file, or misleading extension | PASS | integration media.test (SVG/HTML/mismatch/corrupt/oversize/pixel limit rejected, nothing stored) + e2e upload form | M2 |
 | MEDIA-02 | Replace image then restore old release | NOT RUN | | |
 | PORT-01 | CSV dry run containing invalid rows | NOT RUN | | |
 | PORT-02 | Repeat confirmed import | NOT RUN | | |

@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { seedInfo, withUser, withAnon, endPool, adminClient, key, approveAll, publish, demoSnapshot } from "./helpers";
+import { seedInfo, withUser, endPool, adminClient, key, approveAll, publish, demoSnapshot } from "./helpers";
 import { getItem, saveRevision, createContentItem } from "@/server/data/content";
 import { buildCandidate, getCandidate } from "@/server/publishing/candidates";
 import { activateCandidate, restoreRelease } from "@/server/publishing/activate";
@@ -8,7 +8,7 @@ import { resolveRoute, resolveDemoRelease } from "@/server/publishing/public-sit
 import { hashCanonical } from "@/lib/canonical-json";
 
 const { users, sites, organizations } = seedInfo();
-const owner = users.owner!;
+const owner = users.owner;
 const siteA = sites.pineHollow;
 const siteB = sites.rangeAthletics;
 
@@ -173,7 +173,7 @@ describe("restore (PUB-06)", () => {
       const releases = await admin<{ id: string; version: number }[]>`select id, version from public.releases where site_id = ${siteA} order by version`;
       const target = releases[0]!;
       const current = releases[releases.length - 1]!;
-      const [{ receiptCode }] = await admin<{ receiptCode: string }[]>`select receipt_code from public.submit_inquiry('pine-hollow', null, ${admin.json({ name: "Fixture", email: "fixture@example.test", message: "Keep me through the restore." })}, 'restore-test', ${key()})`;
+      const receiptCode = (await admin<{ receiptCode: string }[]>`select receipt_code from public.submit_inquiry('pine-hollow', null, ${admin.json({ name: "Fixture", email: "fixture@example.test", message: "Keep me through the restore." })}, 'restore-test', ${key()})`)[0]!.receiptCode;
       const draftsBefore = await admin`select id from public.content_revisions where site_id = ${siteA}`;
       const r = await restoreRelease(owner, target.id, key(), "roll back to the first release");
       expect(r.outcome).toBe("restored");
@@ -199,7 +199,7 @@ describe("restore (PUB-06)", () => {
     try {
       const [rel] = await admin<{ id: string }[]>`select id from public.releases where site_id = ${siteA} order by version limit 1`;
       await expect(withUser(owner, (db) => db`select * from public.restore_release(${rel!.id}, ${key()}, 'test', array[99])`)).rejects.toMatchObject({ code: "P0001" });
-      await expect(withUser(users.editorA!, (db) => db`select * from public.restore_release(${rel!.id}, ${key()}, 'test', array[1])`)).rejects.toMatchObject({ code: "42501" });
+      await expect(withUser(users.editorA, (db) => db`select * from public.restore_release(${rel!.id}, ${key()}, 'test', array[1])`)).rejects.toMatchObject({ code: "42501" });
     } finally {
       await admin.end();
     }
@@ -208,25 +208,28 @@ describe("restore (PUB-06)", () => {
 
 describe("dependency reporting (DATA-03)", () => {
   it("reports pages that depend on a disabled module instead of deleting anything", async () => {
-    await withUser(owner, async (db) => {
-      const { getCurrentSiteConfig, saveSiteConfig } = await import("@/server/data/sites");
-      const current = (await getCurrentSiteConfig(db, siteB))!;
-      const config = { ...current.config, modules: { ...current.config.modules, services: false }, navigation: { items: current.config.navigation.items.filter((n) => n.path !== "/services") } };
-      await saveSiteConfig(db, { siteId: siteB, organizationId: organizations.rangeAthletics, baseRevisionId: current.id, config, authorId: owner });
-    });
-    const ctx = (await withUser(owner, (db) => loadSiteContext(db, siteB)))!;
-    const { candidate } = await buildCandidate(owner, ctx.site);
-    expect(candidate.state).toBe("blocked");
-    const dep = candidate.validation.blockers.find((b) => b.code === "module_disabled_dependency");
-    expect(dep?.itemTitle).toBe("Home");
-    const items = await withUser(owner, (db) => db`select id from public.content_items where site_id = ${siteB} and archived_at is null`);
-    expect(items.length).toBe(3);
-    await withUser(owner, async (db) => {
-      const { getCurrentSiteConfig, saveSiteConfig } = await import("@/server/data/sites");
-      const current = (await getCurrentSiteConfig(db, siteB))!;
-      const config = { ...current.config, modules: { ...current.config.modules, services: true }, navigation: { items: [...current.config.navigation.items.slice(0, 1), { label: "Services", path: "/services" }, ...current.config.navigation.items.slice(1)] } };
-      await saveSiteConfig(db, { siteId: siteB, organizationId: organizations.rangeAthletics, baseRevisionId: current.id, config, authorId: owner });
-    });
+    const countItems = () => withUser(owner, (db) => db`select id from public.content_items where site_id = ${siteB} and archived_at is null`);
+    const before = (await countItems()).length;
+    const setServices = async (enabled: boolean) => {
+      await withUser(owner, async (db) => {
+        const { getCurrentSiteConfig, saveSiteConfig } = await import("@/server/data/sites");
+        const current = (await getCurrentSiteConfig(db, siteB))!;
+        const items = current.config.navigation.items.filter((n) => n.path !== "/services");
+        const config = { ...current.config, modules: { ...current.config.modules, services: enabled }, navigation: { items: enabled ? [...items.slice(0, 1), { label: "Services", path: "/services" }, ...items.slice(1)] : items } };
+        await saveSiteConfig(db, { siteId: siteB, organizationId: organizations.rangeAthletics, baseRevisionId: current.id, config, authorId: owner });
+      });
+    };
+    await setServices(false);
+    try {
+      const ctx = (await withUser(owner, (db) => loadSiteContext(db, siteB)))!;
+      const { candidate } = await buildCandidate(owner, ctx.site);
+      expect(candidate.state).toBe("blocked");
+      const dep = candidate.validation.blockers.find((b) => b.code === "module_disabled_dependency");
+      expect(dep?.itemTitle).toBe("Home");
+      expect((await countItems()).length).toBe(before);
+    } finally {
+      await setServices(true);
+    }
   });
 
   it("stores archived items are excluded and reported as removals", async () => {

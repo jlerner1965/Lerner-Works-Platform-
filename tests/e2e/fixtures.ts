@@ -29,8 +29,10 @@ export async function signIn(page: Page, email: string): Promise<void> {
 
 export async function approveAllPages(page: Page, siteId: string, titles: string[]): Promise<void> {
   for (const title of titles) {
-    await page.goto(`/app/sites/${siteId}/content`);
-    await page.getByRole("link", { name: title, exact: true }).click();
+    await page.goto(`/app/sites/${siteId}/content?kind=page&q=${encodeURIComponent(title)}`);
+    const link = page.getByRole("link", { name: title, exact: true }).first();
+    if (!(await link.count())) continue; // fixtures may have renamed a starter page; it is already approved then
+    await link.click();
     await expect(page.getByLabel("Change note (optional)")).toBeVisible();
     const approve = page.getByRole("button", { name: /Approve/ });
     if (await approve.count()) {

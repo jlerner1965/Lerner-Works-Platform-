@@ -3,7 +3,7 @@ import { seedInfo, withAnon, withUser, endPool, adminClient, key, approveAll, pu
 import { resolveDemoRelease } from "@/server/publishing/public-site";
 
 const { users, sites } = seedInfo();
-const owner = users.owner!;
+const owner = users.owner;
 
 beforeAll(async () => {
   await approveAll(owner, sites.rangeAthletics);
@@ -22,11 +22,11 @@ describe("inquiry intake (LEAD-01, LEAD-03, LEAD-04, LEAD-05)", () => {
     const rows = await withAnon((db) => db<{ inquiryId: string; receiptCode: string; outcome: string }[]>`select * from public.submit_inquiry('range-athletics', null, ${db.json(payload())}, 'hash-a', ${key()})`);
     expect(rows[0]!.outcome).toBe("created");
     expect(rows[0]!.receiptCode).toMatch(/^LW-[0-9A-F]{8}$/);
-    const asPublisher = await withUser(users.publisherB!, (db) => db`select id, status from public.inquiries where id = ${rows[0]!.inquiryId}`);
+    const asPublisher = await withUser(users.publisherB, (db) => db`select id, status from public.inquiries where id = ${rows[0]!.inquiryId}`);
     expect(asPublisher.length).toBe(1);
-    const jobs = await withUser(users.publisherB!, (db) => db<{ state: string; recipients: string[] }[]>`select state::text, recipients from public.delivery_jobs where inquiry_id = ${rows[0]!.inquiryId}`);
+    const jobs = await withUser(users.publisherB, (db) => db<{ state: string; recipients: string[] }[]>`select state::text, recipients from public.delivery_jobs where inquiry_id = ${rows[0]!.inquiryId}`);
     expect(jobs[0]).toMatchObject({ state: "pending", recipients: ["stores@rangeathletics.example"] });
-    const asEditor = await withUser(users.editorA!, (db) => db`select id from public.inquiries where id = ${rows[0]!.inquiryId}`);
+    const asEditor = await withUser(users.editorA, (db) => db`select id from public.inquiries where id = ${rows[0]!.inquiryId}`);
     expect(asEditor.length).toBe(0);
   });
 

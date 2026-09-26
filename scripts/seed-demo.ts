@@ -21,8 +21,11 @@ async function main(): Promise<void> {
   const appUrl = requireEnv(useTest ? "DATABASE_TEST_URL" : "DATABASE_URL");
   assertSafeLocalTarget(adminUrl, "Demo seed");
   if (useTest) {
+    // Point the application modules at the isolated test database and test storage/mail sinks.
     process.env.DATABASE_URL = appUrl;
     process.env.DATABASE_ADMIN_URL = adminUrl;
+    process.env.STORAGE_LOCAL_DIR = process.env.TEST_STORAGE_LOCAL_DIR ?? ".data/test-storage";
+    process.env.NOTIFY_LOCAL_DIR = process.env.TEST_NOTIFY_LOCAL_DIR ?? ".data/test-mail";
   }
   const admin = postgres(adminUrl, { max: 1, onnotice: () => {}, transform: postgres.camel });
   try {

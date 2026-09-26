@@ -1,6 +1,7 @@
 import type { Sql } from "postgres";
 import { withUser } from "@/server/data/db";
 import { createSiteFromPreset } from "@/server/data/sites";
+import { loadDemoContent } from "@/server/demo/load";
 
 export interface SeedAccount {
   role: string;
@@ -26,7 +27,7 @@ export const demoAccounts: Array<SeedAccount & { key: string }> = [
  * Creates or updates the demonstration organizations, accounts, memberships and sites.
  * Runs identity-carrying steps through the same functions the dashboard uses.
  */
-export async function seedDemo(admin: Sql, opts: { passwordFor: (email: string) => string; log?: (line: string) => void }): Promise<SeedResult> {
+export async function seedDemo(admin: Sql, opts: { passwordFor: (email: string) => string; log?: (line: string) => void; loadContent?: boolean; now?: Date }): Promise<SeedResult> {
   const log = opts.log ?? (() => {});
   // Accounts (local auth shim).
   const users: Record<string, string> = {};
@@ -76,6 +77,15 @@ export async function seedDemo(admin: Sql, opts: { passwordFor: (email: string) 
   });
   log("site memberships ensured");
 
+  if (opts.loadContent !== false) {
+    for (const [name, siteId] of [["pine-hollow", siteA], ["range-athletics", siteB]] as const) {
+      const result = await loadDemoContent(owner, siteId, { now: opts.now });
+      log(`${name}: ${result.created} created, ${result.updated} updated, ${result.unchanged} unchanged, ${result.images} new images, ${result.releases.length} new releases`);
+    }
+    await seedInquiries(admin, opts.now ?? new Date());
+    log("demo inquiries ensured");
+  }
+
   return {
     accounts: demoAccounts.map(({ role, email }) => ({ role, email })),
     organizations: { pineHollow: orgA, rangeAthletics: orgB },
@@ -105,4 +115,24 @@ async function ensureSite(
   if (existing[0]) return existing[0].id;
   const { siteId } = await createSiteFromPreset(ownerId, { ...input, mode: "demo" });
   return siteId;
+}
+
+/** Clearly labeled fixture inquiries, stored through the public intake function and flagged as fixtures. */
+async function seedInquiries(admin: Sql, now: Date): Promise<void> {
+  const { fixtureForSite } = await import("@/server/demo/load");
+  for (const key of ["pine-hollow", "range-athletics"]) {
+    const fixture = fixtureForSite(key, now);
+    if (!fixture) continue;
+    const token = `seed-inquiry-${key}`;
+    const existing = await admin`select i.id from public.inquiries i join public.sites s on s.id = i.site_id where s.key = ${key} and i.idempotency_key = ${token}`;
+    if (existing.length) continue;
+    let locationId: string | null = null;
+    if (fixture.inquiry.externalId) {
+      const rows = await admin<{ id: string }[]>`select i.id from public.content_items i join public.sites s on s.id = i.site_id where s.key = ${key} and i.external_id = ${fixture.inquiry.externalId}`;
+      locationId = rows[0]?.id ?? null;
+    }
+    const payload = { name: fixture.inquiry.name, email: fixture.inquiry.email, message: fixture.inquiry.message, sourcePath: fixture.inquiry.sourcePath, locationId, consentVersion: "2026-09-v1" };
+    const [row] = await admin<{ inquiryId: string }[]>`select inquiry_id from public.submit_inquiry(${key}, null, ${admin.json(payload)}, 'seed', ${token})`;
+    if (row) await admin`update public.inquiries set is_demo_fixture = true where id = ${row.inquiryId}`;
+  }
 }

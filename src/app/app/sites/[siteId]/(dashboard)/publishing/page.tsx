@@ -71,7 +71,7 @@ export default async function PublishingPage({ params, searchParams }: { params:
       </div>
       <Card title="Release history" className="mt-4">
         {releases.length === 0 ? <EmptyState title="No releases yet" /> : (
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto"><table className="w-full text-sm">
             <thead><tr className="border-b border-line text-left text-xs uppercase tracking-wide text-ink-subtle"><th className="py-2">Release</th><th className="py-2">Activated</th><th className="py-2">By</th><th className="py-2">Reason</th><th className="py-2">Status</th></tr></thead>
             <tbody>
               {releases.map((r) => (
@@ -84,7 +84,7 @@ export default async function PublishingPage({ params, searchParams }: { params:
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         )}
       </Card>
       {candidates.some((c) => c.state !== "ready" && c.state !== "blocked") ? (

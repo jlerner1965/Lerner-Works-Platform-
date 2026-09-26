@@ -119,7 +119,7 @@ export function hoursStatusAt(
   return { state: "closed", detail: "Closed", source: today?.source ?? "weekly" };
 }
 
-export function upcomingExceptions(exceptions: HoursException[], now: Date, timeZone: string, days = 60): HoursException[] {
+export function upcomingExceptions(exceptions: HoursException[], now: Date, timeZone: string, days = 90): HoursException[] {
   const today = localDateKey(now, timeZone);
   const limit = shiftDateKey(today, days);
   return exceptions.filter((e) => e.date >= today && e.date <= limit).sort((a, b) => a.date.localeCompare(b.date));
