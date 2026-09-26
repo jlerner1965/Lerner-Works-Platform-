@@ -138,7 +138,14 @@ deployment until the smoke tests in `docs/LAUNCH-CHECKLIST.md` run.
   (membership removed), test inquiries and invitations. Supabase Auth SMTP still uses the
   default mailer. The `VERCEL_API_TOKEN` in the project environment is the owner's
   24-hour token and must be replaced with a long-lived one for the domain workflow.
-- Pending: owner confirms the recovery email and the backup schedule; production project;
+- 2026-09-26 The Supabase project is on the **free tier** (the Management API refuses email
+  template changes there without custom SMTP): idle projects pause, there are no daily
+  backups, and auth email is limited to a few messages an hour. The owner's first password
+  recovery did not complete. Fix shipped: `/auth/recovery` also accepts the provider's
+  `token_hash` link, which works from any browser; a one-time link generated through the
+  admin API replaces the rate-limited email for the owner's first sign-in.
+- Pending: owner sets the password through the one-time link; custom SMTP (Resend) entered in
+  the Supabase dashboard; paid Supabase plan before customer content; production project;
   long-lived Vercel token; PR #3 merge so `main` carries the hosted tooling.
 
 ## Feature ledger
