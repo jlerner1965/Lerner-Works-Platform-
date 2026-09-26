@@ -84,7 +84,7 @@ describe("switching a site's theme and back (DES-10)", () => {
     const afterSwitch = await publish(owner, siteA, "switch to magazine");
     const live = (await resolveDemoRelease("pine-hollow"))!;
     expect(live.snapshot.config.design.theme).toBe("magazine");
-    expect(live.snapshot.schemaVersion).toBe(4);
+    expect(live.snapshot.schemaVersion).toBe(5);
     expect(await renderHome(live.snapshot, "pine-hollow")).toContain("magazine-theme");
     expect(await renderHome(beforeSnapshot, "pine-hollow")).toContain("guide-theme");
 
@@ -110,6 +110,36 @@ describe("switching a site's theme and back (DES-10)", () => {
     const finalLive = (await resolveDemoRelease("pine-hollow"))!;
     expect(finalLive.snapshot.config.design.theme).toBe("default");
     expect(await renderHome(finalLive.snapshot, "pine-hollow")).toBe(await renderHome({ ...beforeSnapshot, config: finalLive.snapshot.config, configRevisionId: finalLive.snapshot.configRevisionId } as ReleaseSnapshot, "pine-hollow"));
+  });
+
+  it("switches to the B3 compositions (almanac for the guide, practice for the location business) and back", async () => {
+    const { saveDesignAction } = await import("@/server/actions/settings");
+    currentUser = owner;
+    const toAlmanac = await saveDesignAction({}, await designForm(siteA, { theme: "almanac" }));
+    expect(toAlmanac.error).toBeUndefined();
+    expect(toAlmanac.notes?.some((n) => n.includes("Theme changed to Almanac"))).toBe(true);
+    await publish(owner, siteA, "switch to almanac");
+    const liveA = (await resolveDemoRelease("pine-hollow"))!;
+    expect(liveA.snapshot.config.design.theme).toBe("almanac");
+    const htmlA = await renderHome(liveA.snapshot, "pine-hollow");
+    expect(htmlA).toContain("almanac-theme");
+    expect(htmlA).toContain("alm-heading");
+    expect((await saveDesignAction({}, await designForm(siteA, { theme: "default" }))).error).toBeUndefined();
+    await publish(owner, siteA, "back to the guide composition");
+    expect(await renderHome((await resolveDemoRelease("pine-hollow"))!.snapshot, "pine-hollow")).toContain("guide-theme");
+
+    const toPractice = await saveDesignAction({}, await designForm(siteB, { theme: "practice" }));
+    expect(toPractice.error).toBeUndefined();
+    expect(toPractice.notes?.some((n) => n.includes("Theme changed to Practice"))).toBe(true);
+    await publish(owner, siteB, "switch to practice");
+    const liveB = (await resolveDemoRelease("range-athletics"))!;
+    expect(liveB.snapshot.config.design.theme).toBe("practice");
+    const htmlB = await renderHome(liveB.snapshot, "range-athletics");
+    expect(htmlB).toContain("practice-theme");
+    expect(htmlB).toContain("Location details");
+    expect((await saveDesignAction({}, await designForm(siteB, { theme: "default" }))).error).toBeUndefined();
+    await publish(owner, siteB, "back to the retail composition");
+    expect(await renderHome((await resolveDemoRelease("range-athletics"))!.snapshot, "range-athletics")).toContain("locations-theme");
   });
 
   it("refuses a theme written for another preset on save, at publication and on package import", async () => {

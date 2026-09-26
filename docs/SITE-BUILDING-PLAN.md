@@ -107,6 +107,15 @@ fail the bar.
 - A third, visibly different composition per preset.
 - Exit: DES-13 and DES-14 hold; screenshots per composition; the owner's judgement on two
   sample sites built with real photography.
+- Status: built and verified in the repository on 2026-09-26 (decision D-022): the section
+  vocabulary (people, logo strip, image-and-text rows, photo band, portraits on quotations,
+  hero collage, offset and statement, gallery lightbox, click-to-load map, rich text divider,
+  callout and button), rendered by all six compositions, and the almanac (guide) and practice
+  (location business) compositions; both pilots re-composed with the new sections; DES-13 and
+  DES-14 re-measured (`docs/evidence/LIGHTHOUSE.md`), screenshots per composition in
+  `docs/evidence/screenshots/` and its `magazine`, `storefront`, `almanac` and `practice`
+  folders; SB-07 PASS. Open: the owner's judgement on two sample sites built with real
+  photography (B4 supplies the photography); production on the owner's go with B2.
 
 ### B4 · The proof
 
@@ -124,6 +133,7 @@ fail the bar.
 | SB-04 | Create a site and reach a first release from a package | Under ten minutes of dashboard time; no empty section on the published home page |
 | SB-05 | Bulk media upload with alt text | Twenty images in one upload; each with alt text before use |
 | SB-06 | Walk-through measured after each phase | Create site, brand it, add five places, publish, through the dashboard as a person would: screens, fields and actions per task and the scripted run's time recorded per phase by `tests/e2e/walkthrough.spec.ts` (`docs/evidence/walkthrough/`), with the empty-state notices left on the published home; a person's own timing of a complete build is B4's evidence |
+| SB-07 | Publish a page carrying every B3 section, then view it under each composition of the preset | The release carries every picture the sections refer to; every composition renders the page from the frozen release with no script for the lightbox or the band and no frame before the visitor asks for the map; the editor offers the sections and treatments and says what each slot still needs |
 
 ## 5 Open points for the owner
 

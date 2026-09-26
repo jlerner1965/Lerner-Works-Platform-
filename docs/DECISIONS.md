@@ -308,3 +308,33 @@ the content in one transaction. Imports follow the site's review policy (D-020):
 who may publish imports is approved on save when the site does not require review. The
 renderer change altered no frozen release (the pilots have no empty sections), so no
 rendering hash was re-recorded.
+
+## D-022 · 2026-09-26 · Richness stays inside the vocabulary: typed sections, enumerated treatments, compositions in code, no script for the lightbox or the band
+
+Phase B3 of the site-building programme had to make a client site look art-directed
+without crossing D-017. Decided: (1) richness is added only as typed sections and enumerated
+options, validated on save, on import and at publication exactly like the sections of D1:
+people (`team`), a logo strip (`logo_strip`), image-and-text rows whose sides alternate
+(`image_text`), a photo band (`image_band`: a picture under a wash of one of three brand
+colours at one of three strengths, the text in that colour's "on" token, a pairing the
+contrast gate already checks), a portrait on each quotation, up to three more pictures on the
+image hero with the treatments `offset`, `collage` and `statement`, a gallery lightbox, and
+the rich text blocks divider, callout and button. Nothing positions, sizes or colours an
+element freely. (2) No client script for any of it: the lightbox is drawn by `:target` CSS
+(every thumbnail links to a hidden full-size copy; close, next and previous are links), the
+band and the treatments are layout and CSS. The one client component added is the
+click-to-load map, which extends D-013 to maps: the page shows the address on a plain panel
+and requests nothing from Google Maps or OpenStreetMap until the visitor presses "Show map";
+Apple Maps has no keyless embed and stays a link; the map follows the directions rule (live
+site, owner-approved address; disabled on demonstration sites and previews). Measured cost
+of the phase: one kibibyte of script on every public page (144 KiB against the 143 KiB
+baseline, allowance 20 KiB). (3) A third composition per preset written in code with declared
+capabilities like D-018: the almanac for the community guide (navigation rail, numbered
+sections, fact sheets) and the practice for the location business (slim header with the phone
+number, soft panels, numbered services, an hours table). Keys are immutable. (4) Snapshot
+schema version 5 records the additions; every new field defaults to the earlier behaviour,
+so the eight frozen releases of versions 1 to 4 render unchanged (no re-record), and version-5
+fixtures of the pilots on the new compositions join the rendering-hash test. (5) In the
+demonstration fixtures, image keys share the "@" reference namespace with item ids and the
+loader resolves items first; the pictures of the stores were renamed so no key repeats an id,
+and the rule is noted in the fixtures.

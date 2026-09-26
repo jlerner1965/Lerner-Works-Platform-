@@ -13,6 +13,7 @@ import { SiteRoot, BrandMark, siteLogo, linkProps, showSearchLink, pageHeaderIma
 import { SectionFrame, PageContainer } from "@/themes/shared/frame";
 import { siteDesign, columnsFor } from "@/themes/shared/design";
 import { FaqSection, QuotesSection, CtaBannerSection, GallerySection, FactsSection, VideoSection, MapLinkSection, columnsClass, type SectionStyle } from "@/themes/shared/sections";
+import { TeamSection, LogoStripSection, ImageTextSection, ImageBandSection, HeroCollage, heroExtras } from "@/themes/shared/rich-sections";
 import { formatEventDate, formatEventTimeRange, formatDateOnly } from "@/lib/events";
 import { GuidePlaceDetail, GuideEventDetail, GuideArticleDetail, GuideIndex, GuideSearch } from "@/themes/guide/pages";
 import type { Block } from "@/lib/richtext";
@@ -30,6 +31,8 @@ const formStyles = {
 export const guideStyle: SectionStyle = {
   theme: "guide",
   heading: (text) => <GuideSectionHeading>{text}</GuideSectionHeading>,
+  display: "font-(family-name:--font-heading) text-4xl font-bold leading-tight text-(--section-heading) sm:text-5xl",
+  subtitle: "font-(family-name:--font-heading) text-2xl font-bold leading-snug text-(--section-heading)",
   intro: "mt-2 max-w-prose text-lg",
   eyebrow: "text-xs font-semibold uppercase tracking-wider text-(--section-accent)",
   title: "font-(family-name:--font-heading) text-lg font-semibold text-(--section-fg)",
@@ -169,11 +172,16 @@ export function GuideSections({ ctx, page }: { ctx: RenderContext; page: PagePay
   const sections = visibleSections(ctx, page.sections);
   return (
     <div className="space-y-(--section-gap)">
-      {sections.map((section, index) => (
-        <SectionFrame key={section.id} appearance={section.appearance} narrow={narrowByDefault.has(section.type) || (section.type === "quotes" && (section.variant === "single" || (section.variant === "default" && section.items.length <= 1)))}>
-          <GuideSection ctx={ctx} section={section} first={index === 0} />
-        </SectionFrame>
-      ))}
+      {sections.map((section, index) =>
+        section.type === "image_band" ? (
+          // The photo band spans the full width and sets its own colours, so it renders without the section frame (B3).
+          <ImageBandSection key={section.id} ctx={ctx} section={section} style={guideStyle} />
+        ) : (
+          <SectionFrame key={section.id} appearance={section.appearance} narrow={narrowByDefault.has(section.type) || (section.type === "quotes" && (section.variant === "single" || (section.variant === "default" && section.items.length <= 1)))}>
+            <GuideSection ctx={ctx} section={section} first={index === 0} />
+          </SectionFrame>
+        ),
+      )}
     </div>
   );
 }
@@ -190,6 +198,36 @@ function ImageHero({ ctx, section }: { ctx: RenderContext; section: Extract<Page
       <div className="mt-6"><CtaLink ctx={ctx} label={section.ctaLabel} path={section.ctaPath} /></div>
     </>
   );
+  const centered = section.appearance.align === "center";
+  // B3 treatments: an oversized heading with the picture beneath, the words overlapping the picture, the picture with up to three more.
+  if (variant === "statement") {
+    return (
+      <div>
+        <div className={`max-w-4xl ${centered ? "mx-auto text-center" : ""}`}>
+          <PageHeading className="text-5xl leading-none sm:text-7xl lg:text-8xl">{section.heading}</PageHeading>
+          {section.subheading ? <p className={`mt-6 max-w-2xl text-xl leading-relaxed ${centered ? "mx-auto" : ""}`}>{section.subheading}</p> : null}
+          <div className="mt-6"><CtaLink ctx={ctx} label={section.ctaLabel} path={section.ctaPath} /></div>
+        </div>
+        {media ? <Picture ctx={ctx} media={media} sizes="(min-width: 1408px) 1408px, 100vw" className="mt-10 aspect-[21/9] w-full rounded-(--radius) object-cover" loading="eager" fetchPriority="high" /> : null}
+      </div>
+    );
+  }
+  if (variant === "offset" && media) {
+    return (
+      <div className="md:grid md:grid-cols-12 md:items-end">
+        <Picture ctx={ctx} media={media} sizes="(min-width: 768px) 66vw, 100vw" className="aspect-[16/10] w-full rounded-(--radius) object-cover md:col-span-8 md:col-start-5 md:row-start-1" loading="eager" fetchPriority="high" />
+        <div className="relative mx-4 -mt-12 rounded-(--radius) border-l-4 border-(--section-accent) bg-(--section-bg) p-6 md:col-span-6 md:col-start-1 md:row-start-1 md:mx-0 md:mb-10 md:p-8">{text(true)}</div>
+      </div>
+    );
+  }
+  if (variant === "collage" && media) {
+    return (
+      <div>
+        <div className={`max-w-3xl ${centered ? "mx-auto text-center" : ""}`}>{text(true)}</div>
+        <HeroCollage ctx={ctx} main={media} extras={heroExtras(ctx, section)} className="mt-8" />
+      </div>
+    );
+  }
   if (variant === "full") {
     return (
       <div className="relative overflow-hidden rounded-(--radius) bg-(--brand-text) text-(--brand-on-text)" style={{ "--section-heading": "var(--brand-on-text)", "--section-accent": "var(--brand-on-text)", "--section-fg": "var(--brand-on-text)", "--section-bg": "var(--brand-text)" } as React.CSSProperties}>
@@ -360,7 +398,7 @@ function GuideSection({ ctx, section, first }: { ctx: RenderContext; section: Pa
     case "faq":
       return <FaqSection ctx={ctx} section={section} style={guideStyle} />;
     case "quotes":
-      return <QuotesSection section={section} style={guideStyle} />;
+      return <QuotesSection ctx={ctx} section={section} style={guideStyle} />;
     case "cta_banner":
       return <CtaBannerSection ctx={ctx} section={section} style={guideStyle} />;
     case "gallery":
@@ -371,6 +409,15 @@ function GuideSection({ ctx, section, first }: { ctx: RenderContext; section: Pa
       return <VideoSection ctx={ctx} section={section} style={guideStyle} />;
     case "map_link":
       return <MapLinkSection ctx={ctx} section={section} style={guideStyle} />;
+    case "team":
+      return <TeamSection ctx={ctx} section={section} style={guideStyle} />;
+    case "logo_strip":
+      return <LogoStripSection ctx={ctx} section={section} style={guideStyle} />;
+    case "image_text":
+      return <ImageTextSection ctx={ctx} section={section} style={guideStyle} />;
+    case "image_band":
+      // Rendered by GuideSections outside the section frame.
+      return null;
   }
 }
 

@@ -21,31 +21,38 @@ afterAll(async () => {
 
 describe("images across releases (MEDIA-02, PUB-07)", () => {
   it("replacing a store image and restoring the old release resolves the historical image", async () => {
-    await approveAll(owner, siteB);
-    await publish(owner, siteB, "baseline").catch(() => undefined);
-    const before = (await demoSnapshot("range-athletics"))!;
-    const store = await withUser(owner, async (db) => {
+    // The picture that is replaced and later withdrawn is the test's own upload: the seeded
+    // storefront picture stays untouched, since the pilot's home and About pages also show it.
+    const longmont = () => withUser(owner, async (db) => {
       const [row] = await db<{ id: string }[]>`select i.id from public.content_items i join public.content_revisions r on r.id = i.current_revision_id where i.site_id = ${siteB} and r.slug = 'longmont'`;
       return (await getItem(db, row!.id))!;
     });
-    const oldAssetId = store.revision.payload.featuredImageAssetId as string;
-    expect(oldAssetId).toBeTruthy();
+    const upload = async (seed: number, title: string) => {
+      const bytes = await renderScenePng({ type: "storefront", sign: "Range Athletics", awning: "#bf4a0d", wall: "#e6e9ee", trim: "#12213a", seed, detail: "gear" });
+      const result = await withUser(owner, (db) => ingestImage(db, { siteId: siteB, organizationId: organizations.rangeAthletics, userId: owner, bytes, filename: `${title.toLowerCase()}.png`, declaredMime: "image/png", title, altText: `${title} storefront`, license: "CC0-1.0" }));
+      expect(result.ok).toBe(true);
+      return result.ok ? result.asset.id : "";
+    };
+    const initial = await longmont();
+    const oldAssetId = await upload(998, "Original");
+    await withUser(owner, (db) => saveRevision(db, { itemId: initial.item.id, baseRevisionId: initial.revision.id, payload: { ...initial.revision.payload, featuredImageAssetId: oldAssetId }, authorId: owner }));
+    await approveAll(owner, siteB);
+    await publish(owner, siteB, "baseline");
+    const before = (await demoSnapshot("range-athletics"))!;
     const oldMedia = (before.snapshot as unknown as ReleaseSnapshot).media[oldAssetId]!;
     const storage = getStorage();
     expect(await storage.existsPublic(oldMedia.variants.w480!.path)).toBe(true);
 
     // Upload a replacement and publish it.
-    const bytes = await renderScenePng({ type: "storefront", sign: "Range Athletics", awning: "#bf4a0d", wall: "#e6e9ee", trim: "#12213a", seed: 999, detail: "gear" });
-    const uploaded = await withUser(owner, (db) => ingestImage(db, { siteId: siteB, organizationId: organizations.rangeAthletics, userId: owner, bytes, filename: "new.png", declaredMime: "image/png", title: "Replacement", altText: "Replacement storefront", license: "CC0-1.0" }));
-    expect(uploaded.ok).toBe(true);
-    if (!uploaded.ok) return;
-    await withUser(owner, (db) => saveRevision(db, { itemId: store.item.id, baseRevisionId: store.revision.id, payload: { ...store.revision.payload, featuredImageAssetId: uploaded.asset.id }, authorId: owner }));
+    const store = await longmont();
+    const replacementId = await upload(999, "Replacement");
+    await withUser(owner, (db) => saveRevision(db, { itemId: store.item.id, baseRevisionId: store.revision.id, payload: { ...store.revision.payload, featuredImageAssetId: replacementId }, authorId: owner }));
     await approveAll(owner, siteB);
     const second = await publish(owner, siteB, "replace image");
     const after = (await demoSnapshot("range-athletics"))!;
     const afterSnap = after.snapshot as unknown as ReleaseSnapshot;
-    expect(Object.keys(afterSnap.media)).toContain(uploaded.asset.id);
-    expect(await storage.existsPublic(afterSnap.media[uploaded.asset.id]!.variants.w480!.path)).toBe(true);
+    expect(Object.keys(afterSnap.media)).toContain(replacementId);
+    expect(await storage.existsPublic(afterSnap.media[replacementId]!.variants.w480!.path)).toBe(true);
     // Old public derivative is retained (never deleted while a release references it).
     expect(await storage.existsPublic(oldMedia.variants.w480!.path)).toBe(true);
 

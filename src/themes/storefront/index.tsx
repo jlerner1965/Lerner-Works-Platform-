@@ -15,6 +15,7 @@ import { SiteRoot, BrandMark, linkProps, showSearchLink, pageHeaderImage } from 
 import { SectionFrame, PageContainer } from "@/themes/shared/frame";
 import { siteDesign, columnsFor, isColouredBand } from "@/themes/shared/design";
 import { FaqSection, QuotesSection, CtaBannerSection, GallerySection, FactsSection, VideoSection, MapLinkSection, columnsClass, type SectionStyle } from "@/themes/shared/sections";
+import { TeamSection, LogoStripSection, ImageTextSection, ImageBandSection, HeroCollage, heroExtras } from "@/themes/shared/rich-sections";
 import { StorefrontStoreDetail, StorefrontServiceDetail, StorefrontIndex, StorefrontSearch } from "@/themes/storefront/pages";
 import type { Block } from "@/lib/richtext";
 
@@ -42,6 +43,8 @@ export const storeEyebrow = "text-xs font-extrabold uppercase tracking-[0.14em] 
 export const storefrontStyle: SectionStyle = {
   theme: "storefront",
   heading: (text) => <StoreHeading>{text}</StoreHeading>,
+  display: "text-4xl font-extrabold uppercase leading-[0.95] tracking-tight text-(--section-heading) sm:text-6xl",
+  subtitle: "text-2xl font-extrabold uppercase tracking-tight text-(--section-heading)",
   intro: "mt-2 max-w-2xl text-lg",
   eyebrow: storeEyebrow,
   title: "text-lg font-extrabold uppercase tracking-wide text-(--section-fg)",
@@ -242,11 +245,16 @@ export function StorefrontSections({ ctx, page, skipFirst }: { ctx: RenderContex
   const sections = visibleSections(ctx, skipFirst ? page.sections.slice(1) : page.sections);
   return (
     <div className="space-y-(--section-gap)">
-      {sections.map((section, index) => (
-        <SectionFrame key={section.id} appearance={section.appearance} narrowAlign="start" narrow={narrowByDefault.has(section.type) || (section.type === "quotes" && (section.variant === "single" || (section.variant === "default" && section.items.length <= 1)))}>
-          <StorefrontSection ctx={ctx} section={section} first={index === 0 && !skipFirst} />
-        </SectionFrame>
-      ))}
+      {sections.map((section, index) =>
+        section.type === "image_band" ? (
+          // The photo band spans the full width and sets its own colours, so it renders without the section frame (B3).
+          <ImageBandSection key={section.id} ctx={ctx} section={section} style={storefrontStyle} />
+        ) : (
+          <SectionFrame key={section.id} appearance={section.appearance} narrowAlign="start" narrow={narrowByDefault.has(section.type) || (section.type === "quotes" && (section.variant === "single" || (section.variant === "default" && section.items.length <= 1)))}>
+            <StorefrontSection ctx={ctx} section={section} first={index === 0 && !skipFirst} />
+          </SectionFrame>
+        ),
+      )}
     </div>
   );
 }
@@ -262,6 +270,35 @@ function ImageHero({ ctx, section }: { ctx: RenderContext; section: Extract<Page
       {section.ctaLabel && section.ctaPath ? <p className="mt-6"><a {...linkProps(ctx, section.ctaPath)} className={onBand ? storefrontStyle.buttonInverse : accentButton}>{section.ctaLabel}</a></p> : null}
     </>
   );
+  // B3 treatments: an oversized heading with the picture beneath, the words on a dark panel overlapping the picture, the picture with up to three more.
+  if (variant === "statement") {
+    return (
+      <div>
+        <div className="max-w-5xl border-l-8 border-(--section-accent) pl-6">
+          <Display className="text-6xl sm:text-8xl lg:text-9xl">{section.heading}</Display>
+          {section.subheading ? <p className="mt-5 max-w-2xl text-lg font-semibold">{section.subheading}</p> : null}
+          {section.ctaLabel && section.ctaPath ? <p className="mt-6"><a {...linkProps(ctx, section.ctaPath)} className={onBand ? storefrontStyle.buttonInverse : accentButton}>{section.ctaLabel}</a></p> : null}
+        </div>
+        {media ? <Picture ctx={ctx} media={media} sizes="(min-width: 1408px) 1408px, 100vw" className="mt-8 aspect-[21/9] w-full rounded-(--radius) object-cover" loading="eager" fetchPriority="high" /> : null}
+      </div>
+    );
+  }
+  if (variant === "offset" && media) {
+    return (
+      <div className="md:grid md:grid-cols-12 md:items-end">
+        <Picture ctx={ctx} media={media} sizes="(min-width: 768px) 66vw, 100vw" className="aspect-[16/10] w-full rounded-(--radius) object-cover md:col-span-8 md:col-start-5 md:row-start-1" loading="eager" fetchPriority="high" />
+        <div className="relative mx-4 -mt-12 rounded-(--radius) border-l-8 border-(--brand-accent) bg-(--brand-text) p-6 text-(--brand-on-text) md:col-span-6 md:col-start-1 md:row-start-1 md:mx-0 md:mb-10 md:p-8" style={{ "--section-heading": "var(--brand-on-text)", "--section-fg": "var(--brand-on-text)", "--section-bg": "var(--brand-text)", "--section-accent": "var(--brand-accent)" } as React.CSSProperties}>{text}</div>
+      </div>
+    );
+  }
+  if (variant === "collage" && media) {
+    return (
+      <div>
+        <div className="max-w-3xl border-l-8 border-(--section-accent) pl-6">{text}</div>
+        <HeroCollage ctx={ctx} main={media} extras={heroExtras(ctx, section)} className="mt-8" />
+      </div>
+    );
+  }
   if (variant === "stacked") {
     return (
       <div>
@@ -392,7 +429,7 @@ function StorefrontSection({ ctx, section, first }: { ctx: RenderContext; sectio
     case "faq":
       return <FaqSection ctx={ctx} section={section} style={storefrontStyle} />;
     case "quotes":
-      return <QuotesSection section={section} style={storefrontStyle} />;
+      return <QuotesSection ctx={ctx} section={section} style={storefrontStyle} />;
     case "cta_banner":
       return <CtaBannerSection ctx={ctx} section={section} style={storefrontStyle} />;
     case "gallery":
@@ -403,6 +440,15 @@ function StorefrontSection({ ctx, section, first }: { ctx: RenderContext; sectio
       return <VideoSection ctx={ctx} section={section} style={storefrontStyle} />;
     case "map_link":
       return <MapLinkSection ctx={ctx} section={section} style={storefrontStyle} />;
+    case "team":
+      return <TeamSection ctx={ctx} section={section} style={storefrontStyle} />;
+    case "logo_strip":
+      return <LogoStripSection ctx={ctx} section={section} style={storefrontStyle} />;
+    case "image_text":
+      return <ImageTextSection ctx={ctx} section={section} style={storefrontStyle} />;
+    case "image_band":
+      // Rendered by StorefrontSections outside the section frame.
+      return null;
   }
 }
 

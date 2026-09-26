@@ -34,6 +34,13 @@ export function sectionHasContent(scope: CollectionScope, section: PageSection):
       return section.videoId.length > 0;
     case "map_link":
       return Boolean(section.address.line1 || section.address.locality);
+    case "team":
+    case "image_text":
+      return section.items.length > 0;
+    case "logo_strip":
+      return section.items.some((it) => Boolean(scope.snapshot.media[it.assetId]));
+    case "image_band":
+      return Boolean(section.heading || section.text || (section.imageAssetId && scope.snapshot.media[section.imageAssetId]));
   }
 }
 

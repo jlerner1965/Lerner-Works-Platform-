@@ -350,6 +350,8 @@ export async function applyOnboarding(db: Db, site: SiteRow, userId: string, dry
     const pageKeys = ["hero_image", "home_subheading", "home_intro", "about_text"].filter((k) => v[k] !== undefined);
     if (pageKeys.length) {
       const starters = await db<{ id: string; slug: string }[]>`select i.id, r.slug from public.content_items i join public.content_revisions r on r.id = i.current_revision_id where i.site_id = ${site.id} and i.kind = 'page' and r.slug in ('home', 'about') and i.archived_at is null`;
+      // Home before About, whatever order the rows come back in.
+      starters.sort((a, b) => (a.slug === "home" ? -1 : b.slug === "home" ? 1 : 0));
       for (const p of starters) {
         const current = await getItem(db, p.id);
         if (!current) continue;

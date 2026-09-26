@@ -293,7 +293,9 @@ export async function applyPackage(db: Db, site: SiteRow, userId: string, dry: P
       adopted++;
       continue;
     }
-    const placeholder = { ...item.payload, featuredImageAssetId: null } as Record<string, unknown>;
+    // The placeholder only allocates the id: references are stripped, and a page's sections are
+    // left out (several of them carry pictures that are required, so they cannot be stripped).
+    const placeholder = { ...item.payload, featuredImageAssetId: null, ...(item.kind === "page" ? { sections: [] } : {}) } as Record<string, unknown>;
     const stripped = stripRefs(placeholder);
     const created = await createContentItem(db, { siteId: site.id, organizationId: site.organizationId, kind: item.kind, payload: validatePayload(item.kind, stripped), authorId: userId, externalId: item.externalId ? `pkg:${item.externalId}` : null, changeNote: "Imported from site package" });
     idMap.set(item.id, created.item.id);

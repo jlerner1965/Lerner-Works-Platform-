@@ -13,6 +13,7 @@ import { SiteRoot, BrandMark, siteLogo, linkProps, showSearchLink, pageHeaderIma
 import { SectionFrame, PageContainer } from "@/themes/shared/frame";
 import { siteDesign, columnsFor, isColouredBand } from "@/themes/shared/design";
 import { FaqSection, QuotesSection, CtaBannerSection, GallerySection, FactsSection, VideoSection, MapLinkSection, columnsClass, type SectionStyle } from "@/themes/shared/sections";
+import { TeamSection, LogoStripSection, ImageTextSection, ImageBandSection, HeroCollage, heroExtras } from "@/themes/shared/rich-sections";
 import { formatEventTimeRange, formatDateOnly } from "@/lib/events";
 import { MagazinePlaceDetail, MagazineEventDetail, MagazineArticleDetail, MagazineIndex, MagazineSearch } from "@/themes/magazine/pages";
 import type { Block } from "@/lib/richtext";
@@ -39,6 +40,8 @@ export const kicker = "text-[11px] font-semibold uppercase tracking-[0.18em] tex
 export const magazineStyle: SectionStyle = {
   theme: "magazine",
   heading: (text) => <MagazineHeading>{text}</MagazineHeading>,
+  display: "font-(family-name:--font-heading) text-4xl font-bold leading-[1.05] tracking-tight text-(--section-heading) sm:text-6xl",
+  subtitle: "font-(family-name:--font-heading) text-2xl font-bold leading-snug text-(--section-heading) sm:text-3xl",
   intro: "mx-auto mt-3 max-w-prose text-center font-(family-name:--font-heading) text-lg italic",
   eyebrow: kicker,
   title: "font-(family-name:--font-heading) text-xl font-bold leading-snug text-(--section-fg)",
@@ -171,11 +174,16 @@ export function MagazineSections({ ctx, page }: { ctx: RenderContext; page: Page
   const sections = visibleSections(ctx, page.sections);
   return (
     <div className="space-y-(--section-gap)">
-      {sections.map((section, index) => (
-        <SectionFrame key={section.id} appearance={section.appearance} narrow={narrowByDefault.has(section.type) || (section.type === "quotes" && (section.variant === "single" || (section.variant === "default" && section.items.length <= 1)))}>
-          <MagazineSection ctx={ctx} section={section} first={index === 0} />
-        </SectionFrame>
-      ))}
+      {sections.map((section, index) =>
+        section.type === "image_band" ? (
+          // The photo band spans the full width and sets its own colours, so it renders without the section frame (B3).
+          <ImageBandSection key={section.id} ctx={ctx} section={section} style={magazineStyle} />
+        ) : (
+          <SectionFrame key={section.id} appearance={section.appearance} narrow={narrowByDefault.has(section.type) || (section.type === "quotes" && (section.variant === "single" || (section.variant === "default" && section.items.length <= 1)))}>
+            <MagazineSection ctx={ctx} section={section} first={index === 0} />
+          </SectionFrame>
+        ),
+      )}
     </div>
   );
 }
@@ -193,6 +201,35 @@ function ImageHero({ ctx, section }: { ctx: RenderContext; section: Extract<Page
       <div className="mt-6"><ArrowLink ctx={ctx} label={section.ctaLabel} path={section.ctaPath} /></div>
     </>
   );
+  // B3 treatments: a display-size heading over the picture, the words overlapping the picture from the right, the picture with up to three more.
+  if (variant === "statement") {
+    return (
+      <div className={centered ? "text-center" : ""}>
+        <div className={`max-w-5xl ${centered ? "mx-auto" : ""}`}>
+          <Display className="text-6xl sm:text-8xl lg:text-9xl">{section.heading}</Display>
+          {section.subheading ? <p className={`mt-6 max-w-2xl font-(family-name:--font-heading) text-xl italic leading-relaxed ${centered ? "mx-auto" : ""}`}>{section.subheading}</p> : null}
+          <div className="mt-6"><ArrowLink ctx={ctx} label={section.ctaLabel} path={section.ctaPath} /></div>
+        </div>
+        {media ? <Picture ctx={ctx} media={media} sizes="(min-width: 1408px) 1408px, 100vw" className="mt-10 aspect-[21/9] w-full rounded-(--radius) object-cover" loading="eager" fetchPriority="high" /> : null}
+      </div>
+    );
+  }
+  if (variant === "offset" && media) {
+    return (
+      <div className="md:grid md:grid-cols-12 md:items-end">
+        <Picture ctx={ctx} media={media} sizes="(min-width: 768px) 66vw, 100vw" className="aspect-[16/10] w-full rounded-(--radius) object-cover md:col-span-8 md:col-start-1 md:row-start-1" loading="eager" fetchPriority="high" />
+        <div className="relative mx-4 -mt-12 border-t-2 border-(--section-heading) bg-(--section-bg) p-6 md:col-span-6 md:col-start-7 md:row-start-1 md:mx-0 md:mb-10 md:p-8">{text}</div>
+      </div>
+    );
+  }
+  if (variant === "collage" && media) {
+    return (
+      <div>
+        <div className={`max-w-3xl ${centered ? "mx-auto text-center" : "border-l-4 border-(--section-accent) pl-6"}`}>{text}</div>
+        <HeroCollage ctx={ctx} main={media} extras={heroExtras(ctx, section)} className="mt-8" />
+      </div>
+    );
+  }
   if (variant === "full") {
     return (
       <div className="relative overflow-hidden rounded-(--radius) bg-(--brand-text) text-(--brand-on-text)" style={{ "--section-heading": "var(--brand-on-text)", "--section-accent": "var(--brand-on-text)", "--section-fg": "var(--brand-on-text)", "--section-bg": "var(--brand-text)" } as React.CSSProperties}>
@@ -376,7 +413,7 @@ function MagazineSection({ ctx, section, first }: { ctx: RenderContext; section:
     case "faq":
       return <FaqSection ctx={ctx} section={section} style={magazineStyle} />;
     case "quotes":
-      return <QuotesSection section={section} style={magazineStyle} />;
+      return <QuotesSection ctx={ctx} section={section} style={magazineStyle} />;
     case "cta_banner":
       return <CtaBannerSection ctx={ctx} section={section} style={magazineStyle} />;
     case "gallery":
@@ -387,6 +424,15 @@ function MagazineSection({ ctx, section, first }: { ctx: RenderContext; section:
       return <VideoSection ctx={ctx} section={section} style={magazineStyle} />;
     case "map_link":
       return <MapLinkSection ctx={ctx} section={section} style={magazineStyle} />;
+    case "team":
+      return <TeamSection ctx={ctx} section={section} style={magazineStyle} />;
+    case "logo_strip":
+      return <LogoStripSection ctx={ctx} section={section} style={magazineStyle} />;
+    case "image_text":
+      return <ImageTextSection ctx={ctx} section={section} style={magazineStyle} />;
+    case "image_band":
+      // Rendered by MagazineSections outside the section frame.
+      return null;
   }
 }
 

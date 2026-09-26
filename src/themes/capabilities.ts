@@ -95,6 +95,34 @@ export const themeCapabilities: Record<ThemeKey, ThemeCapabilities> = {
     cards: ["image-top", "image-side", "text"],
     defaults: { header: "overlay", hero: "full", cards: "image-top" },
   },
+  almanac: {
+    key: "almanac",
+    label: "Almanac (reference)",
+    description: "Field almanac: navigation rail down the left, numbered sections, hairline rules, fact sheets for places and dense reference listings.",
+    presets: ["community_guide"],
+    sectionTypes: allTypes.filter((t) => t !== "location_collection"),
+    variants: { ...sectionVariants },
+    // "left" is the rail; "centered" is a top bar with the brand and navigation centred.
+    header: ["left", "centered"],
+    hero: ["split", "full", "stacked"],
+    cards: ["image-top", "image-side", "text"],
+    defaults: { header: "left", hero: "stacked", cards: "image-side" },
+  },
+  practice: {
+    key: "practice",
+    label: "Practice (calm)",
+    description: "Calm professional practice: slim header with the phone number, soft panels, normal-case headings, numbered services and location cards with an hours table.",
+    presets: ["location_business"],
+    sectionTypes: allTypes.filter((t) => t !== "category_list"),
+    variants: {
+      ...sectionVariants,
+      content_collection: without("content_collection", "featured"),
+    },
+    header: ["left", "centered"],
+    hero: ["split", "full", "stacked"],
+    cards: ["image-top", "image-side", "text"],
+    defaults: { header: "left", hero: "split", cards: "text" },
+  },
 };
 
 /** Each preset's original composition, used when `design.theme` is "default" (and by releases published before D2). */

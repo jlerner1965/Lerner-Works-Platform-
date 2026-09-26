@@ -1,6 +1,6 @@
 import { kindRegistry, routeFor, type ContentKind } from "@/modules/registry";
 import { isExternalLink } from "@/modules/site-config";
-import { sectionTypeLabels, type SectionType } from "@/modules/page";
+import { mapEmbedProviders, sectionTypeLabels, type SectionType } from "@/modules/page";
 import { collectLinkTargets, type Block } from "@/lib/richtext";
 import { formatRatio } from "@/lib/contrast";
 import { failingPairings } from "@/lib/brand-tokens";
@@ -29,6 +29,8 @@ export interface ValidationResult {
 const MAX_IMAGE_WIDTH = 4000;
 const MAX_IMAGE_BYTES = 2_500_000;
 const VERIFICATION_STALE_DAYS = 365;
+/** Section types made of a list the owner writes by hand: empty ones block publication rather than being left out (B2, D-021). */
+const itemListTypes = new Set<string>(["faq", "quotes", "gallery", "facts", "team", "logo_strip", "image_text"]);
 
 /**
  * Validates the entire resulting site, not only edited records. Blockers prevent activation;
@@ -126,7 +128,7 @@ export function validateManifest(built: BuiltManifest, opts: { now: Date }): Val
             push({ severity: "blocker", code: "broken_link", message: `Section ${i + 1} links to ${p}, which is not a published route.`, itemId: item.id, itemTitle: item.title, field: `${field}.${key}`, href: itemHref(item.id) });
           }
         }
-        if ((type === "faq" || type === "quotes" || type === "gallery" || type === "facts") && (!Array.isArray(s.items) || s.items.length === 0)) {
+        if (itemListTypes.has(type) && (!Array.isArray(s.items) || s.items.length === 0)) {
           push({ severity: "blocker", code: "empty_section", message: `Section ${i + 1} (${label}) has no items; add some or remove the section.`, itemId: item.id, itemTitle: item.title, field, href: itemHref(item.id) });
         }
         if (type === "faq") {
@@ -134,10 +136,29 @@ export function validateManifest(built: BuiltManifest, opts: { now: Date }): Val
             if (Array.isArray(it.answer)) bodies.push({ field: `${field}.items.${j}.answer`, blocks: it.answer });
           });
         }
-        if (type === "gallery") {
+        if (type === "gallery" || type === "logo_strip" || type === "image_text") {
+          const noun = type === "gallery" ? "image" : type === "logo_strip" ? "logo" : "row";
           ((s.items as Array<{ assetId?: string }>) ?? []).forEach((it, j) => {
-            if (!it.assetId) push({ severity: "blocker", code: "empty_section", message: `Section ${i + 1} (Gallery): image ${j + 1} has no picture chosen.`, itemId: item.id, itemTitle: item.title, field: `${field}.items.${j}.assetId`, href: itemHref(item.id) });
+            if (!it.assetId) push({ severity: "blocker", code: "empty_section", message: `Section ${i + 1} (${label}): ${noun} ${j + 1} has no picture chosen.`, itemId: item.id, itemTitle: item.title, field: `${field}.items.${j}.assetId`, href: itemHref(item.id) });
           });
+        }
+        // Links carried by list items (B3): a person's page, a logo's site, a row's button.
+        if (type === "team" || type === "logo_strip" || type === "image_text") {
+          const key = type === "image_text" ? "ctaPath" : "path";
+          ((s.items as Array<Record<string, unknown>>) ?? []).forEach((it, j) => {
+            const p = it[key];
+            if (typeof p === "string" && p && !isExternalLink(p) && !routePaths.has(normalizePath(p))) {
+              push({ severity: "blocker", code: "broken_link", message: `Section ${i + 1} (${label}): item ${j + 1} links to ${p}, which is not a published route.`, itemId: item.id, itemTitle: item.title, field: `${field}.items.${j}.${key}`, href: itemHref(item.id) });
+            }
+            if (type === "image_text" && Array.isArray(it.body)) bodies.push({ field: `${field}.items.${j}.body`, blocks: it.body as Block[] });
+          });
+        }
+        if (type === "image_hero" && s.variant === "collage" && (!Array.isArray(s.extraImageAssetIds) || s.extraImageAssetIds.length === 0)) {
+          push({ severity: "warning", code: "hero_collage_short", message: `Section ${i + 1} uses the collage style with a single picture; add up to three more pictures, or choose another style.`, itemId: item.id, itemTitle: item.title, field: `${field}.extraImageAssetIds`, href: itemHref(item.id) });
+        }
+        if (type === "image_band") {
+          if (!s.imageAssetId) push({ severity: "warning", code: "band_no_image", message: `Section ${i + 1} (Photo band) has no picture; it renders as a plain coloured band.`, itemId: item.id, itemTitle: item.title, field: `${field}.imageAssetId`, href: itemHref(item.id) });
+          else if (s.strength === "light") push({ severity: "warning", code: "band_wash_light", message: `Section ${i + 1} (Photo band) puts text over its picture with a light wash; readability depends on the picture. Medium or strong is safer.`, itemId: item.id, itemTitle: item.title, field: `${field}.strength`, href: itemHref(item.id) });
         }
         if (type === "cta_banner" && (!s.ctaLabel || !s.ctaPath)) {
           push({ severity: "blocker", code: "cta_incomplete", message: `Section ${i + 1} (Call to action) needs a button label and a link.`, itemId: item.id, itemTitle: item.title, field: `${field}.ctaPath`, href: itemHref(item.id) });
@@ -152,8 +173,13 @@ export function validateManifest(built: BuiltManifest, opts: { now: Date }): Val
         }
         if (type === "map_link") {
           const a = s.address as { line1?: string; locality?: string; approved?: boolean } | undefined;
-          if (!a || (!a.line1 && !a.locality)) push({ severity: "warning", code: "map_no_address", message: `Section ${i + 1} (Map link) has no address, so no directions button will appear.`, itemId: item.id, itemTitle: item.title, field: `${field}.address`, href: itemHref(item.id) });
-          else if (!a.approved) push({ severity: "warning", code: "map_unapproved", message: `Section ${i + 1} (Map link): the address is not approved by the owner, so the directions button stays hidden on the live site.`, itemId: item.id, itemTitle: item.title, field: `${field}.address.approved`, href: itemHref(item.id) });
+          if (!a || (!a.line1 && !a.locality)) push({ severity: "warning", code: "map_no_address", message: `Section ${i + 1} (Map) has no address, so no directions button will appear.`, itemId: item.id, itemTitle: item.title, field: `${field}.address`, href: itemHref(item.id) });
+          else if (!a.approved) push({ severity: "warning", code: "map_unapproved", message: `Section ${i + 1} (Map): the address is not approved by the owner, so the directions button and the map stay hidden on the live site.`, itemId: item.id, itemTitle: item.title, field: `${field}.address.approved`, href: itemHref(item.id) });
+          // The click-to-load map (B3) needs a provider with a keyless embed and the coordinates to centre it.
+          if (s.embed === true) {
+            if (!mapEmbedProviders.includes(s.provider as (typeof mapEmbedProviders)[number])) push({ severity: "blocker", code: "map_embed_unsupported", message: `Section ${i + 1} (Map) asks to show a map, but Apple Maps cannot be embedded. Choose Google Maps or OpenStreetMap, or turn the map off and keep the link.`, itemId: item.id, itemTitle: item.title, field: `${field}.provider`, href: itemHref(item.id) });
+            if (typeof s.latitude !== "number" || typeof s.longitude !== "number") push({ severity: "blocker", code: "map_embed_incomplete", message: `Section ${i + 1} (Map) asks to show a map but has no latitude and longitude to centre it on.`, itemId: item.id, itemTitle: item.title, field: `${field}.latitude`, href: itemHref(item.id) });
+          }
         }
         if (type === "feature_list") {
           for (const [j, fi] of ((s.items as Array<{ path?: string; title?: string }>) ?? []).entries()) {
@@ -195,9 +221,9 @@ export function validateManifest(built: BuiltManifest, opts: { now: Date }): Val
             shown++;
             return;
           }
-          if (s.type === "faq" || s.type === "quotes" || s.type === "gallery" || s.type === "facts") return;
+          if (itemListTypes.has(s.type)) return;
           const label = sectionTypeLabels[s.type];
-          const why = s.type === "rich_text" ? "has no text yet" : s.type === "feature_list" ? "has no items yet" : s.type === "content_collection" || s.type === "location_collection" ? (s.mode === "selected" ? "has no items chosen" : `has no published ${s.type === "location_collection" ? "stores" : kindRegistry[s.kind].plural.toLowerCase()} to show yet`) : s.type === "category_list" ? "has no published places with a category yet" : s.type === "video" ? "has no video yet" : "has no address yet";
+          const why = s.type === "rich_text" ? "has no text yet" : s.type === "feature_list" ? "has no items yet" : s.type === "content_collection" || s.type === "location_collection" ? (s.mode === "selected" ? "has no items chosen" : `has no published ${s.type === "location_collection" ? "stores" : kindRegistry[s.kind].plural.toLowerCase()} to show yet`) : s.type === "category_list" ? "has no published places with a category yet" : s.type === "video" ? "has no video yet" : s.type === "image_band" ? "has no heading, text or picture yet" : "has no address yet";
           push({ severity: "warning", code: "section_left_out", message: `Section ${i + 1} (${label}) ${why}; it is left out of the page until it does.`, itemId: item.id, itemTitle: item.title, field: `sections.${i}`, href: itemHref(item.id) });
         });
         if (parsedSections.length > 0 && shown === 0) {

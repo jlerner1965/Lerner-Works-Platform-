@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseStructuredText, serializeStructuredText, parseInline, collectLinkTargets, blocksToPlainText } from "@/lib/richtext";
+import { parseStructuredText, serializeStructuredText, parseInline, collectLinkTargets, blocksToPlainText, bodySchema } from "@/lib/richtext";
 
 describe("structured text", () => {
   it("parses paragraphs, headings, lists, quotes and images", () => {
@@ -54,5 +54,22 @@ describe("structured text", () => {
     ]);
     expect(parseInline("<b>html</b> **stays** text").some((n) => n.type === "strong")).toBe(true);
     expect(blocksToPlainText(parseStructuredText("Hello **bold** and *it* [**l**](/x)\n\n- **item**"))).toBe("Hello bold and it l item");
+  });
+  it("parses dividers, callouts and buttons (B3), keeps an unsafe button literal, and round-trips", () => {
+    const text = "Intro\n\n---\n\n!note Bring **boots**.\n!note And water.\n\n!button Plan a visit | /contact\n\n!button Bad | javascript:alert(1)";
+    const blocks = parseStructuredText(text);
+    expect(blocks).toEqual([
+      { type: "paragraph", text: "Intro" },
+      { type: "divider" },
+      { type: "callout", text: "Bring **boots**. And water." },
+      { type: "button", label: "Plan a visit", target: "/contact" },
+      { type: "paragraph", text: "!button Bad | javascript:alert(1)" },
+    ]);
+    expect(serializeStructuredText(blocks.slice(0, 4))).toBe("Intro\n\n---\n\n!note Bring **boots**. And water.\n\n!button Plan a visit | /contact");
+    expect(parseStructuredText("***\n\n!button See the guide | item:123e4567-e89b-12d3-a456-426614174000")).toEqual([{ type: "divider" }, { type: "button", label: "See the guide", target: "item:123e4567-e89b-12d3-a456-426614174000" }]);
+    expect(collectLinkTargets(blocks)).toEqual(["/contact"]);
+    expect(blocksToPlainText(blocks)).toBe("Intro Bring boots. And water. Plan a visit !button Bad | javascript:alert(1)");
+    expect(bodySchema.safeParse(blocks).success).toBe(true);
+    expect(bodySchema.safeParse([{ type: "button", label: "x", target: "javascript:alert(1)" }]).success).toBe(false);
   });
 });

@@ -14,6 +14,11 @@ dashboard. B2 is built: a section with nothing to show is left out of the public
 (D-021, `src/themes/shared/empty.ts`), starter pages whose slots fill themselves, the
 onboarding package (`src/server/import/onboarding.ts`), multi-file upload with an
 alternative-text pass, quick add and duplicate, imports approved on save under the policy.
+B3 is built (D-022): a richer section vocabulary (people, logo strip, image-and-text rows,
+photo band, hero collage/offset/statement, gallery lightbox, portraits on quotations,
+click-to-load map, rich text divider/callout/button; shared renderers in
+`src/themes/shared/rich-sections.tsx`, no client script except the map) and a third
+composition per preset (`almanac`, `practice`); snapshot schema version 5.
 Public themes use only the derived brand tokens, design variables and font variables described
 in `docs/DESIGN-TOKENS.md` (a unit test rejects literal colours in `src/themes`). A theme or
 renderer change must keep every frozen release in `tests/fixtures/releases/` rendering as

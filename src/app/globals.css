@@ -124,6 +124,120 @@ body {
   background: color-mix(in srgb, var(--brand-text) 85%, transparent);
 }
 
+/* Photo bands (site-building programme B3): a brand colour washed over the picture, at the
+   same three strengths as the hero overlays; the text uses that colour's "on" token. */
+.lw-wash-primary-light { background: color-mix(in srgb, var(--brand-primary) 55%, transparent); }
+.lw-wash-primary-medium { background: color-mix(in srgb, var(--brand-primary) 70%, transparent); }
+.lw-wash-primary-strong { background: color-mix(in srgb, var(--brand-primary) 85%, transparent); }
+.lw-wash-accent-light { background: color-mix(in srgb, var(--brand-accent) 55%, transparent); }
+.lw-wash-accent-medium { background: color-mix(in srgb, var(--brand-accent) 70%, transparent); }
+.lw-wash-accent-strong { background: color-mix(in srgb, var(--brand-accent) 85%, transparent); }
+.lw-wash-dark-light { background: color-mix(in srgb, var(--brand-text) 55%, transparent); }
+.lw-wash-dark-medium { background: color-mix(in srgb, var(--brand-text) 70%, transparent); }
+.lw-wash-dark-strong { background: color-mix(in srgb, var(--brand-text) 85%, transparent); }
+
+/* Gallery lightbox (B3): drawn with :target alone, so the page carries no script for it. A
+   lightbox is display:none (out of the accessibility tree) until its link is followed; the
+   close link and the backdrop link return to the gallery. */
+.lw-lightbox {
+  display: none;
+}
+.lw-lightbox:target {
+  display: flex;
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: color-mix(in srgb, var(--brand-text) 92%, transparent);
+  color: var(--brand-on-text);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .lw-lightbox:target {
+    animation: lw-fade-in 160ms ease-out;
+  }
+}
+@keyframes lw-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.lw-lightbox-backdrop {
+  position: absolute;
+  inset: 0;
+}
+.lw-lightbox figure {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  max-width: min(96vw, 1400px);
+  max-height: 100%;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  pointer-events: none;
+}
+.lw-lightbox figure > * {
+  pointer-events: auto;
+}
+.lw-lightbox img {
+  max-width: 100%;
+  max-height: 80vh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: var(--radius, 0px);
+}
+.lw-lightbox figcaption {
+  max-width: 60ch;
+  text-align: center;
+  font-size: 0.95rem;
+}
+.lw-lightbox-nav {
+  position: absolute;
+  z-index: 2;
+  display: flex;
+  gap: 0.5rem;
+}
+.lw-lightbox-nav a,
+.lw-lightbox-close {
+  display: inline-flex;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 0.9rem;
+  border: 2px solid var(--brand-on-text);
+  border-radius: var(--radius, 0px);
+  color: var(--brand-on-text);
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+.lw-lightbox-nav a:hover,
+.lw-lightbox-close:hover {
+  background: var(--brand-on-text);
+  color: var(--brand-text);
+}
+.lw-lightbox-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 2;
+}
+.lw-lightbox-nav {
+  bottom: 1rem;
+  right: 1rem;
+}
+.lw-site .lw-lightbox :focus-visible {
+  outline-color: var(--brand-on-text);
+}
+@media print {
+  .lw-lightbox {
+    display: none !important;
+  }
+}
+
 /* Public theme prose (restricted structured content) */
 .guide-prose,
 .loc-prose {
@@ -206,6 +320,75 @@ body {
 .guide-prose figure img,
 .loc-prose figure img {
   border-radius: var(--radius, 0px);
+}
+
+/* B3 blocks in every prose family: a rule, a callout panel and a link drawn as the theme's button.
+   Colours are section tokens, so the blocks read inside coloured bands too. */
+.guide-prose hr,
+.loc-prose hr,
+.mag-prose hr,
+.store-prose hr {
+  border: 0;
+  border-top: 1px solid var(--section-border, var(--brand-border));
+  margin: 2em 0;
+}
+.mag-prose hr {
+  width: 6rem;
+  margin: 2.5em auto;
+  border-top: 2px solid var(--section-heading, var(--brand-primary));
+}
+.loc-prose hr,
+.store-prose hr {
+  width: 5rem;
+  border-top: 4px solid var(--section-accent, var(--brand-accent));
+}
+.lw-callout {
+  padding: 1em 1.25em;
+  border-left: 4px solid var(--section-accent, var(--brand-accent));
+  border-radius: var(--radius, 0px);
+  background: var(--section-panel, var(--brand-surface));
+  color: var(--section-panel-fg, var(--brand-text));
+}
+.mag-prose .lw-callout {
+  border-left: 0;
+  border-top: 2px solid var(--section-heading, var(--brand-primary));
+  border-bottom: 2px solid var(--section-heading, var(--brand-primary));
+  border-radius: 0;
+  font-family: var(--font-heading);
+  font-style: italic;
+}
+.store-prose .lw-callout {
+  border-left-width: 6px;
+  font-weight: 600;
+}
+/* `.lw-site a.lw-prose-button` outranks every family's `.x-prose a` rule, so the button never inherits the link underline or colour. */
+.lw-site a.lw-prose-button {
+  display: inline-block;
+  padding: 0.6em 1.25em;
+  border-radius: var(--radius, 0px);
+  background: var(--brand-primary);
+  color: var(--brand-on-primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+.lw-site a.lw-prose-button:hover {
+  filter: brightness(1.08);
+}
+.loc-prose .lw-prose-button,
+.store-prose .lw-prose-button {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 800;
+}
+.mag-prose .lw-prose-button {
+  font-family: var(--font-body);
+  font-size: 0.85em;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+}
+.lw-site .lw-band a.lw-prose-button {
+  background: var(--section-fg);
+  color: var(--section-bg);
 }
 .guide-form h2 {
   font-family: var(--font-heading);
@@ -355,5 +538,182 @@ body {
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: -0.01em;
+  color: var(--section-heading, var(--brand-primary));
+}
+
+/* Almanac composition (site-building programme B3): sections numbered by a counter, reference prose. */
+.almanac-theme main {
+  counter-reset: alm-section;
+}
+.alm-heading::before {
+  counter-increment: alm-section;
+  content: counter(alm-section, decimal-leading-zero);
+  color: var(--section-accent, var(--brand-accent));
+  font-variant-numeric: tabular-nums;
+}
+.alm-prose {
+  line-height: 1.65;
+}
+.alm-prose > * + * {
+  margin-top: 1em;
+}
+.alm-prose h2 {
+  font-family: var(--font-heading);
+  font-size: 1.375rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--section-heading, var(--brand-primary));
+  border-bottom: 1px solid var(--section-border, var(--brand-border));
+  padding-bottom: 0.35rem;
+  margin-top: 1.8em;
+}
+.alm-prose h3 {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--section-accent, var(--brand-accent));
+  margin-top: 1.6em;
+}
+.alm-prose ul {
+  list-style: square;
+  padding-left: 1.4em;
+}
+.alm-prose ol {
+  list-style: decimal-leading-zero;
+  padding-left: 1.8em;
+  font-variant-numeric: tabular-nums;
+}
+.alm-prose a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  color: var(--section-accent, var(--brand-accent));
+}
+.alm-prose blockquote {
+  border-top: 1px solid var(--section-border, var(--brand-border));
+  border-bottom: 1px solid var(--section-border, var(--brand-border));
+  padding: 0.75em 0;
+  font-family: var(--font-heading);
+  font-size: 1.15em;
+  line-height: 1.45;
+}
+.alm-prose cite {
+  display: block;
+  font-family: var(--font-body);
+  font-size: 0.8em;
+  font-style: normal;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--section-muted, var(--brand-muted));
+}
+.alm-prose figure img {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius, 0px);
+}
+.alm-prose figcaption {
+  font-size: 0.8em;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--section-muted, var(--brand-muted));
+  margin-top: 0.5em;
+}
+.alm-prose hr {
+  width: 100%;
+  border-top: 1px solid var(--section-border, var(--brand-border));
+}
+.alm-prose .lw-callout {
+  border-left: 0;
+  border-top: 2px solid var(--section-accent, var(--brand-accent));
+  border-radius: 0;
+}
+.lw-site .alm-prose a.lw-prose-button {
+  border: 2px solid var(--brand-primary);
+  font-size: 0.85em;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+.alm-form h2 {
+  font-family: var(--font-heading);
+  font-size: 1.375rem;
+  font-weight: 700;
+  color: var(--section-heading, var(--brand-primary));
+}
+
+/* Practice composition (B3): calm prose with generous spacing, soft panels. */
+.prac-prose {
+  line-height: 1.7;
+  font-size: 1.0625rem;
+}
+.prac-prose > * + * {
+  margin-top: 1.1em;
+}
+.prac-prose h2 {
+  font-family: var(--font-heading);
+  font-size: 1.625rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--section-heading, var(--brand-primary));
+  margin-top: 1.8em;
+}
+.prac-prose h3 {
+  font-family: var(--font-heading);
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-top: 1.5em;
+}
+.prac-prose ul {
+  list-style: disc;
+  padding-left: 1.4em;
+}
+.prac-prose ol {
+  list-style: decimal;
+  padding-left: 1.4em;
+}
+.prac-prose a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  color: var(--section-accent, var(--brand-accent));
+}
+.prac-prose blockquote {
+  padding: 1em 1.25em;
+  border-radius: var(--radius, 0px);
+  background: var(--section-panel, var(--brand-surface));
+  color: var(--section-panel-fg, var(--brand-text));
+  font-family: var(--font-heading);
+  font-size: 1.15em;
+  line-height: 1.5;
+}
+.prac-prose cite {
+  display: block;
+  font-family: var(--font-body);
+  font-size: 0.8em;
+  font-style: normal;
+  color: var(--section-muted, var(--brand-muted));
+  margin-top: 0.5em;
+}
+.prac-prose figure img {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius, 0px);
+}
+.prac-prose figcaption {
+  font-size: 0.85em;
+  color: var(--section-muted, var(--brand-muted));
+  margin-top: 0.5em;
+}
+.prac-prose hr {
+  border: 0;
+  border-top: 1px solid var(--section-border, var(--brand-border));
+  margin: 2em 0;
+}
+.prac-prose .lw-callout {
+  border-left: 0;
+  padding: 1.25em 1.5em;
+}
+.prac-form h2 {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  font-weight: 600;
   color: var(--section-heading, var(--brand-primary));
 }

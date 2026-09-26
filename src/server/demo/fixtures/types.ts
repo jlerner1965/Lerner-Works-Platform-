@@ -51,6 +51,9 @@ export interface FixtureSite {
 export const p = (text: string): Block => ({ type: "paragraph", text });
 export const h2 = (text: string): Block => ({ type: "heading", level: 2, text });
 export const list = (...items: string[]): Block => ({ type: "list", style: "bullet", items });
+export const divider = (): Block => ({ type: "divider" });
+export const note = (text: string): Block => ({ type: "callout", text });
+export const button = (label: string, target: string): Block => ({ type: "button", label, target });
 
 export function common(input: { title: string; slug: string; summary: string; body?: Block[]; metaDescription?: string; sourceUrl?: string; lastVerifiedOn?: string; attribution?: string }): Record<string, unknown> {
   return {

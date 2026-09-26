@@ -221,6 +221,15 @@ by 0.02 s; `docs/evidence/LIGHTHOUSE.md`); DES-14 unchanged at 143 KiB. Two find
 first measurement were fixed in the phase: the magazine's layout shift (font delivery, D-019)
 and the storefront tiles' city label contrast.
 
+Extended by the site-building programme's phase B3 (2026-09-26, `docs/SITE-BUILDING-PLAN.md`,
+decision D-022): the catalogue has three compositions per preset (the almanac joined the
+guide and the magazine; the practice joined the retail and the storefront compositions), and
+the section vocabulary gained people, a logo strip, image-and-text rows, a photo band,
+portraits on quotations, the hero treatments offset, collage and statement, a gallery lightbox
+drawn by CSS, a click-to-load map and rich text divider, callout and button blocks, all typed
+and enumerated, rendered by every composition from shared renderers, with snapshot schema
+version 5 and ten frozen releases in the rendering-hash test. The D3 question is unchanged.
+
 ### D3 · Visual, in-context editing — OPTIONAL
 
 Four to six sessions. Optional by the owner's decision of 2026-09-26: it is decided only after

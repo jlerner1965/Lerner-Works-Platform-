@@ -107,14 +107,35 @@ counts in `src/themes/shared/design.ts`.
 | Magazine (`magazine`) | community guide | left, centered* | split, full*, stacked | 2.5 / 4 / 5.5 rem | 3 · 3 · 3 · 3 · 4 |
 | Location business (`locations`) | location business | left*, centered | full*, stacked | 2 / 3 / 4.5 rem | 4 · 4 · 3 · 3 · 3 |
 | Storefront (`storefront`) | location business | left, centered, overlay* | split, full*, stacked | 1.5 / 2.5 / 4 rem | 4 · 3 · 3 · 4 · 4 |
+| Almanac (`almanac`, B3) | community guide | left* (navigation rail), centered (top bar) | split, full, stacked* | 2 / 3 / 4.5 rem | 3 · 2 · 2 · 3 · 4 |
+| Practice (`practice`, B3) | location business | left*, centered | split*, full, stacked | 2.5 / 4 / 5.5 rem | 3 · 2 · 2 · 3 · 3 |
 
-`*` marks what `default` resolves to. Cards in collections offer image-top (the default),
-image-side and text in every theme; the guide and magazine compositions do not render store
-collections, and the two retail compositions do not offer the editorial "featured item"
-collection style. The `overlay` header (storefront only) lays the dark header bar over the
-opening hero from 768 px. Where a composition puts the brand on the primary colour or a dark
-band (the guide and magazine footers, the storefront header bar) it renders the dark-surface
-logo (`branding.logoDarkAssetId`) or the wordmark, never the light-background logo.
+`*` marks what `default` resolves to. Cards in collections offer image-top, image-side and
+text in every theme (the default is image-top on the D2 compositions, image-side on the
+almanac and text on the practice); the guide compositions do not render store collections,
+and the retail compositions do not offer the editorial "featured item" collection style. The
+`overlay` header (storefront only) lays the dark header bar over the opening hero from 768 px.
+Where a composition puts the brand on the primary colour or a dark band (the guide and
+magazine footers, the storefront header bar) it renders the dark-surface logo
+(`branding.logoDarkAssetId`) or the wordmark, never the light-background logo. Since B3 the
+theme-default column counts also cover the people and logo strip sections: guide 3 · 4,
+magazine 3 · 4, locations 4 · 4, storefront 3 · 4, almanac 3 · 3, practice 3 · 4.
+
+## Photo bands, lightbox and prose blocks (B3)
+
+The photo band (`image_band`) lays a brand colour over its picture with `color-mix`, at the
+same three strengths as the hero overlays: `.lw-wash-{primary|accent|dark}-{light|medium|
+strong}` at 55 %, 70 % and 85 % of `--brand-primary`, `--brand-accent` or `--brand-text`. The
+band sets the `--section-*` variables of the matching tinted band (the table above), so its
+text is `onPrimary`, `onAccent` or `onText` and its buttons invert like every band's; a light
+wash draws the `band_wash_light` warning at publication, as the light hero overlay does. The
+gallery lightbox (`.lw-lightbox`, shown by `:target` alone) sits on `--brand-text` at 92 %
+with `--brand-on-text` for the caption, the close link and the next/previous links. The rich
+text blocks added in B3 use section tokens only: the divider is a rule on `--section-border`
+(each prose family draws it in its own width and weight), the callout a panel on
+`--section-panel` with a rule in `--section-accent`, and the button the primary colour with
+`onPrimary` text, inverted to `--section-fg` on `--section-bg` inside a band. The rendering
+audit below covers all of it unchanged.
 
 ## The gate
 

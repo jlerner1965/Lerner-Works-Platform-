@@ -32,7 +32,7 @@ const hexOrAuto = z.union([z.literal(""), hexColor]).default("");
  * renamed or removed: releases carry it, and old releases must keep rendering. Which themes a
  * preset may use, and what each renders, is declared in `src/themes/capabilities.ts`.
  */
-export const themeKeys = ["guide", "locations", "magazine", "storefront"] as const;
+export const themeKeys = ["guide", "locations", "magazine", "storefront", "almanac", "practice"] as const;
 export type ThemeKey = (typeof themeKeys)[number];
 export const headerStyles = ["default", "left", "centered", "overlay"] as const;
 export const heroStyles = ["default", "split", "full", "stacked"] as const;

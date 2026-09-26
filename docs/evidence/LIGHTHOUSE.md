@@ -1,5 +1,61 @@
 # Lighthouse lab runs (local production build)
 
+## After site-building phase B3 (2026-09-26, night)
+
+Same tool and conditions as the earlier runs (Lighthouse 13.5.0, Chromium 141 headless,
+mobile preset, simulated throttling, three runs per page, `next start` of the production
+build on `http://127.0.0.1:3200` with the seeded development database), with both pilots
+re-composed with the B3 sections (the guide home now opens with a collage of four pictures
+and carries image-and-text rows, a photo band, people and a logo strip; the retail home
+rows, a band, quotations with portraits, people and a logo strip; both About pages a new hero
+treatment, rich text blocks and a gallery with the lightbox), run twice: on the original
+compositions, and with Pine Hollow on the almanac and Range Athletics on the practice
+composition. Raw per-run summary: `docs/evidence/lighthouse/b3-2026-09-26-summary.txt`.
+
+Original compositions:
+
+| Page | Performance (3 runs) | Median | Accessibility | Best practices | SEO | CLS | LCP (3 runs) | Median LCP |
+|---|---|---|---|---|---|---|---|---|
+| `/demo/pine-hollow` (guide home) | 97 / 94 / 94 | 94 | 100 | 100 | 66 | 0.000 | 2.55 s / 3.06 s / 3.08 s | 3.06 s |
+| `/demo/range-athletics/locations/longmont` (store detail) | 98 / 97 / 97 | 97 | 100 | 100 | 66 | 0.000 | 2.43 s / 2.54 s / 2.50 s | 2.50 s |
+| `/demo/range-athletics` (retail home) | 95 / 96 / 99 | 96 | 100 | 100 | 66 | 0.000 | 2.73 s / 2.59 s / 1.95 s | 2.59 s |
+| `/demo/pine-hollow/about` (guide about) | 97 / 94 / 92 | 94 | 100 | 100 | 66 | 0.000 | 2.38 s / 3.09 s / 3.02 s | 3.02 s |
+
+B3 compositions:
+
+| Page | Performance (3 runs) | Median | Accessibility | Best practices | SEO | CLS | LCP (3 runs) | Median LCP |
+|---|---|---|---|---|---|---|---|---|
+| `/demo/pine-hollow` (almanac home) | 97 / 93 / 96 | 96 | 100 | 100 | 66 | 0.000 | 2.42 s / 3.06 s / 2.35 s | 2.42 s |
+| `/demo/range-athletics/locations/longmont` (practice store detail) | 96 / 99 / 97 | 97 | 100 | 100 | 66 | 0.000 | 2.57 s / 2.00 s / 2.46 s | 2.46 s |
+| `/demo/range-athletics` (practice home) | 96 / 96 / 98 | 96 | 100 | 100 | 66 | 0.000 | 2.52 s / 2.46 s / 2.30 s | 2.46 s |
+| `/demo/pine-hollow/about` (almanac about) | 94 / 98 / 94 | 94 | 96, then 100 (below) | 100 | 66 | 0.000 | 3.03 s / 2.36 s / 3.07 s | 3.03 s |
+
+Against the targets (median performance ≥ 90, CLS ≤ 0.1, lab LCP ≤ 2.5 s): performance and
+CLS met on all eight pages; LCP met on the store detail (at the limit), the almanac home, the
+practice store detail and the practice home, missed on the guide home (3.06 s; missed at every
+phase since M4), the retail home (2.59 s, by 0.09 s), the guide about (3.02 s) and the almanac
+about (3.03 s). The pages measure more content than at D2, not more code: the guide home's
+document grew from 46 to 56 KiB with its four new sections, and its collage hero loads four
+pictures where the split hero loaded one; the compositions themselves cost nothing (the
+almanac home is faster than the guide home on the same content).
+
+One finding, fixed in the phase: the almanac About page scored 96 on accessibility on the
+first run because the rich text button (`!button` block) inherited the almanac prose link
+colour, the accent on the primary background, when the family's `.alm-prose a` rule outranked
+the button's; the button rule is now `.lw-site a.lw-prose-button` in every prose family, and
+the re-run of the page after the fix scored 100 on accessibility in all three runs
+(performance 96 / 94 / 98, median 96; LCP 2.56 s / 3.00 s / 2.37 s, median 2.56 s; CLS 0.000;
+script 144 KiB).
+
+Public JavaScript budget (DES-14): **144 KiB of script transfer on every measured page of
+every composition**, one kibibyte over the D0 baseline of 143 KiB (allowance 20 KiB per
+phase): the click-to-load map (`src/themes/shared/map-embed.tsx`) is the one client component
+the phase added; the lightbox is `:target` CSS, the photo band and the hero treatments are
+layout. Total first-visit transfer: guide home 329 KiB (document 56, images 30, script 144,
+fonts 99), store detail 236 KiB, retail home 271 KiB, guide about 319 KiB; almanac home
+330 KiB, practice store detail 237 KiB, practice home 272 KiB, almanac about 320 KiB. Every
+request is same-origin.
+
 ## After design phase D2 (2026-09-26, night)
 
 Same tool and conditions as the earlier runs (Lighthouse 13.5.0, Chromium 141 headless,

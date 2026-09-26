@@ -5,7 +5,10 @@ import { z } from "zod";
  * markup ("structured text") that cannot carry HTML or scripts. Inline links use
  * [label](target) where target is a same-site path (/about), a stable item reference
  * (item:<uuid>) resolved at render time, or an https URL. Inline emphasis uses **bold** and
- * *italic* (or _italic_); nothing else is interpreted.
+ * *italic* (or _italic_); nothing else is interpreted. Block markup: `## ` and `### ` headings,
+ * `- ` and `1. ` lists, `> ` quotes, `!image ID | caption`, and since the site-building
+ * programme's phase B3 `---` (a divider), `!note text` (a callout panel) and
+ * `!button Label | target` (a link drawn as the theme's button).
  */
 
 export const inlineLinkTargetPattern = /^(?:\/[^\s)]*|item:[0-9a-f-]{36}|https:\/\/[^\s)]+)$/i;
@@ -20,6 +23,9 @@ export const blockSchema = z.discriminatedUnion("type", [
   }),
   z.object({ type: z.literal("quote"), text: z.string().min(1).max(2000), cite: z.string().max(200).optional() }),
   z.object({ type: z.literal("image"), assetId: z.uuid(), caption: z.string().max(300).optional() }),
+  z.object({ type: z.literal("divider") }),
+  z.object({ type: z.literal("callout"), text: z.string().min(1).max(2000) }),
+  z.object({ type: z.literal("button"), label: z.string().min(1).max(80), target: z.string().max(500).regex(inlineLinkTargetPattern) }),
 ]);
 
 export type Block = z.infer<typeof blockSchema>;
@@ -83,8 +89,9 @@ export function collectLinkTargets(blocks: Block[]): string[] {
     for (const node of parseInline(text)) if (node.type === "link" && node.target) targets.push(node.target);
   };
   for (const b of blocks) {
-    if (b.type === "paragraph" || b.type === "quote") scan(b.text);
+    if (b.type === "paragraph" || b.type === "quote" || b.type === "callout") scan(b.text);
     if (b.type === "list") b.items.forEach(scan);
+    if (b.type === "button") targets.push(b.target);
   }
   return targets;
 }
@@ -128,12 +135,35 @@ export function parseStructuredText(input: string): Block[] {
       blocks.push({ type: "heading", level: heading[1]!.length === 2 ? 2 : 3, text: heading[2]!.trim() });
       continue;
     }
+    if (/^(?:-{3,}|\*{3,})$/.test(trimmed)) {
+      flushParagraph();
+      flushList();
+      blocks.push({ type: "divider" });
+      continue;
+    }
     const image = /^!image\s+([0-9a-f-]{36})(?:\s*\|\s*(.*))?$/i.exec(trimmed);
     if (image) {
       flushParagraph();
       flushList();
       const caption = image[2]?.trim();
       blocks.push({ type: "image", assetId: image[1]!.toLowerCase(), ...(caption ? { caption } : {}) });
+      continue;
+    }
+    const note = /^!note\s+(.+)$/i.exec(trimmed);
+    if (note) {
+      flushParagraph();
+      flushList();
+      const prev = blocks[blocks.length - 1];
+      if (prev && prev.type === "callout") prev.text = `${prev.text} ${note[1]!.trim()}`.trim();
+      else blocks.push({ type: "callout", text: note[1]!.trim() });
+      continue;
+    }
+    // A button needs a label and a safe target; anything else stays literal text so the owner sees it.
+    const button = /^!button\s+([^|]{1,80}?)\s*\|\s*(\S{1,500})$/i.exec(trimmed);
+    if (button && inlineLinkTargetPattern.test(button[2]!)) {
+      flushParagraph();
+      flushList();
+      blocks.push({ type: "button", label: button[1]!.trim(), target: button[2]! });
       continue;
     }
     const quote = /^>\s?(.*)$/.exec(trimmed);
@@ -179,6 +209,12 @@ export function serializeStructuredText(blocks: Block[]): string {
           return `> ${b.text}`;
         case "image":
           return `!image ${b.assetId}${b.caption ? ` | ${b.caption}` : ""}`;
+        case "divider":
+          return "---";
+        case "callout":
+          return `!note ${b.text}`;
+        case "button":
+          return `!button ${b.label} | ${b.target}`;
       }
     })
     .join("\n\n");
@@ -191,6 +227,7 @@ export function blocksToPlainText(blocks: Block[]): string {
       switch (b.type) {
         case "paragraph":
         case "quote":
+        case "callout":
           return inlineToPlainText(b.text);
         case "heading":
           return b.text;
@@ -198,6 +235,10 @@ export function blocksToPlainText(blocks: Block[]): string {
           return b.items.map(inlineToPlainText).join(" ");
         case "image":
           return b.caption ?? "";
+        case "divider":
+          return "";
+        case "button":
+          return b.label;
       }
     })
     .join(" ")

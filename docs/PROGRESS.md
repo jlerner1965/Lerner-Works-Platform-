@@ -19,6 +19,7 @@ Resume point for the build. Update after every milestone and before any context 
 | D3 Visual in-context editing | OPTIONAL (owner's decision 2026-09-26; decided after D2 is in customer use, D-017) | Editable preview with keyboard-equivalent reordering, side-panel forms on the same schemas, live tokens, explicit save; same review and publication path; nothing beyond the same validated structures. |
 | B1 Publish in one step, navigate by task (`docs/SITE-BUILDING-PLAN.md`) | DONE (2026-09-26, on production: pull request #10 merged by the owner as `167c9d1`, migration `20260926000400_review_policy.sql` applied at 20:32 UTC, live checks in `docs/evidence/production/d2-b1-2026-09-26-live-checks.txt`) | Per-site review policy with approval on save for people who may publish (migration `20260926000400_review_policy.sql`, D-020); Publish page computing the next release without writing and publishing it in one action; sidebar grouped by task, overview built around content, look and publish with a checklist of actual missing data; Look page with brand, design and the preview together; Settings without the design cards and with a section index; editor labels following the policy. SB-01 to SB-03 PASS (integration and browser tests, screenshots in `docs/evidence/dashboard/`); SB-06 measured by `tests/e2e/walkthrough.spec.ts` (create, brand, five places, publish: 19 screens, 30 fields, 25 actions after B1; 4 empty-state notices on the published fresh home, for B2 to remove). |
 | B2 From empty to launch (`docs/SITE-BUILDING-PLAN.md`) | BUILT (2026-09-26, verified in the repository; production on the owner's go: pull request; its migration `20260926000500_onboarding_package.sql` is already on production, applied with the D2 and B1 ones; live checks) | A section with nothing to show is left out of the public page by one rule shared by the four compositions and the validator (D-021); starter pages whose slots fill themselves, with a new `category_list` section; the onboarding package (template, dry run, one-transaction apply of images, rows and settings; migration `20260926000500_onboarding_package.sql`); CSV imports for articles and services with body text and featured images; multi-file upload with an alternative-text pass; quick add, duplicate, category suggestions and site defaults in the editor; imports approved on save under the review policy. SB-04 and SB-05 PASS, SB-06 re-measured (`docs/ACCEPTANCE.md`). |
+| B3 Design richness inside the boundary (`docs/SITE-BUILDING-PLAN.md`) | BUILT (2026-09-26, verified in the repository; production on the owner's go with B2, no migration) | Richer section vocabulary as typed sections and enumerated options (D-022): people, logo strip, image-and-text rows, photo band, portraits on quotations, hero collage/offset/statement, gallery lightbox drawn by CSS, click-to-load map (D-013 extended), rich text divider/callout/button; shared renderers used by all six compositions; the almanac (guide) and practice (location business) compositions; both pilots re-composed; snapshot schema version 5 with the earlier eight frozen releases unchanged and version-5 fixtures added; `scripts/set-demo-theme.ts`. SB-07 PASS; DES-13 and DES-14 re-measured (144 KiB script, +1 KiB for the map); screenshots per composition. Open: the owner's judgement on two sample sites with real photography (B4). |
 
 ## Environment blockers (precise)
 
@@ -31,6 +32,30 @@ Resume point for the build. Update after every milestone and before any context 
 
 ## Last verified results
 
+- 2026-09-26 (site-building phase B3) `pnpm verify` on the final code: GATE PASSED in 426 s
+  (setup check 2 s, lint 18 s, typecheck 16 s, unit 5 s, integration 39 s, browser 337 s,
+  production build 9 s): 133 unit tests (adds `rich-sections.test`: the capabilities of every
+  composition, the nothing-to-show rule and slot hints for the new sections, a page rendered
+  under all six compositions from a synthetic release, the hero treatments with and without a
+  picture, the map offered to a live visitor and withheld otherwise, the validator's blockers
+  and warnings, every picture reference collected into the manifest; `richtext.test`: the
+  divider, callout and button blocks; `design-options.test`: the B3 schema; `themes.test`: six
+  registered compositions; `rendering-hash.test` over ten frozen releases, the eight earlier
+  ones unchanged), 68 integration tests (adds `rich-sections.test`: SB-07 end to end through
+  the real services; `themes.test` extended: the B3 compositions switched to and back), 35
+  browser tests against a production build (adds to `themes.spec`: under the almanac the
+  navigation rail, the lightbox opened, moved and closed by links alone and the map panel;
+  under the practice the header's phone number and contact button, the location cards and the
+  hours table; `design.spec`: the editor's new sections and treatments). Found by the gate and
+  fixed on the way: the package import's placeholder pass stripped the required pictures out
+  of a page's logo strip and image-and-text rows and failed the schema (the placeholder now
+  leaves sections out); the onboarding result listed the starter pages in database order (Home
+  before About now, whatever order the rows come back in); the lightbox dialog exposed two
+  links named Close, the click-away backdrop and the button (the backdrop is now a pointer
+  affordance hidden from assistive technology). Two test couplings removed: the media test
+  owns the picture it withdraws instead of the pilot's storefront picture, which the
+  re-composed home and About pages also show; the guide's home page no longer links to the
+  About page, whose slug the route test renames.
 - 2026-09-26 (site-building phase B2) `pnpm verify` on the final code: GATE PASSED in 400 s
   (setup check 1 s, lint 15 s, typecheck 3 s, unit 5 s, integration 34 s, browser 321 s,
   production build 21 s): 113 unit tests (adds `starter-structure.test`: the
@@ -210,10 +235,22 @@ onboarding package (Import & export: template download, dry run, one-transaction
 images, rows and the settings sheet), CSV imports for articles and services with body text
 and featured images, multi-file upload with an alternative-text pass, quick add and duplicate
 in the editor with category suggestions and site defaults, and imports approved on save under
-the review policy. Next is B3 (design richness inside the boundary and a third composition
-per preset). Production for B2 needs the owner's go for the pull request from
-`claude/lucid-darwin-cif2y6` into `main` (its migration is already applied, see below) and
-the live checks afterwards.
+the review policy. Phase B3 is built (D-022): the section vocabulary gained people, a logo
+strip, image-and-text rows, a photo band, portraits on quotations, the hero treatments
+offset, collage and statement, a gallery lightbox drawn by `:target` CSS, a click-to-load
+map (D-013 extended: nothing from the provider before the visitor asks; Apple Maps stays a
+link) and rich text divider, callout and button blocks, every one a typed section or an
+enumerated option validated on save, on import and at publication and rendered by every
+composition from `src/themes/shared/rich-sections.tsx`; the almanac (`src/themes/almanac`:
+navigation rail, numbered sections, fact sheets) and practice (`src/themes/practice`: slim
+header with the phone number, soft panels, numbered services, hours table) compositions;
+both pilots re-composed with the new sections (`src/server/demo/fixtures`, with portrait and
+mark scenes in `src/server/demo/images.ts`); snapshot schema version 5, the eight earlier
+frozen releases unchanged, version-5 fixtures of the pilots on the new compositions added;
+`scripts/set-demo-theme.ts` for the per-composition evidence passes. Next is B4 (the proof
+site). Production for B2 and B3 needs the owner's go for the pull request from
+`claude/lucid-darwin-cif2y6` into `main` (the B2 migration is already applied, see below;
+B3 has none) and the live checks afterwards.
 
 D2 and B1 reached production on 2026-09-26: the owner merged pull request #9 (D2, `d82bf6c`,
 deployed 18:08 UTC) and pull request #10 (B1, `167c9d1`, deployed 20:31 UTC). The merges
@@ -282,13 +319,20 @@ organization, site or hostname exists yet.
 
 ## Next action
 
-Site-building programme phase B3 (design richness inside the boundary and a third
-composition per preset, `docs/SITE-BUILDING-PLAN.md` section 3) continues on the branch,
-then B4 (the proof site). Owner: give the go for B2 on production when wanted: pull request
-from `claude/lucid-darwin-cif2y6` into `main` (the migration
-`20260926000500_onboarding_package.sql` is already applied to the production project),
-deployment, live checks (a version-1 release still renders; the onboarding template downloads
-for the test site), then look at the B2 controls on the production test site: Import & export
+Site-building programme phase B4 (the proof site, `docs/SITE-BUILDING-PLAN.md` section 3)
+is next on the branch; it needs photography (the owner's licensed images, or public-domain
+photographs with the attribution recorded), and B3's exit still wants the owner's judgement
+on two sample sites built with that photography. Owner: give the go for B2 and B3 on
+production when wanted: pull request from `claude/lucid-darwin-cif2y6` into `main` (the B2
+migration `20260926000500_onboarding_package.sql` is already applied to the production
+project; B3 has no migration), deployment, live checks (a version-1 release still renders;
+the onboarding template downloads for the test site), then look at the B3 additions on the
+production test site: Look → Theme lists the third composition (almanac or practice) with the
+preview beside it, the page editor's Add section offers People, Logo strip, Image and text
+rows and Photo band, the image hero's style list the Collage, Offset and Statement
+treatments, a gallery its lightbox switch, a quotation its portrait, the map section its
+"Offer the map" switch with coordinates, and the body editor's formatting help the `---`,
+`!note` and `!button` lines; and the B2 controls: Import & export
 → the onboarding package, Media → a multi-file upload and its alternative-text pass, a content
 list's quick add and the editor's Duplicate, the overview's checklist naming the home
 introduction and the About page. On the production test site the D2 and B1 controls are there

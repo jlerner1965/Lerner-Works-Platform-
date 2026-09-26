@@ -32,8 +32,8 @@ describe("theme catalogue", () => {
   });
 
   it("lists the compatible themes per preset with the preset's original composition first", () => {
-    expect(themesForPreset("community_guide").map((t) => t.key)).toEqual(["guide", "magazine"]);
-    expect(themesForPreset("location_business").map((t) => t.key)).toEqual(["locations", "storefront"]);
+    expect(themesForPreset("community_guide").map((t) => t.key)).toEqual(["guide", "magazine", "almanac"]);
+    expect(themesForPreset("location_business").map((t) => t.key)).toEqual(["locations", "storefront", "practice"]);
     expect(themeKeyForPreset("community_guide")).toBe("guide");
     expect(themeKeyForPreset("location_business")).toBe("locations");
   });

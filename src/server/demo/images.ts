@@ -10,7 +10,9 @@ export type SceneSpec =
   | { type: "storefront"; sign: string; awning: string; wall: string; trim: string; seed: number; detail?: "coffee" | "bread" | "books" | "bike" | "gear" | "gallery" | "hall" | "library" }
   | { type: "poster"; title: string; subtitle: string; bg: string; fg: string; accent: string; seed: number }
   | { type: "icon"; icon: "shoe" | "ski" | "jersey" | "wrench" | "trail" | "pond" | "falls"; bg: string; fg: string; accent: string }
-  | { type: "logo"; lines: string[]; fg: string; accent: string; emblem: "pine" | "peak" };
+  | { type: "logo"; lines: string[]; fg: string; accent: string; emblem: "pine" | "peak" | "ring" | "shield" | "leaf" | "sun" }
+  /** Stylised head-and-shoulders silhouette with a monogram: a portrait for fictional people (B3). */
+  | { type: "portrait"; initials: string; bg: string; fg: string; accent: string; seed: number };
 
 function rng(seed: number): () => number {
   let s = seed >>> 0 || 1;
@@ -170,14 +172,20 @@ export function iconSvg(spec: Extract<SceneSpec, { type: "icon" }>): string {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"><rect width="${W}" height="${H}" fill="${spec.bg}"/><rect x="60" y="60" width="${W - 120}" height="${H - 120}" fill="none" stroke="${spec.fg}" stroke-width="6" opacity="0.25"/>${body}</svg>`;
 }
 
+const emblems: Record<Extract<SceneSpec, { type: "logo" }>["emblem"], (fg: string, accent: string) => string> = {
+  pine: (fg, accent) => `<circle cx="160" cy="160" r="120" fill="${accent}"/><polygon points="160,58 232,196 88,196" fill="${fg}"/><polygon points="160,112 248,252 72,252" fill="${fg}"/><rect x="148" y="244" width="24" height="30" fill="${fg}"/>`,
+  peak: (fg, accent) => `<rect x="40" y="40" width="240" height="240" rx="24" fill="${fg}"/><polygon points="62,262 150,112 198,192 228,146 298,262" fill="${accent}"/><polygon points="62,262 150,112 172,150 118,262" fill="${accent}" opacity="0.6"/>`,
+  ring: (fg, accent) => `<circle cx="160" cy="160" r="116" fill="none" stroke="${accent}" stroke-width="28"/><circle cx="160" cy="160" r="46" fill="${fg}"/>`,
+  shield: (fg, accent) => `<path d="M160 36 L272 78 V170 C272 240 216 280 160 296 C104 280 48 240 48 170 V78 Z" fill="${fg}"/><path d="M160 90 L226 116 V170 C226 212 192 240 160 252 C128 240 94 212 94 170 V116 Z" fill="${accent}"/>`,
+  leaf: (fg, accent) => `<path d="M60 262 C60 122 160 42 282 42 C282 182 182 262 60 262 Z" fill="${accent}"/><path d="M74 248 L268 56" stroke="${fg}" stroke-width="14" stroke-linecap="round"/>`,
+  sun: (fg, accent) => `<circle cx="160" cy="160" r="76" fill="${accent}"/>${Array.from({ length: 8 }, (_, i) => `<rect x="150" y="30" width="20" height="46" rx="6" fill="${fg}" transform="rotate(${i * 45} 160 160)"/>`).join("")}`,
+};
+
 /** Wide wordmark logo (3:1) with a small emblem, on a transparent background. */
 export function logoSvg(spec: Extract<SceneSpec, { type: "logo" }>): string {
   const W = 960;
   const H = 320;
-  const emblem =
-    spec.emblem === "pine"
-      ? `<circle cx="160" cy="160" r="120" fill="${spec.accent}"/><polygon points="160,58 232,196 88,196" fill="${spec.fg}"/><polygon points="160,112 248,252 72,252" fill="${spec.fg}"/><rect x="148" y="244" width="24" height="30" fill="${spec.fg}"/>`
-      : `<rect x="40" y="40" width="240" height="240" rx="24" fill="${spec.fg}"/><polygon points="62,262 150,112 198,192 228,146 298,262" fill="${spec.accent}"/><polygon points="62,262 150,112 172,150 118,262" fill="${spec.accent}" opacity="0.6"/>`;
+  const emblem = emblems[spec.emblem](spec.fg, spec.accent);
   const [first = "", second = ""] = spec.lines;
   const fit = (text: string, max: number, width: number) => Math.min(max, Math.floor(width / (0.62 * Math.max(text.length, 1))));
   const s1 = fit(first, 116, 620);
@@ -186,6 +194,35 @@ export function logoSvg(spec: Extract<SceneSpec, { type: "logo" }>): string {
     `<text x="320" y="${second ? 168 : 200}" font-family="DejaVu Sans, sans-serif" font-weight="bold" font-size="${s1}" fill="${spec.fg}">${escapeXml(first)}</text>` +
     (second ? `<text x="322" y="${168 + s2 + 28}" font-family="DejaVu Sans, sans-serif" font-weight="bold" font-size="${s2}" letter-spacing="${Math.round(s2 * 0.18)}" fill="${spec.accent}">${escapeXml(second)}</text>` : "");
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${emblem}${text}</svg>`;
+}
+
+/** Square portrait: a one-colour head-and-shoulders silhouette, varied by the seed, with a monogram and a ring in the accent colour. */
+export function portraitSvg(spec: Extract<SceneSpec, { type: "portrait" }>): string {
+  const S = 800;
+  const r = rng(spec.seed);
+  const headR = 140 + Math.round(r() * 30);
+  const headCx = 400 + Math.round((r() - 0.5) * 30);
+  const headCy = 340 + Math.round((r() - 0.5) * 30);
+  const shoulder = 520 + Math.round(r() * 140);
+  const hairStyle = spec.seed % 3;
+  const hair =
+    hairStyle === 0
+      ? `<ellipse cx="${headCx}" cy="${headCy - headR * 0.55}" rx="${headR * 1.05}" ry="${headR * 0.62}" fill="${spec.fg}"/>`
+      : hairStyle === 1
+        ? `<ellipse cx="${headCx}" cy="${headCy - headR * 0.5}" rx="${headR * 1.02}" ry="${headR * 0.6}" fill="${spec.fg}"/><circle cx="${headCx}" cy="${headCy - headR - 34}" r="52" fill="${spec.fg}"/>`
+        : `<ellipse cx="${headCx}" cy="${headCy - headR * 0.3}" rx="${headR * 1.28}" ry="${headR * 0.95}" fill="${spec.fg}"/>`;
+  const left = 400 - shoulder / 2;
+  const right = 400 + shoulder / 2;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${S}" height="${S}" viewBox="0 0 ${S} ${S}">
+<rect width="${S}" height="${S}" fill="${spec.bg}"/>
+<circle cx="400" cy="400" r="372" fill="none" stroke="${spec.accent}" stroke-width="16" opacity="0.4"/>
+<text x="64" y="118" font-family="DejaVu Sans, FreeSans, sans-serif" font-size="64" font-weight="bold" letter-spacing="4" fill="${spec.fg}" opacity="0.85">${escapeXml(spec.initials.toUpperCase())}</text>
+<path d="M${left} 800 Q${left} 580 ${400 - shoulder / 4} 556 L${400 + shoulder / 4} 556 Q${right} 580 ${right} 800 Z" fill="${spec.fg}"/>
+<rect x="366" y="${headCy + headR - 40}" width="68" height="${560 - (headCy + headR - 40)}" fill="${spec.fg}"/>
+<path d="M330 556 L400 660 L470 556 Z" fill="${spec.accent}"/>
+${hair}
+<circle cx="${headCx}" cy="${headCy}" r="${headR}" fill="${spec.fg}"/>
+</svg>`;
 }
 
 export function sceneSvg(spec: SceneSpec): string {
@@ -200,6 +237,8 @@ export function sceneSvg(spec: SceneSpec): string {
       return iconSvg(spec);
     case "logo":
       return logoSvg(spec);
+    case "portrait":
+      return portraitSvg(spec);
   }
 }
 

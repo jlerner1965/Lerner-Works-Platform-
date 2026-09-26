@@ -89,6 +89,33 @@ describe("section and design schemas", () => {
     expect(sectionSchema.safeParse({ type: "carousel", id: "z" }).success).toBe(false);
   });
 
+  it("validates the B3 section types and gives the additive fields their earlier behaviour by default", () => {
+    const U1 = "11111111-1111-4111-8111-111111111111";
+    const hero = sectionSchema.parse({ type: "image_hero", id: "h", heading: "Hi" });
+    expect(hero.type === "image_hero" && hero.extraImageAssetIds).toEqual([]);
+    expect(sectionSchema.safeParse({ type: "image_hero", id: "h", heading: "Hi", variant: "collage", extraImageAssetIds: [U1, U1, U1, U1] }).success).toBe(false);
+    expect(sectionSchema.safeParse({ type: "image_hero", id: "h", heading: "Hi", variant: "offset" }).success).toBe(true);
+    const gallery = sectionSchema.parse({ type: "gallery", id: "g", items: [{ assetId: U1 }] });
+    expect(gallery.type === "gallery" && gallery.lightbox).toBe(false);
+    const quotes = sectionSchema.parse({ type: "quotes", id: "q", items: [{ text: "Great.", attribution: "A" }] });
+    expect(quotes.type === "quotes" && quotes.items[0]!.assetId).toBeNull();
+    const map = sectionSchema.parse({ type: "map_link", id: "m" });
+    expect(map.type === "map_link" && map.embed).toBe(false);
+    expect(map.type === "map_link" && map.latitude).toBeNull();
+    expect(sectionSchema.safeParse({ type: "map_link", id: "m", embed: true, latitude: 91, longitude: 0 }).success).toBe(false);
+    expect(sectionSchema.safeParse({ type: "team", id: "t", items: [{ name: "Ada", role: "Editor", assetId: U1, path: "/about" }] }).success).toBe(true);
+    expect(sectionSchema.safeParse({ type: "team", id: "t", items: [{ name: "" }] }).success).toBe(false);
+    expect(sectionSchema.safeParse({ type: "logo_strip", id: "l", variant: "mono", items: [{ assetId: U1, path: "https://partner.example" }] }).success).toBe(true);
+    expect(sectionSchema.safeParse({ type: "logo_strip", id: "l", items: [{ assetId: "", path: "" }] }).success).toBe(false);
+    expect(sectionSchema.safeParse({ type: "image_text", id: "i", variant: "image_right", items: [{ assetId: U1, heading: "Row", body: [{ type: "paragraph", text: "x" }] }] }).success).toBe(true);
+    expect(sectionSchema.safeParse({ type: "image_text", id: "i", items: [{ assetId: U1, heading: "" }] }).success).toBe(false);
+    const band = sectionSchema.parse({ type: "image_band", id: "b", heading: "Band" });
+    expect(band.type === "image_band" && band.tint).toBe("dark");
+    expect(band.type === "image_band" && band.strength).toBe("medium");
+    expect(sectionSchema.safeParse({ type: "image_band", id: "b", tint: "rainbow" }).success).toBe(false);
+    expect(emptySection("image_band", "b").appearance.align).toBe("center");
+  });
+
   it("gives every site the design defaults and accepts only hex overrides", () => {
     const design = designSchema.parse({});
     expect(design).toMatchObject({ header: "default", hero: "default", cards: "default", radius: "none", density: "regular", container: "regular" });

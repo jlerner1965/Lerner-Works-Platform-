@@ -1,7 +1,7 @@
 "use client";
 
 import type { PageSection, SectionType, SectionAppearance } from "@/modules/page";
-import { sectionTypeLabels, emptySection, variantLabels, backgroundLabels, sectionBackgrounds, sectionAligns, sectionWidths, videoProviders, mapProviders } from "@/modules/page";
+import { sectionTypeLabels, emptySection, variantLabels, backgroundLabels, sectionBackgrounds, sectionAligns, sectionWidths, videoProviders, mapProviders, mapEmbedProviders, bandTints, bandStrengths, bandTintLabels, bandStrengthLabels } from "@/modules/page";
 import type { EditorContext, Issues } from "@/components/admin/editor/types";
 import { TextInput, TextArea, SelectInput, Checkbox, MultiSelect } from "@/components/admin/editor/inputs";
 import { BodyEditor } from "@/components/admin/editor/body-editor";
@@ -35,7 +35,12 @@ export function slotHint(section: PageSection): string | null {
     case "quotes":
     case "facts":
     case "gallery":
+    case "team":
+    case "logo_strip":
+    case "image_text":
       return section.items.length ? null : "Nothing to show yet: add items, or remove the section. Publication needs at least one.";
+    case "image_band":
+      return section.heading || section.text || section.imageAssetId ? null : "Nothing to show yet: choose a picture or write a heading. The band is left out of the public page until it has one.";
     case "content_collection":
       if (section.mode === "selected") return section.itemIds.length ? null : "No items chosen: the section is left out of the public page until some are.";
       return `Fills itself with the published ${kindPlural[section.kind] ?? section.kind}${section.mode === "upcoming" ? " that are upcoming" : ""}; it is left out of the public page while there are none.`;
@@ -127,7 +132,11 @@ function AppearanceControls({ section, onChange, capabilities, prefix, issues }:
         options={[...variants.map((v) => ({ value: v, label: variantLabels[v] ?? v })), ...(unsupported ? [{ value: section.variant, label: `${variantLabels[section.variant] ?? section.variant} (not offered by this theme)` }] : [])]}
         error={issues[`${prefix}.variant`] ?? (unsupported ? `The ${capabilities.label} theme does not offer this style; choose another before saving.` : undefined)}
       />
-      <SelectInput label="Background" value={app.background} onChange={(v) => setApp({ background: v as SectionAppearance["background"] })} options={sectionBackgrounds.map((b) => ({ value: b, label: backgroundLabels[b] }))} />
+      {section.type === "image_band" ? (
+        <p className="mb-3 self-end text-xs text-ink-subtle">The band takes its colour from the wash chosen below.</p>
+      ) : (
+        <SelectInput label="Background" value={app.background} onChange={(v) => setApp({ background: v as SectionAppearance["background"] })} options={sectionBackgrounds.map((b) => ({ value: b, label: backgroundLabels[b] }))} />
+      )}
       <SelectInput label="Alignment" value={app.align} onChange={(v) => setApp({ align: v as SectionAppearance["align"] })} options={sectionAligns.map((a) => ({ value: a, label: alignLabels[a] }))} />
       <SelectInput label="Width" value={app.width} onChange={(v) => setApp({ width: v as SectionAppearance["width"] })} options={sectionWidths.map((w) => ({ value: w, label: widthLabels[w] }))} />
     </div>
@@ -173,10 +182,27 @@ function SectionFields({ section, onChange, ctx, prefix, issues }: { section: Pa
           <TextInput label="Heading" value={section.heading} onChange={(v) => onChange({ ...section, heading: v })} required error={err("heading")} />
           <TextArea label="Subheading" value={section.subheading} onChange={(v) => onChange({ ...section, subheading: v })} rows={2} error={err("subheading")} />
           {section.type === "image_hero" ? (
-            <div className="grid gap-3 sm:grid-cols-2">
-              <MediaPicker label="Hero image" value={section.imageAssetId} onChange={(v) => onChange({ ...section, imageAssetId: v })} assets={ctx.assets} siteId={ctx.siteId} />
-              <SelectInput label="Overlay over the image (full-width style)" value={section.overlay} onChange={(v) => onChange({ ...section, overlay: v as typeof section.overlay })} options={[{ value: "light", label: "Light" }, { value: "medium", label: "Medium" }, { value: "strong", label: "Strong" }]} hint="Darkens the picture behind the text; medium or strong keeps the text readable." />
-            </div>
+            <>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <MediaPicker label="Hero image" value={section.imageAssetId} onChange={(v) => onChange({ ...section, imageAssetId: v })} assets={ctx.assets} siteId={ctx.siteId} />
+                <SelectInput label="Overlay over the image (full-width style)" value={section.overlay} onChange={(v) => onChange({ ...section, overlay: v as typeof section.overlay })} options={[{ value: "light", label: "Light" }, { value: "medium", label: "Medium" }, { value: "strong", label: "Strong" }]} hint="Darkens the picture behind the text; medium or strong keeps the text readable." />
+              </div>
+              {section.variant === "collage" ? (
+                <fieldset className="mb-3 rounded border border-line p-3">
+                  <legend className="px-1 text-sm font-medium">More pictures for the collage</legend>
+                  <p className="mb-2 text-xs text-ink-subtle">Up to three pictures shown with the hero image; the collage needs at least one to look like one.</p>
+                  <ItemList
+                    items={section.extraImageAssetIds ?? []}
+                    onChange={(ids) => onChange({ ...section, extraImageAssetIds: ids })}
+                    empty="No extra pictures yet."
+                    addLabel="Add picture"
+                    max={3}
+                    blank={() => ""}
+                    render={(id, update, i) => <MediaPicker label={`Picture ${i + 2}`} value={id || null} onChange={(v) => update(v ?? "")} assets={ctx.assets} siteId={ctx.siteId} />}
+                  />
+                </fieldset>
+              ) : null}
+            </>
           ) : null}
           <div className="grid gap-3 sm:grid-cols-2">
             <TextInput label="Call to action label" value={section.ctaLabel} onChange={(v) => onChange({ ...section, ctaLabel: v })} error={err("ctaLabel")} />
@@ -300,13 +326,14 @@ function SectionFields({ section, onChange, ctx, prefix, issues }: { section: Pa
             empty="No quotations yet. Each one needs the words and who said them."
             addLabel="Add quotation"
             max={12}
-            blank={() => ({ text: "", attribution: "", role: "" })}
+            blank={() => ({ text: "", attribution: "", role: "", assetId: null })}
             render={(item, update, i) => (
               <>
                 <TextArea label="Quotation" value={item.text} onChange={(v) => update({ ...item, text: v })} rows={2} error={err(`items.${i}.text`)} />
-                <div className="grid gap-2 sm:grid-cols-2">
+                <div className="grid gap-2 sm:grid-cols-3">
                   <TextInput label="Who said it" value={item.attribution} onChange={(v) => update({ ...item, attribution: v })} required error={err(`items.${i}.attribution`)} />
                   <TextInput label="Their role or place (optional)" value={item.role} onChange={(v) => update({ ...item, role: v })} />
+                  <MediaPicker label="Portrait (optional)" value={item.assetId ?? null} onChange={(v) => update({ ...item, assetId: v })} assets={ctx.assets} siteId={ctx.siteId} hint="Shown small beside the name; crops keep the focal point." />
                 </div>
               </>
             )}
@@ -334,6 +361,7 @@ function SectionFields({ section, onChange, ctx, prefix, issues }: { section: Pa
             <SelectInput label="Columns" value={section.columns ? String(section.columns) : ""} onChange={(v) => onChange({ ...section, columns: v ? (Number(v) as 2 | 3 | 4) : undefined })} options={columnOptions} />
             <SelectInput label="Image shape" value={section.aspect} onChange={(v) => onChange({ ...section, aspect: v as typeof section.aspect })} options={[{ value: "landscape", label: "Landscape (4:3)" }, { value: "square", label: "Square" }, { value: "portrait", label: "Portrait (3:4)" }, { value: "natural", label: "As uploaded" }]} hint="Crops keep each image's focal point (set in Media)." />
           </div>
+          <Checkbox label="Open each picture at full size when it is clicked" checked={section.lightbox ?? false} onChange={(v) => onChange({ ...section, lightbox: v })} hint="A lightbox drawn by the browser's own styles: no script is added to the page." />
           <ItemList
             items={section.items}
             onChange={(items) => onChange({ ...section, items })}
@@ -393,9 +421,119 @@ function SectionFields({ section, onChange, ctx, prefix, issues }: { section: Pa
           <TextArea label="Text (optional)" value={section.text} onChange={(v) => onChange({ ...section, text: v })} rows={2} />
           <div className="grid gap-3 sm:grid-cols-2">
             <TextInput label="Button label" value={section.label} onChange={(v) => onChange({ ...section, label: v })} />
-            <SelectInput label="Map provider" value={section.provider} onChange={(v) => onChange({ ...section, provider: v as (typeof mapProviders)[number] })} options={[{ value: "google", label: "Google Maps" }, { value: "apple", label: "Apple Maps" }, { value: "openstreetmap", label: "OpenStreetMap" }]} hint="A link only; no map tiles or scripts are loaded on the page." />
+            <SelectInput label="Map provider" value={section.provider} onChange={(v) => onChange({ ...section, provider: v as (typeof mapProviders)[number] })} options={[{ value: "google", label: "Google Maps" }, { value: "apple", label: "Apple Maps" }, { value: "openstreetmap", label: "OpenStreetMap" }]} hint="Nothing is loaded from the provider until a visitor follows the link or asks for the map." />
           </div>
           <AddressFields value={section.address} onChange={(address) => onChange({ ...section, address })} issues={issues} prefix={`${prefix}.address`} />
+          <Checkbox
+            label="Offer the map on the page (loads only when the visitor asks for it)"
+            checked={section.embed ?? false}
+            onChange={(v) => onChange({ ...section, embed: v })}
+            hint={mapEmbedProviders.includes(section.provider) ? "Visitors see the address on a plain panel with a \"Show map\" button; the provider's map loads only after they press it, and only where the directions link would appear." : "Apple Maps cannot be embedded: the button links out instead. Choose Google Maps or OpenStreetMap to offer a map on the page."}
+          />
+          {section.embed ? (
+            <div className="grid gap-3 sm:grid-cols-2">
+              <TextInput label="Latitude" type="number" value={section.latitude === null || section.latitude === undefined ? "" : String(section.latitude)} onChange={(v) => onChange({ ...section, latitude: v === "" || Number.isNaN(Number(v)) ? null : Number(v) })} required hint="Decimal degrees, e.g. 40.015 (north positive)." error={err("latitude")} />
+              <TextInput label="Longitude" type="number" value={section.longitude === null || section.longitude === undefined ? "" : String(section.longitude)} onChange={(v) => onChange({ ...section, longitude: v === "" || Number.isNaN(Number(v)) ? null : Number(v) })} required hint="Decimal degrees, e.g. -105.27 (west negative)." error={err("longitude")} />
+            </div>
+          ) : null}
+        </>
+      );
+    case "team":
+      return (
+        <>
+          <div className="grid gap-3 sm:grid-cols-[1fr_10rem]">
+            <TextInput label="Heading" value={section.heading} onChange={(v) => onChange({ ...section, heading: v })} error={err("heading")} />
+            <SelectInput label="Columns (grid)" value={section.columns ? String(section.columns) : ""} onChange={(v) => onChange({ ...section, columns: v ? (Number(v) as 2 | 3 | 4) : undefined })} options={columnOptions} />
+          </div>
+          <TextArea label="Introduction (optional)" value={section.intro} onChange={(v) => onChange({ ...section, intro: v })} rows={2} />
+          <ItemList
+            items={section.items}
+            onChange={(items) => onChange({ ...section, items })}
+            empty="No people yet. Publication needs at least one."
+            addLabel="Add person"
+            max={24}
+            blank={() => ({ name: "", role: "", text: "", assetId: null, path: "" })}
+            render={(item, update, i) => (
+              <>
+                <div className="grid gap-2 sm:grid-cols-3">
+                  <TextInput label="Name" value={item.name} onChange={(v) => update({ ...item, name: v })} required error={err(`items.${i}.name`)} />
+                  <TextInput label="Role (optional)" value={item.role} onChange={(v) => update({ ...item, role: v })} />
+                  <MediaPicker label="Portrait (optional)" value={item.assetId ?? null} onChange={(v) => update({ ...item, assetId: v })} assets={ctx.assets} siteId={ctx.siteId} hint="Square crops keep the focal point set in Media." />
+                </div>
+                <TextArea label="A few words (optional)" value={item.text} onChange={(v) => update({ ...item, text: v })} rows={2} />
+                <TextInput label="Link (optional)" value={item.path} onChange={(v) => update({ ...item, path: v })} hint="Site path or https:// address" error={err(`items.${i}.path`)} />
+              </>
+            )}
+          />
+        </>
+      );
+    case "logo_strip":
+      return (
+        <>
+          <div className="grid gap-3 sm:grid-cols-[1fr_10rem]">
+            <TextInput label="Heading (optional)" value={section.heading} onChange={(v) => onChange({ ...section, heading: v })} error={err("heading")} hint="For example “Members of” or “As seen in”." />
+            <SelectInput label="Columns (grid)" value={section.columns ? String(section.columns) : ""} onChange={(v) => onChange({ ...section, columns: v ? (Number(v) as 2 | 3 | 4) : undefined })} options={columnOptions} />
+          </div>
+          <ItemList
+            items={section.items}
+            onChange={(items) => onChange({ ...section, items })}
+            empty="No logos yet. Upload each logo in Media with its alternative text (the organisation's name), then choose it here."
+            addLabel="Add logo"
+            max={16}
+            blank={() => ({ assetId: "", label: "", path: "" })}
+            render={(item, update, i) => (
+              <div className="grid gap-2 sm:grid-cols-3">
+                <MediaPicker label="Logo" value={item.assetId || null} onChange={(v) => update({ ...item, assetId: v ?? "" })} assets={ctx.assets} siteId={ctx.siteId} />
+                <TextInput label="Name (optional)" value={item.label} onChange={(v) => update({ ...item, label: v })} hint="Shown under the logo when set." error={err(`items.${i}.assetId`) ?? err(`items.${i}.label`)} />
+                <TextInput label="Link (optional)" value={item.path} onChange={(v) => update({ ...item, path: v })} hint="Site path or https:// address" error={err(`items.${i}.path`)} />
+              </div>
+            )}
+          />
+        </>
+      );
+    case "image_text":
+      return (
+        <>
+          <TextInput label="Heading (optional)" value={section.heading} onChange={(v) => onChange({ ...section, heading: v })} error={err("heading")} />
+          <ItemList
+            items={section.items}
+            onChange={(items) => onChange({ ...section, items })}
+            empty="No rows yet. Each row is a picture beside a heading and some text; the sides alternate."
+            addLabel="Add row"
+            max={8}
+            blank={() => ({ assetId: "", heading: "", body: [], ctaLabel: "", ctaPath: "" })}
+            render={(item, update, i) => (
+              <>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <MediaPicker label="Picture" value={item.assetId || null} onChange={(v) => update({ ...item, assetId: v ?? "" })} assets={ctx.assets} siteId={ctx.siteId} />
+                  <TextInput label="Heading" value={item.heading} onChange={(v) => update({ ...item, heading: v })} required error={err(`items.${i}.assetId`) ?? err(`items.${i}.heading`)} />
+                </div>
+                <BodyEditor label="Text" blocks={item.body as Block[]} onChange={(b) => update({ ...item, body: b })} rows={4} error={err(`items.${i}.body`)} />
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <TextInput label="Button label (optional)" value={item.ctaLabel} onChange={(v) => update({ ...item, ctaLabel: v })} error={err(`items.${i}.ctaLabel`)} />
+                  <TextInput label="Button link" value={item.ctaPath} onChange={(v) => update({ ...item, ctaPath: v })} hint="Site path or https:// address" error={err(`items.${i}.ctaPath`)} />
+                </div>
+              </>
+            )}
+          />
+        </>
+      );
+    case "image_band":
+      return (
+        <>
+          <TextInput label="Heading" value={section.heading} onChange={(v) => onChange({ ...section, heading: v })} error={err("heading")} />
+          <TextArea label="Text (optional)" value={section.text} onChange={(v) => onChange({ ...section, text: v })} rows={2} />
+          <div className="grid gap-3 sm:grid-cols-3">
+            <MediaPicker label="Picture" value={section.imageAssetId} onChange={(v) => onChange({ ...section, imageAssetId: v })} assets={ctx.assets} siteId={ctx.siteId} hint="Spans the full width of the page; the crop keeps the focal point set in Media." />
+            <SelectInput label="Colour wash" value={section.tint} onChange={(v) => onChange({ ...section, tint: v as typeof section.tint })} options={bandTints.map((t) => ({ value: t, label: bandTintLabels[t] }))} hint="A brand colour laid over the picture; the text uses that colour's readable pairing." />
+            <SelectInput label="Wash strength" value={section.strength} onChange={(v) => onChange({ ...section, strength: v as typeof section.strength })} options={bandStrengths.map((s) => ({ value: s, label: bandStrengthLabels[s] }))} hint="Medium or strong keeps the text readable on any picture." />
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <TextInput label="Button label (optional)" value={section.ctaLabel} onChange={(v) => onChange({ ...section, ctaLabel: v })} error={err("ctaLabel")} />
+            <TextInput label="Button link" value={section.ctaPath} onChange={(v) => onChange({ ...section, ctaPath: v })} hint="Site path or https:// address" error={err("ctaPath")} />
+            <TextInput label="Second button label (optional)" value={section.secondaryLabel} onChange={(v) => onChange({ ...section, secondaryLabel: v })} error={err("secondaryLabel")} />
+            <TextInput label="Second button link" value={section.secondaryPath} onChange={(v) => onChange({ ...section, secondaryPath: v })} error={err("secondaryPath")} />
+          </div>
         </>
       );
   }

@@ -32,10 +32,15 @@ export const appearanceSchema = z
   .prefault({});
 export type SectionAppearance = z.infer<typeof appearanceSchema>;
 
-/** Variant vocabularies per section type; "default" always resolves through the theme. */
+/**
+ * Variant vocabularies per section type; "default" always resolves through the theme. The
+ * site-building programme's phase B3 added the hero treatments `offset` (the words overlap the
+ * picture), `collage` (the picture with up to three more) and `statement` (oversized heading,
+ * picture beneath), and the section types team, logo_strip, image_text and image_band.
+ */
 export const sectionVariants = {
   text_hero: ["default", "compact", "statement"],
-  image_hero: ["default", "split", "full", "stacked"],
+  image_hero: ["default", "split", "full", "stacked", "offset", "collage", "statement"],
   rich_text: ["default", "columns", "lead"],
   feature_list: ["default", "grid", "list", "cards"],
   content_collection: ["default", "cards", "list", "text", "featured"],
@@ -50,6 +55,10 @@ export const sectionVariants = {
   facts: ["default", "grid", "list", "inline"],
   video: ["default", "wide"],
   map_link: ["default", "card"],
+  team: ["default", "grid", "list", "compact"],
+  logo_strip: ["default", "row", "grid", "mono"],
+  image_text: ["default", "alternating", "image_left", "image_right"],
+  image_band: ["default", "compact", "tall"],
 } as const;
 
 const variantOf = <T extends keyof typeof sectionVariants>(type: T) => z.enum(sectionVariants[type]).default("default");
@@ -57,10 +66,18 @@ const variantOf = <T extends keyof typeof sectionVariants>(type: T) => z.enum(se
 const galleryAspects = ["landscape", "square", "portrait", "natural"] as const;
 export const videoProviders = ["youtube", "vimeo"] as const;
 export const mapProviders = ["google", "apple", "openstreetmap"] as const;
+/** Providers with a keyless embeddable map (Apple Maps has none; it stays a link). */
+export const mapEmbedProviders: ReadonlyArray<(typeof mapProviders)[number]> = ["google", "openstreetmap"];
 export const videoIdPatterns: Record<(typeof videoProviders)[number], RegExp> = {
   youtube: /^[A-Za-z0-9_-]{11}$/,
   vimeo: /^\d{6,12}$/,
 };
+/** The colour washed over a photo band and how strong it is (B3). */
+export const bandTints = ["primary", "accent", "dark"] as const;
+export const bandStrengths = ["light", "medium", "strong"] as const;
+export type BandTint = (typeof bandTints)[number];
+const latitude = z.number().min(-90).max(90).nullable().default(null);
+const longitude = z.number().min(-180).max(180).nullable().default(null);
 
 export const sectionSchema = z.discriminatedUnion("type", [
   z.object({
@@ -81,6 +98,8 @@ export const sectionSchema = z.discriminatedUnion("type", [
     heading: z.string().trim().min(1).max(160),
     subheading: z.string().trim().max(400).default(""),
     imageAssetId: z.uuid().nullable().default(null),
+    /** Up to three more pictures for the collage treatment (B3); other treatments ignore them. */
+    extraImageAssetIds: z.array(z.uuid()).max(3).default([]),
     /** Darkening over the image when the text sits on it (full variant). */
     overlay: z.enum(["light", "medium", "strong"]).default("medium"),
     ctaLabel: z.string().trim().max(60).default(""),
@@ -169,7 +188,15 @@ export const sectionSchema = z.discriminatedUnion("type", [
     appearance: appearanceSchema,
     heading: z.string().trim().max(160).default(""),
     items: z
-      .array(z.object({ text: z.string().trim().min(1, "Enter the quotation.").max(600), attribution: z.string().trim().min(1, "Say who said it.").max(120), role: z.string().trim().max(120).default("") }))
+      .array(
+        z.object({
+          text: z.string().trim().min(1, "Enter the quotation.").max(600),
+          attribution: z.string().trim().min(1, "Say who said it.").max(120),
+          role: z.string().trim().max(120).default(""),
+          /** Portrait of the person quoted (B3); shown beside the attribution. */
+          assetId: z.uuid().nullable().default(null),
+        }),
+      )
       .max(12)
       .default([]),
   }),
@@ -193,6 +220,8 @@ export const sectionSchema = z.discriminatedUnion("type", [
     heading: z.string().trim().max(160).default(""),
     columns: columns.optional(),
     aspect: z.enum(galleryAspects).default("landscape"),
+    /** Each picture opens at full size in a lightbox drawn with CSS alone (B3; no script). */
+    lightbox: z.boolean().default(false),
     items: z.array(z.object({ assetId: z.uuid(), caption: z.string().trim().max(300).default("") })).max(24).default([]),
   }),
   z.object({
@@ -233,6 +262,94 @@ export const sectionSchema = z.discriminatedUnion("type", [
     label: z.string().trim().max(60).default("Get directions"),
     provider: z.enum(mapProviders).default("google"),
     address: addressSchema.prefault({}),
+    /**
+     * Click-to-load map (B3, decision D-013 extended): the page shows the address on a plain
+     * panel and loads the provider's map only when the visitor asks for it. Needs coordinates
+     * and a provider with a keyless embed; the address approval rule still applies.
+     */
+    embed: z.boolean().default(false),
+    latitude,
+    longitude,
+  }),
+  /**
+   * People (B3): a portrait, name, role and a few words each, optionally linking to a page.
+   */
+  z.object({
+    ...sectionBase,
+    type: z.literal("team"),
+    variant: variantOf("team"),
+    appearance: appearanceSchema,
+    heading: z.string().trim().max(160).default(""),
+    intro: z.string().trim().max(600).default(""),
+    columns: columns.optional(),
+    items: z
+      .array(
+        z.object({
+          name: z.string().trim().min(1, "Enter the person's name.").max(120),
+          role: z.string().trim().max(120).default(""),
+          text: z.string().trim().max(600).default(""),
+          assetId: z.uuid().nullable().default(null),
+          path: linkTarget,
+        }),
+      )
+      .max(24)
+      .default([]),
+  }),
+  /**
+   * Logo strip (B3): partner, member or press logos in a row, each an uploaded image with its
+   * own alternative text, optionally linking out.
+   */
+  z.object({
+    ...sectionBase,
+    type: z.literal("logo_strip"),
+    variant: variantOf("logo_strip"),
+    appearance: appearanceSchema,
+    heading: z.string().trim().max(160).default(""),
+    columns: columns.optional(),
+    items: z.array(z.object({ assetId: z.uuid(), label: z.string().trim().max(120).default(""), path: linkTarget })).max(16).default([]),
+  }),
+  /**
+   * Image and text rows (B3): each row a picture beside a heading, text and an optional
+   * button; the sides alternate unless the style fixes them.
+   */
+  z.object({
+    ...sectionBase,
+    type: z.literal("image_text"),
+    variant: variantOf("image_text"),
+    appearance: appearanceSchema,
+    heading: z.string().trim().max(160).default(""),
+    items: z
+      .array(
+        z.object({
+          assetId: z.uuid(),
+          heading: z.string().trim().min(1, "Enter the row's heading.").max(160),
+          body: bodySchema.default([]),
+          ctaLabel: z.string().trim().max(60).default(""),
+          ctaPath: linkTarget,
+        }),
+      )
+      .max(8)
+      .default([]),
+  }),
+  /**
+   * Photo band (B3): a picture across the full width of the page under a wash of a brand
+   * colour, with a heading, text and a button over it. The wash is an enumerated tint of a
+   * brand token, so the text pairing is one the contrast gate checks.
+   */
+  z.object({
+    ...sectionBase,
+    type: z.literal("image_band"),
+    variant: variantOf("image_band"),
+    appearance: appearanceSchema,
+    heading: z.string().trim().max(160).default(""),
+    text: z.string().trim().max(600).default(""),
+    imageAssetId: z.uuid().nullable().default(null),
+    tint: z.enum(bandTints).default("dark"),
+    strength: z.enum(bandStrengths).default("medium"),
+    ctaLabel: z.string().trim().max(60).default(""),
+    ctaPath: linkTarget,
+    secondaryLabel: z.string().trim().max(60).default(""),
+    secondaryPath: linkTarget,
   }),
 ]);
 
@@ -256,17 +373,23 @@ export const sectionTypeLabels: Record<SectionType, string> = {
   gallery: "Gallery",
   facts: "Facts",
   video: "Video (click to play)",
-  map_link: "Map link",
+  map_link: "Map (link, or map on request)",
+  team: "People",
+  logo_strip: "Logo strip",
+  image_text: "Image and text rows",
+  image_band: "Photo band",
 };
 
 /** Owner-facing names for variants; "default" reads as "Site default". */
 export const variantLabels: Record<string, string> = {
   default: "Site default",
   compact: "Compact",
-  statement: "Statement (very large)",
+  statement: "Statement (very large heading)",
   split: "Split: text beside the image",
   full: "Full-width image with text over it",
   stacked: "Image above the text",
+  offset: "Offset: the words overlap the picture",
+  collage: "Collage: the picture with up to three more",
   columns: "Two columns",
   lead: "Lead paragraph",
   grid: "Grid",
@@ -284,7 +407,16 @@ export const variantLabels: Record<string, string> = {
   strip: "Horizontal strip",
   inline: "Inline",
   card: "Card",
+  row: "One row",
+  mono: "One row, in greyscale",
+  alternating: "Alternating sides",
+  image_left: "Image on the left",
+  image_right: "Image on the right",
+  tall: "Tall",
 };
+
+export const bandTintLabels: Record<BandTint, string> = { primary: "Primary colour", accent: "Accent colour", dark: "Text colour" };
+export const bandStrengthLabels: Record<(typeof bandStrengths)[number], string> = { light: "Light wash", medium: "Medium wash", strong: "Strong wash" };
 
 export const backgroundLabels: Record<SectionBackground, string> = {
   default: "Page background",
@@ -322,6 +454,10 @@ export function emptySection(type: SectionType, id: string): PageSection {
     facts: {},
     video: {},
     map_link: {},
+    team: { heading: "The people" },
+    logo_strip: {},
+    image_text: {},
+    image_band: { appearance: { align: "center" } },
   };
   return sectionSchema.parse({ id, type, ...seeds[type] });
 }
