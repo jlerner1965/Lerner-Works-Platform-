@@ -6,7 +6,7 @@ import { getSiteContext } from "@/server/data/access";
 import { withUser } from "@/server/data/db";
 import { getRelease, getActiveRelease } from "@/server/publishing/candidates";
 import { summarizeChanges } from "@/server/publishing/diff";
-import { isSupportedSnapshot } from "@/server/publishing/snapshot";
+import { normalizeSnapshot } from "@/server/publishing/snapshot";
 import { Badge, Card, PageHeader, formatDateTime, DescriptionList } from "@/components/admin/ui";
 import { RestoreForm } from "@/components/admin/publishing-forms";
 
@@ -27,7 +27,9 @@ export default async function ReleasePage({ params }: { params: Promise<{ siteId
   if (!data) notFound();
   const { release, active } = data;
   const isActive = active?.id === release.id;
-  const diff = active && isSupportedSnapshot(active.snapshot) && isSupportedSnapshot(release.snapshot) && !isActive ? summarizeChanges(active.snapshot, release.snapshot) : null;
+  const activeSnapshot = active ? normalizeSnapshot(active.snapshot) : null;
+  const releaseSnapshot = normalizeSnapshot(release.snapshot);
+  const diff = activeSnapshot && releaseSnapshot && !isActive ? summarizeChanges(activeSnapshot, releaseSnapshot) : null;
   return (
     <>
       <PageHeader eyebrow={`${ctx.site.name} · Publishing`} title={`Release v${release.version}`} description={<Link href={`/app/sites/${siteId}/publishing`} className="text-action underline">← Publishing</Link>} />

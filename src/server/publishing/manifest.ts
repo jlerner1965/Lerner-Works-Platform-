@@ -167,6 +167,8 @@ export async function buildManifest(db: Db, site: SiteRow, selection: Selection,
     for (const ref of collectAssetRefs(rev.kind, payload)) assetRefs.push({ ...ref, itemId });
   }
   if (config.branding.logoAssetId) assetRefs.push({ assetId: config.branding.logoAssetId, itemId: null, field: "branding.logoAssetId" });
+  if (config.metadata.faviconAssetId) assetRefs.push({ assetId: config.metadata.faviconAssetId, itemId: null, field: "metadata.faviconAssetId" });
+  if (config.metadata.shareImageAssetId) assetRefs.push({ assetId: config.metadata.shareImageAssetId, itemId: null, field: "metadata.shareImageAssetId" });
 
   // Routes: pages, enabled module indexes, items of enabled modules, and search.
   const routes: SnapshotRoute[] = [];

@@ -48,6 +48,19 @@ state the evidence was produced at; re-run the suites listed in `pnpm verify` fo
 | OPS-03 | Production build and secret inspection | PASS | `next build` succeeds (2 benign tracing warnings); 37 client files scanned for all `.env` secret values and privileged literals: 0 hits; production headers verified (`docs/RELEASE-REPORT.md` §4); Lighthouse lab runs recorded in `docs/evidence/LIGHTHOUSE.md` | M4 |
 | META-01 | Inspect preview, demo, canonical pages, sitemap, and 404 | PASS | e2e routing.spec: demo pages carry `X-Robots-Tag: noindex` and `<meta name="robots" content="noindex">`, no demo sitemap, app robots.txt disallows all, dashboard responses noindex; live domain: canonical link to `https://<canonical>/…`, `index, follow`, sitemap lists content routes but not `/search`, robots.txt names the sitemap; unknown demo path → 404 | M4 |
 
+## Design programme (docs/DESIGN-PLAN.md)
+
+| ID | Scenario | Status | Evidence / test | Revision |
+|---|---|---|---|---|
+| DES-01 | Upload a logo and publish | PASS | Generated logos seeded for both pilots (`src/server/demo/fixtures`, media pipeline, publish); e2e routing.spec "public pages carry the site's own identity": header `<img alt="Pine Hollow Guide">` from the release; screenshots `guide-*`/`retail-*` at 390/768/1440 show the logo in both headers and in the retail footer; the guide footer (primary-coloured) keeps the wordmark by design; sites without a logo render the wordmark (`BrandMark`) | D0 |
+| DES-02 | Switch the typography preset | PASS | `typographyPresets` in `src/themes/fonts.ts` map the preset to self-hosted families; themes read only `--font-heading`/`--font-body` (e2e asserts `--font-heading:var(--font-guide-serif)` on the guide); no font request leaves the origin (D-008; Lighthouse network requests are all same-origin) | D0 |
+| DES-03 | Change the four brand colours to a new palette | PASS | Every theme colour is a derived token (`src/lib/brand-tokens.ts`, `docs/DESIGN-TOKENS.md`); unit `brand-tokens.test` audits `src/themes/**` and the public part of `globals.css` for hex literals, palette classes and opacity-faded brand colours: 0 offenders; derivation verified for both pilots, a dark palette and a pale primary | D0 |
+| DES-04 | Choose a palette or variant with an unreadable pairing | PASS | unit `publishing.test`: an unreadable palette yields `contrast` blockers naming each pairing with both colours and the ratio ("Body text on the background", "Links and accent text on the background", …), and an accent that fails as link text but carries readable dark button text is blocked only for the link pairing; the Settings → Brand card lists the same 15 pairings live | D0 |
+| DES-05 | Set favicon, share image and language | PASS | e2e routing.spec: `<html lang="en">`, `<title>Pine Hollow Guide</title>` without the platform name, `Events · Pine Hollow Guide` on a listing, `rel="icon"` (asset or `/favicon.svg` monogram, 200 `image/svg+xml`; 404 for an unknown site), `og:image` from the seeded share image, `og:site_name`; the sign-in page keeps the platform identity; proxy sets `x-lw-public-site` and the root layout reads the site's language | D0 |
+| DES-06 … DES-12 | (D1–D3 rows) | NOT RUN | Planned in `docs/DESIGN-PLAN.md` | — |
+| DES-13 | Lighthouse on both pilots after each phase | PASS (performance, CLS), LCP target missed on the guide home | Lighthouse 13.5.0 mobile, 3 runs each, production build (`docs/evidence/LIGHTHOUSE.md`): guide home median performance 96 / accessibility 100 / CLS 0.026 / median LCP 2.82 s (target 2.5 s, missed as at M4); store detail 99 / 100 / 0.011 / 1.87 s | D0 |
+| DES-14 | Public JavaScript budget | PASS (baseline recorded) | 143 KiB script transfer on both pilot pages (`docs/evidence/LIGHTHOUSE.md`); allowance 20 KiB per phase unless a phase records a reason | D0 |
+
 ## Launch readiness (repository side; hosted providers need the owner's accounts)
 
 | ID | Scenario | Status | Evidence / test | Revision |

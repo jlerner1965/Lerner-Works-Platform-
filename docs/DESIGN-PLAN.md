@@ -9,23 +9,37 @@ Read `docs/Lerner-Works-Platform-Build-Guide.md` sections 6, 8 and 21 first; thi
 extends them and never relaxes them. Decisions D-013 (embeds) and D-014 (who designs, and
 where design lives) in `docs/DECISIONS.md` belong to this plan.
 
-## 1 Where design flexibility stands (2026-09-26)
+## 1 Where design flexibility stands
 
-An owner can change four brand colours, the wordmark and tagline, up to eight flat navigation
-links, footer text and links, and which of eight fixed section types a page has, in which
-order, with content-only fields. Everything else is decided in code by the site's preset:
-composition, fonts, component appearance, per-kind templates, image crops.
+Before D0 (survey of 2026-09-26): an owner could change four brand colours, the wordmark and
+tagline, up to eight flat navigation links, footer text and links, and which of eight fixed
+section types a page has, in which order, with content-only fields. Everything else was
+decided in code by the site's preset: composition, fonts, component appearance, per-kind
+templates, image crops.
 
-Gaps found in the code survey that the programme closes first:
+Gaps found in that survey, and their state after D0 (shipped 2026-09-26, see section 4):
 
-- `branding.logoAssetId` and `branding.typography` are saved but never rendered.
-- Many theme colours are literal hex values, so a recolour is incomplete; the contrast gate
-  does not cover white text on accent buttons.
-- Page `body` and featured image are editable but never rendered.
-- Customer page titles carry the platform's title suffix; the platform favicon and `lang="en"`
-  apply to every customer site; there is no share image.
-- Index titles and intros, the "Search" link and the "Find a store" button are hard-coded.
-- The `inquiries` module switch is not enforced by the submission endpoint or store pages.
+- `branding.logoAssetId` and `branding.typography` were saved but never rendered → both
+  render (logo in the header of both themes and in the retail footer, with the wordmark as
+  fallback and as alternative text; the guide footer sits on the primary colour and keeps
+  the wordmark; typography preset applied through `--font-heading` / `--font-body`).
+- Many theme colours were literal hex values, so a recolour was incomplete; the contrast gate
+  did not cover white text on accent buttons → every colour is a token derived from the four
+  brand colours (`docs/DESIGN-TOKENS.md`), a unit test forbids literal colours in
+  `src/themes`, and the gate checks fifteen pairings including button text and tinted panels.
+- Page `body` and featured image were editable but never rendered → the featured image is
+  the page's header image (unless the page opens with an image hero) and its share image;
+  the body field stays out of the page editor and is not rendered.
+- Customer page titles carried the platform's title suffix; the platform favicon and
+  `lang="en"` applied to every customer site; there was no share image → titles are the
+  site's own, favicon is an uploaded image or a generated monogram, `lang` comes from the
+  site's language field, share images come from the page or the site.
+- Index titles and intros and the "Search" link were hard-coded → editable per module in
+  Settings → Listing pages; the Search link can be switched off. The retail theme's "Find a
+  store" header button remains part of that theme's composition (a D1 header-style option).
+- The `inquiries` module switch was not enforced by the submission endpoint or store pages →
+  `submit_inquiry` refuses submissions when the active release has the module off; store
+  pages show no form.
 
 ## 2 Principles carried into every phase
 
@@ -66,7 +80,7 @@ Gaps found in the code survey that the programme closes first:
 
 ## 4 Phases
 
-### D0 · Identity completeness
+### D0 · Identity completeness — DONE 2026-09-26
 
 Make the existing controls real and remove dead ends. One working session.
 
@@ -85,6 +99,23 @@ Make the existing controls real and remove dead ends. One working session.
 
 Exit: DES-01 to DES-05 PASS; `pnpm verify` green; screenshots of both pilots at 390/768/1440
 with the logo, fonts and derived colours in place; Lighthouse re-run recorded.
+
+What shipped, and where:
+
+| Item | Implementation |
+|---|---|
+| Derived tokens and gate | `src/lib/brand-tokens.ts` (formulas in `docs/DESIGN-TOKENS.md`); `validateManifest` blocks on any failing pairing; Settings → Brand shows all pairings live; `tests/unit/brand-tokens.test.ts` also audits `src/themes` for literal colours |
+| Theme root | `src/themes/shared/site-root.tsx`: tokens as CSS variables, typography preset as `--font-heading`/`--font-body`, `lang`, logo (`BrandMark`), external-link handling, index copy, page header image, inquiries switch |
+| Configuration (schema, defaults) | `navigation.showSearch`, `footer.variant`, `indexes.<module>.{title,intro}`, `metadata.language`, `metadata.faviconAssetId`, `metadata.shareImageAssetId`; snapshot schema version 2, version-1 releases normalised at read time (`normalizeSnapshot`) and never rewritten |
+| Public metadata | `publicMetadata` in `src/server/publishing/render.ts`: `title.absolute`, icons (asset or `/favicon.svg` monogram route), Open Graph image, canonical; `<html lang>` from the proxy's `x-lw-public-site` marker through the root layout |
+| Inquiries switch | migration `20260926000100_inquiries_switch.sql` (`submit_inquiry` checks the active release); store and service pages hide the form and prompt |
+| Settings | Brand (logo hint, presets, pairings), Navigation and footer (Search link, footer layout, https links), Listing pages (new card), Site metadata (language, favicon, share image) |
+| Pilots | Generated logos for both pilots and a share image for Pine Hollow in the demonstration fixtures |
+
+Deferred from D0 to D1 with reasons: a second logo for dark surfaces (the guide footer is
+primary-coloured; a dark logo on it needs a light variant, which the D1 token overrides and
+header/footer style options cover); configurable "Find a store" header button (D1 header
+style).
 
 ### D1 · Bounded design options
 
@@ -142,7 +173,7 @@ are NOT RUN.
 
 | ID | Scenario | Expected |
 |---|---|---|
-| DES-01 | Upload a logo and publish | Logo renders in header and footer of both themes with correct dimensions and alt text; wordmark shown when no logo |
+| DES-01 | Upload a logo and publish | Logo renders in the header of both themes and in footers that sit on the site background, with correct dimensions and alt text; wordmark shown when no logo, and on the guide's primary-coloured footer until a dark-surface logo variant exists (D1) |
 | DES-02 | Switch the typography preset | Public fonts change on the next release; no external font request |
 | DES-03 | Change the four brand colours to a new palette | Every public surface follows (no literal colour remains); a rendering audit lists zero hard-coded colours in `src/themes` |
 | DES-04 | Choose a palette or variant with an unreadable pairing | Publication is blocked with the pairing named, including buttons and tinted sections |

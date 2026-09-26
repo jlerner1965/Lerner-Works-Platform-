@@ -1,6 +1,8 @@
 import { kindRegistry, routeFor, type ContentKind } from "@/modules/registry";
+import { isExternalLink } from "@/modules/site-config";
 import { collectLinkTargets, type Block } from "@/lib/richtext";
-import { contrastRatio, formatRatio } from "@/lib/contrast";
+import { formatRatio } from "@/lib/contrast";
+import { failingPairings } from "@/lib/brand-tokens";
 import type { ReleaseSnapshot, SnapshotItem } from "@/server/publishing/snapshot";
 import type { BuiltManifest } from "@/server/publishing/manifest";
 
@@ -67,9 +69,10 @@ export function validateManifest(built: BuiltManifest, opts: { now: Date }): Val
     }
   }
 
-  // Navigation and footer targets must exist.
+  // Navigation and footer targets must exist (external https links are rendered as given).
   const navTargets = [...manifest.config.navigation.items.map((n) => ({ ...n, where: "navigation" })), ...manifest.config.footer.links.map((n) => ({ ...n, where: "footer" }))];
   for (const n of navTargets) {
+    if (isExternalLink(n.path)) continue;
     if (!routePaths.has(normalizePath(n.path))) {
       push({ severity: "blocker", code: "missing_nav_target", message: `${n.where} link "${n.label}" points to ${n.path}, which is not a published route.`, field: n.where, href: settingsHref });
     }
@@ -179,16 +182,10 @@ export function validateManifest(built: BuiltManifest, opts: { now: Date }): Val
     if (media.width > MAX_IMAGE_WIDTH || (w1600 && w1600.bytes > MAX_IMAGE_BYTES)) push({ severity: "warning", code: "large_image", message: `Image "${media.title || media.id.slice(0, 8)}" is unusually large (${media.width}px wide).`, href });
   }
 
-  // Brand contrast requirements (text/control contrast per WCAG 2.2 AA, 4.5:1).
-  const c = manifest.config.branding.colors;
-  const checks: Array<{ label: string; fg: string; bg: string }> = [
-    { label: "body text on background", fg: c.text, bg: c.background },
-    { label: "white text on primary buttons", fg: "#ffffff", bg: c.primary },
-    { label: "accent links on background", fg: c.accent, bg: c.background },
-  ];
-  for (const ch of checks) {
-    const ratio = contrastRatio(ch.fg, ch.bg);
-    if (ratio < 4.5) push({ severity: "blocker", code: "contrast", message: `Brand colors fail contrast for ${ch.label}: ${formatRatio(ratio)} (minimum 4.5:1).`, field: "branding.colors", href: settingsHref });
+  // Brand contrast: every pairing the themes render, from the four colours and the tokens
+  // derived from them (WCAG 2.2 AA: 4.5:1 for text, 3:1 for focus rings and field borders).
+  for (const p of failingPairings(manifest.config.branding.colors)) {
+    push({ severity: "blocker", code: "contrast", message: `Brand colors fail contrast: ${p.label} (${p.fg} on ${p.bg}) reads at ${formatRatio(p.ratio)}; the minimum is ${p.minimum}:1.`, field: "branding.colors", href: settingsHref });
   }
   if (!manifest.config.metadata.defaultDescription) push({ severity: "warning", code: "missing_site_description", message: "The site has no default description for search results.", field: "metadata.defaultDescription", href: settingsHref });
 

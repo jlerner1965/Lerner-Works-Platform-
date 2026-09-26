@@ -32,6 +32,37 @@ test("unknown hosts, forbidden host paths and environment metadata (ROUTE-01, ME
   expect((await request.get(`${baseURL}/app`, { maxRedirects: 0 })).headers()["x-robots-tag"]).toContain("noindex");
 });
 
+test("public pages carry the site's own identity: language, title, favicon, share image and logo (DES-01, DES-05)", async ({ request, baseURL }) => {
+  const home = await request.get(`${baseURL}/demo/pine-hollow`);
+  expect(home.status()).toBe(200);
+  const html = await home.text();
+  expect(html).toMatch(/<html lang="en"/);
+  expect(html).toMatch(/<title>Pine Hollow Guide<\/title>/);
+  expect(html).not.toContain("Lerner Works Platform");
+  expect(html).toMatch(/<link rel="icon" href="\/assets\/[0-9a-f]+-w480\.webp" type="image\/webp"|<link rel="icon" href="\/demo\/pine-hollow\/favicon\.svg" type="image\/svg\+xml"/);
+  expect(html).toMatch(/<meta property="og:image" content="http:\/\/127\.0\.0\.1:\d+\/assets\/[0-9a-f]+-w\d+\.webp"/);
+  expect(html).toMatch(/<meta property="og:site_name" content="Pine Hollow Guide"/);
+  // The uploaded logo replaces the wordmark in the header, with the wordmark as its text.
+  expect(html).toMatch(/<img[^>]+alt="Pine Hollow Guide"/);
+  // Derived brand tokens are set on the theme root; no literal colours are needed by the themes.
+  expect(html).toContain("--brand-on-primary:");
+  expect(html).toContain("--font-heading:var(--font-guide-serif)");
+
+  const events = await request.get(`${baseURL}/demo/pine-hollow/events`);
+  expect(await events.text()).toMatch(/<title>Events · Pine Hollow Guide<\/title>/);
+
+  const favicon = await request.get(`${baseURL}/demo/pine-hollow/favicon.svg`);
+  expect(favicon.status()).toBe(200);
+  expect(favicon.headers()["content-type"]).toContain("image/svg+xml");
+  expect(await favicon.text()).toContain("<svg");
+  expect((await request.get(`${baseURL}/demo/no-such-site/favicon.svg`)).status()).toBe(404);
+
+  // The dashboard keeps the platform identity.
+  const signIn = await request.get(`${baseURL}/sign-in`);
+  expect(await signIn.text()).toMatch(/<html lang="en"/);
+  expect(await signIn.text()).toContain("Lerner Works Platform");
+});
+
 test("a verified live domain serves its site with canonical metadata and a sitemap; an alias redirects (ROUTE-01, META-01)", async ({ request, baseURL }) => {
   const admin = postgres(process.env.DATABASE_TEST_ADMIN_URL!, { max: 1, onnotice: () => {} });
   const { sites } = seed();

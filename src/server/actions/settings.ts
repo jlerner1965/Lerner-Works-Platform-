@@ -6,7 +6,7 @@ import { requireUser } from "@/server/auth/session";
 import { withUser, describeDbError } from "@/server/data/db";
 import { loadSiteContext } from "@/server/data/access";
 import { getCurrentSiteConfig, saveSiteConfig } from "@/server/data/sites";
-import { siteConfigSchema, type SiteConfig } from "@/modules/site-config";
+import { siteConfigSchema, footerVariants, typographyPresetKeys, type SiteConfig, type IndexModuleKey } from "@/modules/site-config";
 import { normalizeHost } from "@/server/publishing/public-site";
 
 export interface SettingsState {
@@ -51,21 +51,27 @@ async function saveConfigSection(formData: FormData, section: string, patch: Pat
   }
 }
 
+/** A media asset id from a select, or null for "none". Asset ownership is enforced when the release is built. */
+function assetId(form: FormData, name: string): string | null {
+  const value = String(form.get(name) ?? "");
+  return uuid.safeParse(value).success ? value : null;
+}
+
 export async function saveBrandingAction(_prev: SettingsState, formData: FormData): Promise<SettingsState> {
   return saveConfigSection(formData, "Branding", (config, form) => {
-    const logo = String(form.get("logoAssetId") ?? "");
+    const typography = String(form.get("typography") ?? "");
     config.branding = {
       ...config.branding,
       wordmark: String(form.get("wordmark") ?? "").trim(),
       tagline: String(form.get("tagline") ?? "").trim(),
-      logoAssetId: uuid.safeParse(logo).success ? logo : null,
+      logoAssetId: assetId(form, "logoAssetId"),
       colors: {
         primary: String(form.get("primary") ?? "").trim(),
         accent: String(form.get("accent") ?? "").trim(),
         background: String(form.get("background") ?? "").trim(),
         text: String(form.get("text") ?? "").trim(),
       },
-      typography: (String(form.get("typography") ?? "") === "utility-sans" ? "utility-sans" : "editorial-serif"),
+      typography: (typographyPresetKeys as readonly string[]).includes(typography) ? (typography as SiteConfig["branding"]["typography"]) : "editorial-serif",
     };
     return config;
   });
@@ -83,8 +89,14 @@ function readLinks(form: FormData, prefix: string): Array<{ label: string; path:
 
 export async function saveNavigationAction(_prev: SettingsState, formData: FormData): Promise<SettingsState> {
   return saveConfigSection(formData, "Navigation and footer", (config, form) => {
-    config.navigation = { items: readLinks(form, "nav") };
-    config.footer = { text: String(form.get("footerText") ?? "").trim(), links: readLinks(form, "footer"), showContactDetails: form.get("showContactDetails") === "on" };
+    const variant = String(form.get("footerVariant") ?? "");
+    config.navigation = { items: readLinks(form, "nav"), showSearch: form.get("showSearch") === "on" };
+    config.footer = {
+      text: String(form.get("footerText") ?? "").trim(),
+      links: readLinks(form, "footer"),
+      showContactDetails: form.get("showContactDetails") === "on",
+      variant: (footerVariants as readonly string[]).includes(variant) ? (variant as SiteConfig["footer"]["variant"]) : "columns",
+    };
     return config;
   });
 }
@@ -103,12 +115,29 @@ export async function saveModulesAction(_prev: SettingsState, formData: FormData
   });
 }
 
+const indexModules: IndexModuleKey[] = ["places", "events", "articles", "stores", "services"];
+
+export async function saveIndexesAction(_prev: SettingsState, formData: FormData): Promise<SettingsState> {
+  return saveConfigSection(formData, "Listing pages", (config, form) => {
+    for (const m of indexModules) {
+      config.indexes[m] = {
+        title: String(form.get(`${m}Title`) ?? "").trim(),
+        intro: String(form.get(`${m}Intro`) ?? "").trim(),
+      };
+    }
+    return config;
+  });
+}
+
 export async function saveMetadataAction(_prev: SettingsState, formData: FormData): Promise<SettingsState> {
   return saveConfigSection(formData, "Site metadata", (config, form) => {
     config.metadata = {
       defaultTitle: String(form.get("defaultTitle") ?? "").trim(),
       titleSuffix: String(form.get("titleSuffix") ?? "").trim(),
       defaultDescription: String(form.get("defaultDescription") ?? "").trim(),
+      language: String(form.get("language") ?? "").trim() || "en",
+      faviconAssetId: assetId(form, "faviconAssetId"),
+      shareImageAssetId: assetId(form, "shareImageAssetId"),
     };
     return config;
   });

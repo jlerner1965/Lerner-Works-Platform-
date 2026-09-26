@@ -8,7 +8,7 @@ import { siteConfigSchema } from "@/modules/site-config";
 import { kindRegistry, isContentKind, type ContentKind } from "@/modules/registry";
 import { validatePayload, createContentItem, saveRevision, getItem } from "@/server/data/content";
 import { ingestImage } from "@/server/media/ingest";
-import { isSupportedSnapshot } from "@/server/publishing/snapshot";
+import { normalizeSnapshot } from "@/server/publishing/snapshot";
 
 export const PACKAGE_VERSION = 1;
 export const MAX_PACKAGE_BYTES = 64 * 1024 * 1024;
@@ -65,7 +65,7 @@ export async function exportSitePackage(db: Db, site: SiteRow): Promise<Uint8Arr
   const config = await getCurrentSiteConfig(db, site.id);
   if (config) add("site-config.json", strToU8(JSON.stringify(config.config, null, 2)));
   const [active] = await db<{ snapshot: unknown }[]>`select snapshot from public.releases where id = ${site.activeReleaseId}`;
-  const redirects = active && isSupportedSnapshot(active.snapshot) ? active.snapshot.redirects : [];
+  const redirects = (active ? normalizeSnapshot(active.snapshot) : null)?.redirects ?? [];
   add("redirects.json", strToU8(JSON.stringify(redirects, null, 2)));
   const media = await db<Array<{ id: string; title: string | null; altText: string | null; decorative: boolean; attributionText: string | null; license: string | null; sourceUrl: string | null; derivatives: Record<string, { key: string; width: number; height: number; hash: string }> }>>`
     select id, title, alt_text, decorative, attribution_text, license, source_url, derivatives from public.media_assets where site_id = ${site.id} and status = 'ready' order by created_at`;

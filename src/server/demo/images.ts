@@ -9,7 +9,8 @@ export type SceneSpec =
   | { type: "landscape"; palette: "dawn" | "day" | "dusk" | "autumn" | "winter"; seed: number; water?: boolean; ratio?: "wide" | "standard" }
   | { type: "storefront"; sign: string; awning: string; wall: string; trim: string; seed: number; detail?: "coffee" | "bread" | "books" | "bike" | "gear" | "gallery" | "hall" | "library" }
   | { type: "poster"; title: string; subtitle: string; bg: string; fg: string; accent: string; seed: number }
-  | { type: "icon"; icon: "shoe" | "ski" | "jersey" | "wrench" | "trail" | "pond" | "falls"; bg: string; fg: string; accent: string };
+  | { type: "icon"; icon: "shoe" | "ski" | "jersey" | "wrench" | "trail" | "pond" | "falls"; bg: string; fg: string; accent: string }
+  | { type: "logo"; lines: string[]; fg: string; accent: string; emblem: "pine" | "peak" };
 
 function rng(seed: number): () => number {
   let s = seed >>> 0 || 1;
@@ -169,6 +170,24 @@ export function iconSvg(spec: Extract<SceneSpec, { type: "icon" }>): string {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"><rect width="${W}" height="${H}" fill="${spec.bg}"/><rect x="60" y="60" width="${W - 120}" height="${H - 120}" fill="none" stroke="${spec.fg}" stroke-width="6" opacity="0.25"/>${body}</svg>`;
 }
 
+/** Wide wordmark logo (3:1) with a small emblem, on a transparent background. */
+export function logoSvg(spec: Extract<SceneSpec, { type: "logo" }>): string {
+  const W = 960;
+  const H = 320;
+  const emblem =
+    spec.emblem === "pine"
+      ? `<circle cx="160" cy="160" r="120" fill="${spec.accent}"/><polygon points="160,58 232,196 88,196" fill="${spec.fg}"/><polygon points="160,112 248,252 72,252" fill="${spec.fg}"/><rect x="148" y="244" width="24" height="30" fill="${spec.fg}"/>`
+      : `<rect x="40" y="40" width="240" height="240" rx="24" fill="${spec.fg}"/><polygon points="62,262 150,112 198,192 228,146 298,262" fill="${spec.accent}"/><polygon points="62,262 150,112 172,150 118,262" fill="${spec.accent}" opacity="0.6"/>`;
+  const [first = "", second = ""] = spec.lines;
+  const fit = (text: string, max: number, width: number) => Math.min(max, Math.floor(width / (0.62 * Math.max(text.length, 1))));
+  const s1 = fit(first, 116, 620);
+  const s2 = fit(second, 60, 620);
+  const text =
+    `<text x="320" y="${second ? 168 : 200}" font-family="DejaVu Sans, sans-serif" font-weight="bold" font-size="${s1}" fill="${spec.fg}">${escapeXml(first)}</text>` +
+    (second ? `<text x="322" y="${168 + s2 + 28}" font-family="DejaVu Sans, sans-serif" font-weight="bold" font-size="${s2}" letter-spacing="${Math.round(s2 * 0.18)}" fill="${spec.accent}">${escapeXml(second)}</text>` : "");
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${emblem}${text}</svg>`;
+}
+
 export function sceneSvg(spec: SceneSpec): string {
   switch (spec.type) {
     case "landscape":
@@ -179,6 +198,8 @@ export function sceneSvg(spec: SceneSpec): string {
       return posterSvg(spec);
     case "icon":
       return iconSvg(spec);
+    case "logo":
+      return logoSvg(spec);
   }
 }
 

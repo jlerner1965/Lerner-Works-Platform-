@@ -71,6 +71,18 @@ body {
   }
 }
 
+/*
+ * Public sites (.lw-site): every colour comes from the derived brand tokens set on the theme
+ * root by src/themes/shared/site-root.tsx, and every font from --font-heading/--font-body.
+ */
+.lw-site :focus-visible {
+  outline-color: var(--brand-focus);
+}
+.lw-site .skip-link {
+  background: var(--brand-text);
+  color: var(--brand-on-text);
+}
+
 /* Public theme prose (restricted structured content) */
 .guide-prose,
 .loc-prose {
@@ -81,14 +93,14 @@ body {
   margin-top: 1em;
 }
 .guide-prose h2 {
-  font-family: var(--font-guide-serif);
+  font-family: var(--font-heading);
   font-size: 1.5rem;
   font-weight: 700;
   color: var(--brand-primary);
   margin-top: 1.6em;
 }
 .guide-prose h3 {
-  font-family: var(--font-guide-serif);
+  font-family: var(--font-heading);
   font-size: 1.2rem;
   font-weight: 600;
   margin-top: 1.4em;
@@ -137,7 +149,7 @@ body {
   display: block;
   font-size: 0.85em;
   font-style: normal;
-  opacity: 0.7;
+  color: var(--brand-muted);
 }
 .guide-prose figure img,
 .loc-prose figure img {
@@ -147,11 +159,11 @@ body {
 .guide-prose figcaption,
 .loc-prose figcaption {
   font-size: 0.85em;
-  opacity: 0.75;
+  color: var(--brand-muted);
   margin-top: 0.4em;
 }
 .guide-form h2 {
-  font-family: var(--font-guide-serif);
+  font-family: var(--font-heading);
   font-size: 1.5rem;
   font-weight: 700;
   color: var(--brand-primary);

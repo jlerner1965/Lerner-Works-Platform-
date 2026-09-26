@@ -1,7 +1,8 @@
+import { cache } from "react";
 import { withAnon } from "@/server/data/db";
 import { kindRegistry, type ContentKind } from "@/modules/registry";
 import type { ModuleKey } from "@/modules/site-config";
-import { isSupportedSnapshot, type ReleaseSnapshot, type SnapshotItem } from "@/server/publishing/snapshot";
+import { normalizeSnapshot, type ReleaseSnapshot, type SnapshotItem } from "@/server/publishing/snapshot";
 
 export interface PublicRelease {
   siteId: string;
@@ -11,31 +12,37 @@ export interface PublicRelease {
   publishedAt: Date;
 }
 
-/** Active demo release by registry key, through the anon-callable read function only. */
-export async function resolveDemoRelease(siteKey: string): Promise<PublicRelease | null> {
+/**
+ * Active demo release by registry key, through the anon-callable read function only.
+ * Memoised per request (React `cache`) so the document language in the root layout, the
+ * route metadata and the page body share one lookup.
+ */
+export const resolveDemoRelease = cache(async function resolveDemoRelease(siteKey: string): Promise<PublicRelease | null> {
   if (!/^[a-z0-9-]{1,60}$/.test(siteKey)) return null;
   const rows = await withAnon((db) => db<{ siteId: string; releaseId: string; releaseVersion: number; snapshot: unknown; publishedAt: Date }[]>`
     select site_id, release_id, release_version, snapshot, published_at from public.get_demo_release(${siteKey})`);
   const row = rows[0];
-  if (!row || !isSupportedSnapshot(row.snapshot)) return null;
-  return { siteId: row.siteId, releaseId: row.releaseId, releaseVersion: row.releaseVersion, snapshot: row.snapshot, publishedAt: row.publishedAt };
-}
+  const snapshot = row ? normalizeSnapshot(row.snapshot) : null;
+  if (!row || !snapshot) return null;
+  return { siteId: row.siteId, releaseId: row.releaseId, releaseVersion: row.releaseVersion, snapshot, publishedAt: row.publishedAt };
+});
 
 export interface LiveRelease extends PublicRelease {
   isCanonical: boolean;
   canonicalHost: string | null;
 }
 
-/** Active live release for an exact verified hostname. Unknown hosts yield null. */
-export async function resolveLiveRelease(host: string): Promise<LiveRelease | null> {
+/** Active live release for an exact verified hostname. Unknown hosts yield null. Memoised per request. */
+export const resolveLiveRelease = cache(async function resolveLiveRelease(host: string): Promise<LiveRelease | null> {
   const normalized = normalizeHost(host);
   if (!normalized) return null;
   const rows = await withAnon((db) => db<{ siteId: string; releaseId: string; releaseVersion: number; snapshot: unknown; publishedAt: Date; isCanonical: boolean; canonicalHost: string | null }[]>`
     select site_id, release_id, release_version, snapshot, published_at, is_canonical, canonical_host from public.get_live_release(${normalized})`);
   const row = rows[0];
-  if (!row || !isSupportedSnapshot(row.snapshot)) return null;
-  return { siteId: row.siteId, releaseId: row.releaseId, releaseVersion: row.releaseVersion, snapshot: row.snapshot, publishedAt: row.publishedAt, isCanonical: row.isCanonical, canonicalHost: row.canonicalHost };
-}
+  const snapshot = row ? normalizeSnapshot(row.snapshot) : null;
+  if (!row || !snapshot) return null;
+  return { siteId: row.siteId, releaseId: row.releaseId, releaseVersion: row.releaseVersion, snapshot, publishedAt: row.publishedAt, isCanonical: row.isCanonical, canonicalHost: row.canonicalHost };
+});
 
 export function normalizeHost(host: string | null | undefined): string | null {
   if (!host) return null;

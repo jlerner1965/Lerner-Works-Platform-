@@ -189,7 +189,9 @@ export function rangeAthleticsFixture(now: Date): FixtureSite {
       tagline: "Three Colorado stores (fictional demonstration)",
       footerText: "Range Athletics is a fictional retailer built to demonstrate a multi-location business website. No products, prices or inventory are offered.",
       defaultDescription: "Range Athletics (fictional): three Colorado stores with current hours, shoe fitting, ski tuning, team outfitting and bike service.",
+      logoImageKey: "logo",
     },
+    images: [{ key: "logo", title: "Range Athletics logo", alt: "Range Athletics", scene: { type: "logo", lines: ["Range", "ATHLETICS"], fg: "#12213a", accent: "#bf4a0d", emblem: "peak" } }],
     items: [...pages, ...services, ...stores, draft, pendingReview],
     secondRelease: {
       note: `Longmont adds an inventory-count closure on ${inventoryDay}`,

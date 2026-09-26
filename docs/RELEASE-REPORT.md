@@ -40,6 +40,7 @@ setup check, lint, typecheck, 28 unit tests, 35 integration tests against the is
 | Fresh install | Clone → `pnpm install` from the lockfile → `.env` → migrate → seed → typecheck → tests | section 4 below (OPS-01) |
 | Demonstration | The ten-step script in `docs/DEMO.md` runs end to end through the interface | `tests/e2e/demo.spec.ts`; screenshots in `docs/evidence/demo/` |
 | Launch readiness (repository side) | Hosted configuration enforced at startup; platform sessions for Supabase Auth unreachable by PostgREST roles; invitation account creation and password recovery; Supabase Storage adapter; authenticated job endpoints with a cron schedule; domain register → verify → activate workflow with explicit go-live; readiness report; first-owner bootstrap | unit `hosted-adapters.test`, integration `hosted.test`, e2e `routing.spec` (LAUNCH-01..05, 07); runbook `docs/LAUNCH-CHECKLIST.md` |
+| Identity completeness (design D0) | Logo with wordmark fallback, typography preset, every theme colour derived from the four brand colours with a 15-pairing contrast gate and a literal-colour audit, per-site favicon (asset or generated monogram), share image, titles without the platform name, `lang` per site, editable listing copy, Search link switch, external navigation links, footer layouts, page header image, Inquiries switch enforced at intake | unit `brand-tokens.test`, `publishing.test`; integration `inquiries.test`; e2e `routing.spec` (DES-01..05); screenshots `docs/evidence/screenshots/`; `docs/DESIGN-TOKENS.md` |
 
 The full matrix with per-row evidence is `docs/ACCEPTANCE.md`.
 
@@ -51,14 +52,17 @@ conditions in `docs/evidence/LIGHTHOUSE.md`):
 
 | Page | Median performance | Accessibility | CLS | Median LCP | Target LCP ≤ 2.5 s |
 |---|---|---|---|---|---|
-| Guide home `/demo/pine-hollow` | 96 | 100 | 0.026 | 2.69 s | missed by 0.19 s |
-| Store detail `/demo/range-athletics/locations/longmont` | 99 | 100 | 0.01 | 1.97 s | met |
+| Guide home `/demo/pine-hollow` (M4) | 96 | 100 | 0.026 | 2.69 s | missed by 0.19 s |
+| Store detail `/demo/range-athletics/locations/longmont` (M4) | 99 | 100 | 0.01 | 1.97 s | met |
+| Guide home, after design phase D0 (logo and share image added) | 96 | 100 | 0.026 | 2.82 s | missed by 0.32 s (runs 2.19–2.88 s) |
+| Store detail, after design phase D0 | 99 | 100 | 0.011 | 1.87 s | met |
 
 Performance ≥ 90 and CLS ≤ 0.1 are met on both pages. The guide home's LCP is bounded by the
 simulated first-visit transfer (client runtime and two font files) rather than the hero
 image; reducing it further means trimming client JavaScript on public pages. SEO scores of 66
 are only the crawlability audit failing on purpose: demonstration routes are `noindex`.
-Field Core Web Vitals cannot be claimed from these runs.
+Field Core Web Vitals cannot be claimed from these runs. The public JavaScript baseline
+recorded at D0 is 143 KiB of script transfer per page (`docs/evidence/LIGHTHOUSE.md`).
 
 ## 4. Production build, secret inspection and fresh install
 
@@ -150,6 +154,13 @@ secrets; the Supabase access token is the owner's to revoke in the dashboard.
   this release; other handlers were reviewed.
 - The dashboard is functional and consistent but plain; the public themes are the polished
   surfaces. Editor forms are long on small screens (they scroll; nothing overflows).
+- A site has one logo image. The guide theme's footer sits on the primary colour, where a
+  logo drawn for the light background would vanish, so that footer shows the wordmark; a
+  dark-surface logo variant is part of D1. Favicons come from the media pipeline as WebP
+  (or the generated SVG monogram); there is no ICO fallback for very old browsers.
+- Snapshot schema version 2 (D0) adds configuration fields with defaults; releases stored
+  as version 1 are normalised when read and are never rewritten. A candidate built before
+  the D0 deployment and previewed after it renders with the defaults.
 - Search is a snapshot-backed text match, not a ranked index. Adequate for the pilot sizes.
 - Only the latin subsets of the three typefaces are bundled.
 - Sessions issued for the hosted provider are not revoked by a password change at the
@@ -166,7 +177,8 @@ secrets; the Supabase access token is the owner's to revoke in the dashboard.
 - Export a site: Import / export → Download site package (ZIP with manifest and checksums).
   Import into another site with Upload and validate → Import package as drafts.
 - Resume development: `docs/PROGRESS.md` (state, ledger, last results), `docs/DECISIONS.md`
-  (D-001…D-009), `docs/OPERATIONS.md` (setup, resets, worker, backups), `pnpm verify`.
+  (D-001…D-014), `docs/OPERATIONS.md` (setup, resets, worker, backups, screenshot pass),
+  `docs/DESIGN-PLAN.md` and `docs/DESIGN-TOKENS.md` (design programme), `pnpm verify`.
 - Remaining setup for a hosted staging environment (requires the owner's accounts and
   approval): `docs/LAUNCH-CHECKLIST.md`, then `pnpm launch:check --env-file <file>` and
   `pnpm bootstrap:owner` for the first owner.

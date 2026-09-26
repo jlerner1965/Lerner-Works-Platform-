@@ -119,7 +119,8 @@ export function summarizeChanges(base: ReleaseSnapshot | null, next: ReleaseSnap
     const navBefore = base.config.navigation.items.map((n) => `${n.label} (${n.path})`);
     const navAfter = next.config.navigation.items.map((n) => `${n.label} (${n.path})`);
     if (navBefore.join("|") !== navAfter.join("|")) summary.navigationChanged = { before: navBefore, after: navAfter };
-    for (const key of ["branding", "footer", "modules", "metadata"] as const) {
+    if (base.config.navigation.showSearch !== next.config.navigation.showSearch) summary.configFields.push("navigation");
+    for (const key of ["branding", "footer", "modules", "indexes", "metadata"] as const) {
       if (stable(base.config[key]) !== stable(next.config[key])) summary.configFields.push(key);
     }
     summary.mediaAdded = Object.keys(next.media).filter((id) => !base.media[id]);

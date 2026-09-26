@@ -1,4 +1,4 @@
-import type { SiteConfig } from "@/modules/site-config";
+import type { SiteConfigInput } from "@/modules/site-config";
 import type { PagePayload } from "@/modules/page";
 
 export type PresetKey = "community_guide" | "location_business";
@@ -8,7 +8,8 @@ export interface PresetDefinition {
   label: string;
   description: string;
   defaultTimeZone: string;
-  config: (input: { siteName: string }) => SiteConfig;
+  /** Starting configuration; callers parse it through `siteConfigSchema` to apply defaults. */
+  config: (input: { siteName: string }) => SiteConfigInput;
   /** Initial pages for a clean site: structure and empty states, no fictional content. */
   initialPages: (input: { siteName: string }) => Array<{ slug: string; title: string; payload: PagePayload }>;
   kinds: Array<"page" | "place" | "event" | "article" | "store" | "service">;

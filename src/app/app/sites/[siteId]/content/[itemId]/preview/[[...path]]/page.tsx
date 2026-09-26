@@ -7,7 +7,7 @@ import { withUser } from "@/server/data/db";
 import { getItem } from "@/server/data/content";
 import { buildManifest, resolveDefaultSelection } from "@/server/publishing/manifest";
 import { getActiveRelease } from "@/server/publishing/candidates";
-import { isSupportedSnapshot } from "@/server/publishing/snapshot";
+import { normalizeSnapshot } from "@/server/publishing/snapshot";
 import { resolveRoute, normalizePublicPath } from "@/server/publishing/public-site";
 import { makeRenderContext, queryRecord, routeMetadata, toNextMetadata } from "@/server/publishing/render";
 import { routeFor } from "@/modules/registry";
@@ -28,7 +28,7 @@ async function build(userId: string, siteId: string, itemId: string) {
     const found = await getItem(db, itemId);
     if (!found || found.item.siteId !== siteId || !ctx.site.currentConfigRevisionId) return null;
     const baseRelease = await getActiveRelease(db, ctx.site);
-    const base = baseRelease && isSupportedSnapshot(baseRelease.snapshot) ? baseRelease.snapshot : null;
+    const base = baseRelease ? normalizeSnapshot(baseRelease.snapshot) : null;
     const { selection } = await resolveDefaultSelection(db, siteId, base, ctx.site.currentConfigRevisionId);
     selection.items[itemId] = found.revision.id;
     const built = await buildManifest(db, ctx.site, selection, base, []);

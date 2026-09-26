@@ -13,7 +13,7 @@ Resume point for the build. Update after every milestone and before any context 
 | Launch readiness (post-M4) | DONE (2026-09-26); staging verified the same day (see the hosted setup log) | Supabase Auth provider with platform sessions, invitations and password recovery; Supabase Storage provider; scheduled job endpoints + `vercel.json`; domain registration/verification/activation via the Vercel API and explicit go-live; hosted configuration enforcement; `pnpm launch:check`; `pnpm bootstrap:owner`; `docs/LAUNCH-CHECKLIST.md`. Provider adapters are unit-tested against recorded API shapes only. |
 | M4 Verification and refinement | DONE (2026-09-26) | Acceptance matrix complete with evidence (38 PASS, 0 FAIL, 0 BLOCKED); ten-step demonstration automated with screenshots; browser suite moved to the production build; production build + secret inspection; Lighthouse lab runs; fresh-install rehearsal; release report in `docs/RELEASE-REPORT.md`. |
 | Production (hosted) | DONE (2026-09-26) | Production Supabase and Vercel projects configured and deployed; owner signed in; inquiries stored and delivered by Vercel Cron after the routing fix; readiness report green (see the hosted setup log). |
-| D0 Identity completeness | PLANNED | Design programme phase 0 (`docs/DESIGN-PLAN.md`): logo, typography preset, tokenised colours with a complete contrast gate, per-site favicon/share image/title/language, editable index copy, inquiries switch enforced. |
+| D0 Identity completeness | DONE (2026-09-26, on the branch; production after the pull request merges) | Design programme phase 0 (`docs/DESIGN-PLAN.md` section 4): logo rendered, typography preset applied, every theme colour a derived token with a 15-pairing contrast gate and a literal-colour audit, per-site favicon/share image/title/language, editable listing copy, Search link switch, external links, footer layouts, page header image, inquiries switch enforced in SQL. Snapshot schema version 2 with version-1 releases normalised at read time. |
 | D1 Bounded design options | PLANNED | Site-level design options, section variants and appearance, new section types (FAQ, quotes, CTA, gallery, facts, video, map link), media focal point, rich text emphasis, snapshot version bump with rendering-hash test. |
 | D2 Theme catalogue and design preview | PLANNED | Theme registry with capability declarations, one more composition per preset, theme switching per site, design preview of the draft configuration, more typography presets. |
 | D3 Visual in-context editing | PLANNED | Editable preview with keyboard-equivalent reordering, side-panel forms on the same schemas, live tokens, explicit save; same review and publication path. |
@@ -29,6 +29,19 @@ Resume point for the build. Update after every milestone and before any context 
 
 ## Last verified results
 
+- 2026-09-26 (design phase D0) `pnpm lint`, `pnpm typecheck` clean; `pnpm test` 59 passed
+  (adds derived brand tokens, pairings and the literal-colour audit of `src/themes`; the
+  contrast gate names every failing pairing; external navigation links); `pnpm test:integration`
+  43 passed (adds a site published with the Inquiries module off: `submit_inquiry` raises
+  P0002 and stores nothing); `pnpm test:e2e` 19 passed against a production build (adds the
+  public identity test: `lang`, own title, favicon, share image, logo, token variables).
+  Screenshot pass `scripts/screenshots.ts`: 13 public pages × 390/768/1440, all 200, no
+  horizontal overflow, no console errors (`docs/evidence/screenshots/`). Lighthouse after D0:
+  guide home median 96 / accessibility 100 / CLS 0.026 / LCP 2.82 s; store detail 99 / 100 /
+  0.011 / 1.87 s; script transfer 143 KiB per page recorded as the DES-14 baseline
+  (`docs/evidence/LIGHTHOUSE.md`). `pnpm verify` on the final code: GATE PASSED in 221 s
+  (setup check 2 s, lint 11 s, typecheck 2 s, unit 2 s, integration 26 s, browser 172 s,
+  production build 6 s).
 - 2026-09-26 (job endpoints on every hostname) `pnpm lint`, `pnpm typecheck` clean; `pnpm test`
   51 passed; `pnpm test:e2e tests/e2e/routing.spec.ts` 4 passed against a production build
   (ROUTE-01 now also asserts `/healthz` 200 and `/api/jobs/deliver` 401 or 503, never 404, on
@@ -80,22 +93,29 @@ Resume point for the build. Update after every milestone and before any context 
 
 ## Current task
 
-Production is live and verified end to end. The Vercel project `lerner-works-platform` is
-linked to the repository with `main` as production branch and serves `main` (commit
-`9b72435`, the merge of pull request #6) at `https://app.lernerworksplatform.dev` against the
-Supabase project `lerner-works-platform-production` (`fvpooyxkuvltjzjbevxf`, free tier, in
-the slot of the paused and retired staging project). The owner signed in, published a test
-site, sent an invitation, and inquiries from the public form are stored and delivered by
-Vercel Cron on their own (verified 13:10 UTC after the cron fix). The readiness report is
-green on the live deployment. No customer organization, site or hostname exists yet.
+Design programme phase D0 (identity completeness) is implemented and verified on the branch
+`claude/lucid-darwin-cif2y6`: `pnpm verify` green, screenshots of both pilots at 390/768/1440
+with logos, fonts and derived colours, Lighthouse re-run recorded, acceptance rows DES-01 to
+DES-05 PASS with DES-13/14 baselines (`docs/ACCEPTANCE.md`). It reaches production when the
+pull request merges into `main` (Vercel deploys `main`); the new migration
+`20260926000100_inquiries_switch.sql` must be applied to the production database before or
+with that deploy (`pnpm db:migrate` against the production admin connection, as for the
+earlier migrations), and existing releases keep rendering because version-1 snapshots are
+normalised at read time.
+
+Production itself is unchanged since the cron fix: the Vercel project `lerner-works-platform`
+serves `main` at `https://app.lernerworksplatform.dev` against the Supabase project
+`lerner-works-platform-production` (`fvpooyxkuvltjzjbevxf`). No customer organization, site or
+hostname exists yet.
 
 ## Next action
 
-Next build stage: the design flexibility programme in `docs/DESIGN-PLAN.md` (decided
-2026-09-26: design first, to full depth, agency-operated; embeds per D-013). Start with phase
-D0 on the owner's go, on a branch, with `pnpm verify`, screenshots and the acceptance rows
-DES-01 to DES-05; the plan's open points (fonts, video providers, delegation default) can be
-answered along the way.
+Owner: merge the D0 pull request (or say so and it will be merged and verified here), then
+apply the migration to production and check the pilot site's header, favicon and page titles
+on the live deployment. Then phase D1 (`docs/DESIGN-PLAN.md`: bounded design options,
+section variants, new section types, media focal point, rendering-hash test), about three
+sessions, starting on the owner's go. The plan's open points (fonts, video providers,
+delegation default) can be answered along the way.
 
 Owner: accept the pending invitation from its email (the last owner-session check of
 `docs/LAUNCH-CHECKLIST.md` section 6); decide the backup routine (the free tier has no

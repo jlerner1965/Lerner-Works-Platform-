@@ -31,7 +31,12 @@ export interface FixtureSite {
     footerText: string;
     defaultDescription: string;
     heroImageKey?: string;
+    /** Site-level images (by key from `images`) referenced from the configuration. */
+    logoImageKey?: string;
+    shareImageKey?: string;
   };
+  /** Site-level images: logo, share image (item images are declared on the items). */
+  images?: FixtureImage[];
   items: FixtureItem[];
   /** Applied after the first release to create a second historical release. */
   secondRelease: { note: string; apply: (items: FixtureItem[]) => FixtureItem[] };

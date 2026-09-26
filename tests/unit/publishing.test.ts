@@ -66,13 +66,15 @@ describe("manifest validation", () => {
   it("blocks duplicate routes, missing navigation targets and broken links", () => {
     const s = snapshot();
     s.routes.push({ path: "/about", kind: "page", itemId: "contact" });
-    s.config = { ...s.config, navigation: { items: [{ label: "Ghost", path: "/ghost" }] } };
+    s.config = { ...s.config, navigation: { items: [{ label: "Ghost", path: "/ghost" }, { label: "Partner", path: "https://partner.example/hub" }], showSearch: true } };
     (s.items.home!.payload.sections as Array<Record<string, unknown>>)[0]!.ctaPath = "/missing";
     const r = validateManifest({ manifest: s, notes: [], mediaRows: new Map(), missingMedia: [] }, { now });
     const codes = r.blockers.map((b) => b.code);
     expect(codes).toContain("duplicate_route");
     expect(codes).toContain("missing_nav_target");
     expect(codes).toContain("broken_link");
+    // External https links are allowed in navigation and are not checked against routes.
+    expect(r.blockers.filter((b) => b.code === "missing_nav_target").map((b) => b.message)).toEqual([expect.stringContaining("/ghost")]);
     expect(r.blockers.every((b) => b.href.startsWith("/app/sites/"))).toBe(true);
   });
   it("blocks pages that depend on a disabled module and reports the dependent page", () => {
@@ -91,7 +93,20 @@ describe("manifest validation", () => {
     const codes = r.blockers.map((b) => b.code);
     expect(codes).toContain("missing_alt");
     expect(codes).toContain("unlicensed_asset");
-    expect(codes.filter((c) => c === "contrast").length).toBe(3);
+    const contrast = r.blockers.filter((b) => b.code === "contrast");
+    expect(contrast.length).toBeGreaterThanOrEqual(3);
+    expect(contrast.map((b) => b.message)).toEqual(expect.arrayContaining([expect.stringContaining("Body text on the background"), expect.stringContaining("Links and accent text on the background")]));
+    expect(contrast.every((b) => b.field === "branding.colors" && b.href.endsWith("/settings"))).toBe(true);
+  });
+  it("blocks an accent colour whose buttons cannot carry readable text, and names the pairing", () => {
+    const s = snapshot();
+    // #8a8a8a: white reads at 3.3:1 and near-black at 5.8:1, so buttons get dark text and pass;
+    // but as link text on the cream background it fails.
+    s.config = { ...s.config, branding: { ...s.config.branding, colors: { ...s.config.branding.colors, accent: "#8a8a8a" } } };
+    const r = validateManifest({ manifest: s, notes: [], mediaRows: new Map(), missingMedia: [] }, { now });
+    const contrast = r.blockers.filter((b) => b.code === "contrast").map((b) => b.message);
+    expect(contrast.some((m) => m.includes("Links and accent text on the background"))).toBe(true);
+    expect(contrast.some((m) => m.includes("Text on accent buttons"))).toBe(false);
   });
   it("warns about stale verification dates without blocking", () => {
     const s = snapshot();

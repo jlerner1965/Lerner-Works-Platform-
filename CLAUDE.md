@@ -2,7 +2,9 @@
 
 The full specification is `docs/Lerner-Works-Platform-Build-Guide.md`. Read it before changing
 architecture. Resume from `docs/PROGRESS.md`. The design flexibility programme (phases D0–D3)
-is planned in `docs/DESIGN-PLAN.md`.
+is planned in `docs/DESIGN-PLAN.md`; D0 is shipped. Public themes use only the derived brand
+tokens and font variables described in `docs/DESIGN-TOKENS.md` (a unit test rejects literal
+colours in `src/themes`).
 
 ## Non-negotiable boundaries
 
