@@ -24,6 +24,11 @@ Resume point for the build. Update after every milestone and before any context 
 
 ## Last verified results
 
+- 2026-09-26 (job endpoints on every hostname) `pnpm lint`, `pnpm typecheck` clean; `pnpm test`
+  51 passed; `pnpm test:e2e tests/e2e/routing.spec.ts` 4 passed against a production build
+  (ROUTE-01 now also asserts `/healthz` 200 and `/api/jobs/deliver` 401 or 503, never 404, on
+  an unknown hostname). The build container runs as root, so the local PostgreSQL 16 cluster
+  was started as the `postgres` user before `pnpm db:start`.
 - 2026-09-26 (hosted auth tool) `pnpm lint`, `pnpm typecheck` clean; `pnpm test` 51 passed
   (adds `pnpm hosted:auth` argument parsing, change-set validation, Management API calls
   with an injected fetch, redaction and read-back verification).
