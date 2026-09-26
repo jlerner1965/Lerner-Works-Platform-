@@ -96,8 +96,9 @@ fail the bar.
   package in under ten minutes of dashboard time.
 - Status: built and verified in the repository on 2026-09-26 (`docs/ACCEPTANCE.md` SB-04 and
   SB-05 PASS, SB-06 re-measured; decision D-021; migration
-  `20260926000500_onboarding_package.sql`, already applied to the production project);
-  production on the owner's go (pull request, live checks).
+  `20260926000500_onboarding_package.sql`, already applied to the production project); on
+  `main` since pull request #11, merged by the owner on 2026-09-26 (the live checks on
+  production are still to be run).
 
 ### B3 · Design richness inside the boundary
 
@@ -115,7 +116,8 @@ fail the bar.
   DES-14 re-measured (`docs/evidence/LIGHTHOUSE.md`), screenshots per composition in
   `docs/evidence/screenshots/` and its `magazine`, `storefront`, `almanac` and `practice`
   folders; SB-07 PASS. Open: the owner's judgement on two sample sites built with real
-  photography (B4 supplies the photography); production on the owner's go with B2.
+  photography (B4 supplies the photography); on `main` since pull request #11 with B2,
+  merged by the owner on 2026-09-26.
 
 ### B4 · The proof
 
@@ -134,8 +136,9 @@ fail the bar.
   sheet's opening picture did nothing for a home that opens with words alone; colours that
   fail the contrast pairings passed the dry run; the quick-add form said "Add a event". SB-08
   PASS; SB-09 (the bar itself) is the owner's: their own timed build on production with the
-  packages and their judgement of the captures and the sites. Production on the owner's go
-  with B2 and B3 (no migration).
+  packages and their judgement of the captures and the sites. On `main` since pull request
+  #12, merged by the owner on 2026-09-26 (no migration; the live checks on production are
+  still to be run).
 
 ## 4 Acceptance rows
 
