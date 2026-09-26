@@ -6,6 +6,7 @@ import { withUser } from "@/server/data/db";
 import { findAssetUsage } from "@/server/media/ingest";
 import { Badge, Card, DescriptionList, PageHeader, formatDateTime } from "@/components/admin/ui";
 import { MediaMetadataForm, WithdrawForm } from "@/components/admin/media-forms";
+import { FocalPointEditor } from "@/components/admin/focal-point-editor";
 
 export const dynamic = "force-dynamic";
 
@@ -16,8 +17,8 @@ export default async function MediaAssetPage({ params }: { params: Promise<{ sit
   if (!ctx || !ctx.capabilities.canEdit) notFound();
   if (!/^[0-9a-f-]{36}$/i.test(assetId)) notFound();
   const data = await withUser(user.id, async (db) => {
-    const [asset] = await db<Array<{ id: string; title: string | null; altText: string | null; decorative: boolean; attributionText: string | null; license: string | null; sourceUrl: string | null; width: number; height: number; byteSize: number; mimeType: string; sha256: string; status: string; withdrawnReason: string | null; derivatives: Record<string, { width: number; height: number; bytes: number }>; createdAt: Date }>>`
-      select id, title, alt_text, decorative, attribution_text, license, source_url, width, height, byte_size, mime_type, sha256, status::text, withdrawn_reason, derivatives, created_at
+    const [asset] = await db<Array<{ id: string; title: string | null; altText: string | null; decorative: boolean; attributionText: string | null; license: string | null; sourceUrl: string | null; width: number; height: number; byteSize: number; mimeType: string; sha256: string; status: string; withdrawnReason: string | null; derivatives: Record<string, { width: number; height: number; bytes: number }>; createdAt: Date; focalX: number | null; focalY: number | null }>>`
+      select id, title, alt_text, decorative, attribution_text, license, source_url, width, height, byte_size, mime_type, sha256, status::text, withdrawn_reason, derivatives, created_at, focal_x::float as focal_x, focal_y::float as focal_y
       from public.media_assets where id = ${assetId} and site_id = ${siteId}`;
     if (!asset) return null;
     const usage = await findAssetUsage(db, siteId, assetId);
@@ -55,6 +56,11 @@ export default async function MediaAssetPage({ params }: { params: Promise<{ sit
           <Card title="Metadata">
             <MediaMetadataForm siteId={siteId} assetId={asset.id} values={{ title: asset.title ?? "", altText: asset.altText ?? "", decorative: asset.decorative, attributionText: asset.attributionText ?? "", license: asset.license ?? "", sourceUrl: asset.sourceUrl ?? "" }} disabled={asset.status === "withdrawn"} />
           </Card>
+          {asset.derivatives.w480 && asset.status !== "withdrawn" ? (
+            <Card title="Focal point" className="mt-4">
+              <FocalPointEditor siteId={siteId} assetId={asset.id} src={`${base}/${asset.id}/file/w480`} width={asset.derivatives.w480.width} height={asset.derivatives.w480.height} alt={asset.altText ?? ""} initial={asset.focalX !== null && asset.focalY !== null ? { x: asset.focalX, y: asset.focalY } : null} disabled={false} />
+            </Card>
+          ) : null}
           {ctx.capabilities.isOwner && asset.status !== "withdrawn" ? (
             <Card title="Withdraw (rights or privacy)" className="mt-4">
               <p className="mb-2 text-sm text-ink-muted">Withdrawing marks the asset unusable for new releases and blocks restoration of releases that contain it. Public derivatives already published stay until a new release replaces them.</p>

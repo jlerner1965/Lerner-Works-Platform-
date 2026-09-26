@@ -163,3 +163,34 @@ it on, to site publishers; editors and reviewers never see them. Flexibility com
 enumerated tokens, variants and section types validated on write and before publication, never
 from user-supplied HTML, CSS or scripts (D-006 stands). Every schema change bumps the snapshot
 version and keeps earlier releases rendering unchanged. See `docs/DESIGN-PLAN.md`.
+
+## D-015 · 2026-09-26 · Rendering hashes detect change; screenshots judge it
+
+Principle 3 of the design plan asks that upgrading the code leaves existing releases rendering
+as they were. The markup itself cannot be frozen: any theme change (a new class, a CSS variable,
+a wrapper element) alters the HTML of every release, including ones that never use the new
+option. The check therefore has two parts. `tests/unit/rendering-hash.test.ts` renders every
+route of the frozen pilot releases in `tests/fixtures/releases/` (exported by
+`scripts/export-release-fixtures.ts`, including derived version-1 copies) with a fixed clock and
+compares the SHA-256 of the HTML with the recorded values: an unintended change fails the
+build. When a change is intended, the old releases are restored on a seeded database, the
+screenshot pass is run and compared pixel by pixel with the previous evidence
+(`scripts/screenshot-diff.ts`), the differences are reviewed and the hashes are re-recorded with
+`UPDATE_RENDERING_HASHES=1`, with the reason noted in `docs/PROGRESS.md`. Acceptance row DES-09
+reads accordingly. A stored release is never rewritten: older snapshot versions are normalised
+at read time (`normalizeSnapshot`), which fills the defaults that make them render exactly as
+before.
+
+## D-016 · 2026-09-26 · D1 vocabulary: five section backgrounds, three hero overlays, owner-only design
+
+The bounded design options of phase D1 are deliberately small. Section backgrounds are `default`,
+`tint` (surface), `primary`, `accent` and `dark` (text colour); a "strong tint" band was built and
+removed because it added pairings (accent on the strong surface) that a valid palette can fail,
+which would have turned a palette that passes today into a blocked publication. Hero overlays are
+three fixed strengths of the text colour over the image; the light one publishes with a warning.
+Derived colours can be overridden only for the six tokens the themes use as surfaces and lines
+(`surface`, `surfaceStrong`, `muted`, `border`, `borderStrong`, `focus`); the "on" colours and the
+status colours stay derived so buttons and notices always read. Design settings are saved by
+organization owners only (`canDesign`), audited as `design.updated`; the per-site delegation to
+publishers planned in D-014 is not switched on in D1. Facts sections take owner-entered
+label/value pairs only (no computed metrics, per the no-fake-metrics rule).

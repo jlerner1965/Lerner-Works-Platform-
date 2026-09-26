@@ -1,5 +1,5 @@
 import type { SiteConfigInput } from "@/modules/site-config";
-import type { PagePayload } from "@/modules/page";
+import type { PagePayloadInput } from "@/modules/page";
 
 export type PresetKey = "community_guide" | "location_business";
 
@@ -10,8 +10,8 @@ export interface PresetDefinition {
   defaultTimeZone: string;
   /** Starting configuration; callers parse it through `siteConfigSchema` to apply defaults. */
   config: (input: { siteName: string }) => SiteConfigInput;
-  /** Initial pages for a clean site: structure and empty states, no fictional content. */
-  initialPages: (input: { siteName: string }) => Array<{ slug: string; title: string; payload: PagePayload }>;
+  /** Initial pages for a clean site: structure and empty states, no fictional content. Parsed through the page schema when created. */
+  initialPages: (input: { siteName: string }) => Array<{ slug: string; title: string; payload: PagePayloadInput }>;
   kinds: Array<"page" | "place" | "event" | "article" | "store" | "service">;
 }
 
@@ -146,7 +146,7 @@ export const presets: Record<PresetKey, PresetDefinition> = {
   },
 };
 
-function page(input: { title: string; slug: string; sections: PagePayload["sections"] }): PagePayload {
+function page(input: { title: string; slug: string; sections: NonNullable<PagePayloadInput["sections"]> }): PagePayloadInput {
   return {
     schemaVersion: 1,
     title: input.title,

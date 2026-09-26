@@ -7,9 +7,11 @@ design programme phase D0 (`docs/DESIGN-PLAN.md`).
 
 ## Inputs
 
-`branding.colors`: `primary`, `accent`, `background`, `text` (6-digit hex). Nothing else is
-asked of the owner; the derived colours follow the formulas below and cannot be overridden in
-D0 (overrides are a D1 option).
+`branding.colors`: `primary`, `accent`, `background`, `text` (6-digit hex). The derived
+colours follow the formulas below. Since D1, `design.overrides` may replace six of them
+(`surface`, `surfaceStrong`, `muted`, `border`, `borderStrong`, `focus`) with a 6-digit hex
+colour; an empty override keeps the derived value, and the gate below checks the result exactly
+as it checks derived colours. The "on" colours and the status colours are always derived.
 
 ## Derived tokens
 
@@ -18,7 +20,7 @@ Mixing is per sRGB channel: `mix(a → b, t) = a + (b − a) · t`, rounded to w
 | Token | CSS variable | Formula | Used for |
 |---|---|---|---|
 | surface | `--brand-surface` | mix(background → text, 4 %) | forms, callouts, notices, hero placeholders |
-| surfaceStrong | `--brand-surface-strong` | mix(background → text, 9 %) | stronger tint (reserved for D1 section backgrounds) |
+| surfaceStrong | `--brand-surface-strong` | mix(background → text, 9 %) | stronger tint; available to themes and as an override target (the D1 bands use `surface` for the tinted band, see below) |
 | muted | `--brand-muted` | text mixed toward background by 40 %, 35 %, … 5 %; the first step that keeps 4.5:1 against both background and surfaceStrong; else text | secondary text: dates, bylines, hints, captions |
 | border | `--brand-border` | mix(background → text, 18 %) | decorative rules, dividers, card outlines |
 | borderStrong | `--brand-border-strong` | background mixed toward text from 35 % upward in 5 % steps; the first with 3:1 against background and surface; else text | form field borders, dashed empty-state boxes |
@@ -33,6 +35,54 @@ Mixing is per sRGB channel: `mix(a → b, t) = a + (b − a) · t`, rounded to w
 
 Typography is not derived: `branding.typography` selects a preset in `src/themes/fonts.ts`,
 and themes read only `--font-heading` and `--font-body`.
+
+## Design scales (D1)
+
+`siteConfig.design` (Settings → Design, organization owners only, audited as `design.updated`)
+sets four scales that the theme root exposes as variables (`src/themes/shared/design.ts`).
+Themes use the variables, never the option names.
+
+| Option | Values | CSS variable | Used for |
+|---|---|---|---|
+| `radius` | none 0 px · small 0.25 rem · medium 0.75 rem · large 1.5 rem | `--radius` | images, cards, buttons, fields, panels |
+| `density` | guide: compact 2.25 rem · regular 3.5 rem · spacious 5 rem; retail: compact 2 rem · regular 3 rem · spacious 4.5 rem | `--section-gap` | vertical distance between sections ("regular" is each composition's original rhythm, so earlier releases render unchanged) |
+| `density` | compact 2 rem · regular 3 rem · spacious 4.5 rem | `--band-pad` | vertical padding inside coloured bands |
+| `container` | narrow 56 rem · regular 72 rem · wide 88 rem | `--container` | page width; "narrow" sections use the reading width (48 rem) regardless, centred on the guide and at the start of the container on the retail composition |
+
+`header`, `hero` and `cards` are compositions, not variables: `default` resolves to the theme's
+declared default (`src/themes/capabilities.ts`), and a value the theme does not offer is
+rejected on save (`design_unsupported` at publication). Grid sections (feature list,
+collections, gallery, facts) take a column count or leave it to the theme (`columnsFor` in
+`src/themes/shared/design.ts`: the guide lists collections in three columns and features in
+four; the retail composition uses four for both and three for store cards).
+
+## Section bands (D1)
+
+Each page section carries an `appearance.background`. Sections on the page background render
+without a band; the other four wrap the section in a full-width band and set the `--section-*`
+variables for everything inside, so every pairing inside a band is one the gate already checks
+(`on-primary` on `primary`, `on-accent` on `accent`, `on-text` on `text`, `text` and `accent`
+on `surface`). The theme root sets the "default" column so components can use the section
+variables everywhere.
+
+| Variable | default | tint | primary | accent | dark |
+|---|---|---|---|---|---|
+| `--section-bg` | background | surface | primary | accent | text |
+| `--section-fg` | text | text | onPrimary | onAccent | onText |
+| `--section-heading` | primary | primary | onPrimary | onAccent | onText |
+| `--section-accent` | accent | accent | onPrimary | onAccent | onText |
+| `--section-muted` | muted | muted | onPrimary | onAccent | onText |
+| `--section-border` | border | borderStrong | onPrimary at 40 % | onAccent at 40 % | onText at 40 % |
+| `--section-panel` / `--section-panel-fg` | surface / text | background / text | background / text | background / text | surface / text |
+
+Buttons and links inside a coloured band invert (the band's "on" colour as background, the band
+colour as text), and focus rings inside a band use `--section-fg`. Panels (forms, callouts)
+keep the page colours so their fields stay readable on any band.
+
+Text over a hero image (`image_hero` with the `full` style) sits on the text colour mixed over
+the picture: `.lw-hero-overlay-light` 55 %, `-medium` 70 %, `-strong` 85 % (`color-mix`), with
+`onText` as the text colour. Publication warns (`hero_overlay_light`) when the light overlay is
+chosen, because readability then depends on the photograph.
 
 ## The gate
 

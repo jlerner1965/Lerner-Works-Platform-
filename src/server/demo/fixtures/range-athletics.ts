@@ -120,11 +120,16 @@ export function rangeAthleticsFixture(now: Date): FixtureSite {
         summary: "Range Athletics is a fictional Front Range sporting-goods retailer with three stores, honest hours and services you can ask about before you drive.",
         metaDescription: "Range Athletics (fictional): three Colorado stores, current hours, shoe fitting, ski tuning, team outfitting and bike service.",
         sections: [
-          { id: "s-hero", type: "text_hero", heading: "Gear for the Front Range, from people who use it", subheading: "Three stores, real hours, and services you can ask about before you drive over. No online checkout: come in, or send a store a question.", ctaLabel: "Find a store", ctaPath: "/locations" },
+          { id: "s-hero", type: "image_hero", variant: "full", overlay: "medium", heading: "Gear for the Front Range, from people who use it", subheading: "Three stores, real hours, and services you can ask about before you drive over. No online checkout: come in, or send a store a question.", imageAssetId: "@front-range" as unknown as null, ctaLabel: "Find a store", ctaPath: "/locations" },
           { id: "s-stores", type: "location_collection", heading: "Find a store", mode: "all", itemIds: [] },
-          { id: "s-services", type: "content_collection", heading: "Services", kind: "service", mode: "latest", itemIds: [], limit: 4 },
+          { id: "s-facts", type: "facts", heading: "", variant: "inline", items: [
+            { label: "Stores", value: "3 on the Front Range" },
+            { label: "Services", value: "4, each with the stores that offer it" },
+            { label: "Founded", value: "1998 (fictional)" },
+          ] },
+          { id: "s-services", type: "content_collection", heading: "Services", kind: "service", mode: "latest", itemIds: [], limit: 4, variant: "cards", columns: 4 },
           { id: "s-featured", type: "location_collection", heading: "Featured store", mode: "selected", itemIds: ["@store-longmont"] as unknown as string[] },
-          { id: "s-contact", type: "contact_callout", heading: "Questions? Ask a store", text: "Each store answers its own inquiries. Choose the store on the contact page and you will hear back from the people who work there.", showContactDetails: true },
+          { id: "s-contact", type: "cta_banner", heading: "Questions? Ask a store", text: "Each store answers its own inquiries. Choose the store on the contact page and you will hear back from the people who work there.", ctaLabel: "Contact us", ctaPath: "/contact", appearance: { background: "accent", align: "center" } },
         ],
       }),
     },
@@ -156,6 +161,12 @@ export function rangeAthleticsFixture(now: Date): FixtureSite {
         sections: [
           { id: "s-callout", type: "contact_callout", heading: "Contact us", text: "Company questions go to the address below. Store questions are best sent through the form with the store selected.", showContactDetails: true },
           { id: "s-form", type: "inquiry_form", heading: "Send an inquiry", intro: "Tell us what you need and which store you would visit. You will get a receipt reference right away.", locationSelect: true },
+          { id: "s-faq", type: "faq", heading: "Before you ask", items: [
+            { question: "Can you tell me whether a size is in stock?", answer: [p("Not from this site: there is no live inventory here. Send the store a question with the model and size and the floor staff will check the shelf and answer.")] },
+            { question: "How long does a ski tune take?", answer: [p("Same day if you drop off before noon at Boulder or Longmont, otherwise next day. Race tunes and base repairs are quoted in the store.")] },
+            { question: "Do you ship?", answer: [p("No. Everything is collected in a store; that is how the fitting and tuning services stay honest.")] },
+          ] },
+          { id: "s-office", type: "map_link", variant: "card", heading: "Head office", text: "Range Athletics Inc. is run from the Longmont store's upper floor. Deliveries and team orders go here.", label: "Get directions", provider: "google", address: { line1: "4100 Foothills Way", line2: "Suite 200", locality: "Longmont", region: "CO", postalCode: "80501", approved: false } },
         ],
       }),
     },
@@ -190,8 +201,12 @@ export function rangeAthleticsFixture(now: Date): FixtureSite {
       footerText: "Range Athletics is a fictional retailer built to demonstrate a multi-location business website. No products, prices or inventory are offered.",
       defaultDescription: "Range Athletics (fictional): three Colorado stores with current hours, shoe fitting, ski tuning, team outfitting and bike service.",
       logoImageKey: "logo",
+      design: { radius: "small" },
     },
-    images: [{ key: "logo", title: "Range Athletics logo", alt: "Range Athletics", scene: { type: "logo", lines: ["Range", "ATHLETICS"], fg: "#12213a", accent: "#bf4a0d", emblem: "peak" } }],
+    images: [
+      { key: "logo", title: "Range Athletics logo", alt: "Range Athletics", scene: { type: "logo", lines: ["Range", "ATHLETICS"], fg: "#12213a", accent: "#bf4a0d", emblem: "peak" } },
+      { key: "front-range", title: "Front Range foothills at dusk", alt: "Illustrated foothills under a dusk sky, with a ridge line and a valley road", scene: { type: "landscape", palette: "dusk", seed: 7, ratio: "wide" }, focal: { x: 0.5, y: 0.38 } },
+    ],
     items: [...pages, ...services, ...stores, draft, pendingReview],
     secondRelease: {
       note: `Longmont adds an inventory-count closure on ${inventoryDay}`,

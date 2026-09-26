@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { parseInline, type Block } from "@/lib/richtext";
+import { parseEmphasis, parseInline, type Block } from "@/lib/richtext";
 import { href, type RenderContext } from "@/themes/shared/types";
 import { Picture } from "@/themes/shared/picture";
 
@@ -50,15 +50,25 @@ export function RichText({ ctx, blocks, className = "" }: { ctx: RenderContext; 
   );
 }
 
+function emphasis(text: string): ReactNode {
+  return parseEmphasis(text).map((node, i) => {
+    if (node.type === "strong") return <strong key={i}>{node.text}</strong>;
+    if (node.type === "em") return <em key={i}>{node.text}</em>;
+    return <span key={i}>{node.text}</span>;
+  });
+}
+
 export function inline(ctx: RenderContext, text: string): ReactNode {
   return parseInline(text).map((node, i) => {
+    if (node.type === "strong") return <strong key={i}>{node.text}</strong>;
+    if (node.type === "em") return <em key={i}>{node.text}</em>;
     if (node.type === "text") return <span key={i}>{node.text}</span>;
     const target = resolveLinkTarget(ctx, node.target ?? "");
-    if (!target) return <span key={i}>{node.text}</span>;
+    if (!target) return <span key={i}>{emphasis(node.text)}</span>;
     const external = target.startsWith("http");
     return (
       <a key={i} href={target} {...(external ? { rel: "noreferrer" } : {})}>
-        {node.text}
+        {emphasis(node.text)}
       </a>
     );
   });

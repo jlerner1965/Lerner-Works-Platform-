@@ -14,7 +14,7 @@ Resume point for the build. Update after every milestone and before any context 
 | M4 Verification and refinement | DONE (2026-09-26) | Acceptance matrix complete with evidence (38 PASS, 0 FAIL, 0 BLOCKED); ten-step demonstration automated with screenshots; browser suite moved to the production build; production build + secret inspection; Lighthouse lab runs; fresh-install rehearsal; release report in `docs/RELEASE-REPORT.md`. |
 | Production (hosted) | DONE (2026-09-26) | Production Supabase and Vercel projects configured and deployed; owner signed in; inquiries stored and delivered by Vercel Cron after the routing fix; readiness report green (see the hosted setup log). |
 | D0 Identity completeness | DONE (2026-09-26, on production: pull request #7 merged as `9c49d7a`, migration applied, live checks in `docs/evidence/production/d0-2026-09-26-live-checks.txt`) | Design programme phase 0 (`docs/DESIGN-PLAN.md` section 4): logo rendered, typography preset applied, every theme colour a derived token with a 15-pairing contrast gate and a literal-colour audit, per-site favicon/share image/title/language, editable listing copy, Search link switch, external links, footer layouts, page header image, inquiries switch enforced in SQL. Snapshot schema version 2 with version-1 releases normalised at read time. |
-| D1 Bounded design options | PLANNED | Site-level design options, section variants and appearance, new section types (FAQ, quotes, CTA, gallery, facts, video, map link), media focal point, rich text emphasis, snapshot version bump with rendering-hash test. |
+| D1 Bounded design options | BUILT (2026-09-26); on production after the owner's go (pull request, migration `20260926000200_media_focal_point.sql`, live check) | Site-wide design options (owners only, audited), section styles and appearance validated against each theme's declared vocabulary on save, import and publication, seven new section types (FAQ, quotes, call to action, gallery, facts, click-to-load video, map link), media focal points, bold and italic in rich text, snapshot schema version 3 with a rendering-hash test over six frozen releases and a screenshot comparison of the restored D0-era releases (identical), both pilots re-composed. DES-06 to DES-09 PASS; Lighthouse and the 143 KiB script budget recorded (unchanged). |
 | D2 Theme catalogue and design preview | PLANNED | Theme registry with capability declarations, one more composition per preset, theme switching per site, design preview of the draft configuration, more typography presets. |
 | D3 Visual in-context editing | PLANNED | Editable preview with keyboard-equivalent reordering, side-panel forms on the same schemas, live tokens, explicit save; same review and publication path. |
 
@@ -29,6 +29,29 @@ Resume point for the build. Update after every milestone and before any context 
 
 ## Last verified results
 
+- 2026-09-26 (design phase D1) `pnpm verify` on the final code: GATE PASSED in 273 s (setup
+  check 1 s, lint 13 s, typecheck 4 s, unit 3 s, integration 28 s, browser 218 s, production
+  build 6 s): 80 unit tests (adds theme capabilities, the new section schemas, design defaults,
+  version-1 normalisation, per-theme column defaults, rich text emphasis, and the rendering-hash
+  test over six frozen releases), 48 integration tests (adds `design.test`: unsupported variant
+  rejected by the save action without a write, blocked at publication and refused on package
+  import; focal point published, rendered as `object-position` and reported as "Media
+  changed"), 23 browser tests against a production build (adds `design.spec`: theme-only
+  styles and types in the editor, the owner-only Design card with its audit event, computed
+  `object-position` of the hero at 390/768/1440, and the click-to-load video with zero
+  third-party requests before keyboard activation). Rendering-hash comparison of the D0-era
+  releases restored on the seeded database: 39 pages × 3 widths identical in size, at most
+  0.15 % differing pixels, all of it live hours text and the footer release number, after three
+  retail fidelity fixes (section rhythm, default column counts, start-aligned reading width);
+  hashes re-recorded (D-015). Screenshot pass `scripts/screenshots.ts`: 15 public pages ×
+  390/768/1440, all 200, no horizontal overflow, no console errors; lazily loaded images are
+  now scrolled into view before capture. Lighthouse after D1 (`docs/evidence/LIGHTHOUSE.md`):
+  guide home median 96 / accessibility 100 / CLS 0.025 / LCP 2.73 s; store detail 97 / 100 /
+  0.011 / 2.30 s; retail home 99 / 100 / 0.006 / 2.06 s; guide about 98 / 100 / 0.025 / 2.20 s;
+  script transfer 143 KiB on every page (unchanged baseline). One defect found and fixed by
+  the new screenshots: the retail full-width hero's text panel painted beneath the image (a
+  non-positioned block background paints before later replaced content); the panel is now
+  positioned.
 - 2026-09-26 (design phase D0) `pnpm lint`, `pnpm typecheck` clean; `pnpm test` 59 passed
   (adds derived brand tokens, pairings and the literal-colour audit of `src/themes`; the
   contrast gate names every failing pairing; external navigation links); `pnpm test:integration`
@@ -93,33 +116,40 @@ Resume point for the build. Update after every milestone and before any context 
 
 ## Current task
 
-Design programme phase D0 (identity completeness) is on production. With the owner's go
-(2026-09-26): migration `20260926000100_inquiries_switch.sql` applied to the production
-project through the Management API (1 applied, 7 already applied), pull request #7 merged
-into `main` as `9c49d7a`, Vercel deployment `dpl_5ALmsgF8zZT8ofwU3CdGtpRoVibc` READY at
-14:34 UTC, then live checks on `https://app.lernerworksplatform.dev` (evidence
-`docs/evidence/production/d0-2026-09-26-live-checks.txt`): the owner's test site renders its
-version-1 release through the normalised path with `lang="en"`, its own title
-(`Aragosan`, `Events · Aragosan`) and no platform name, the generated monogram favicon
-(200 `image/svg+xml`; 404 for an unknown site), `og:site_name`, the derived brand tokens and
-font variables on the theme root; the sign-in page keeps the platform identity; the cron
-target on the deployment hostname still answers 401. The readiness report was not re-run
-(its inputs did not change in D0; the check-only environment file from the morning was
-deleted after use).
+Design programme phase D1 (bounded design options) is built and verified locally on the
+working branch `claude/lucid-darwin-cif2y6`; see the D1 row above, `docs/DESIGN-PLAN.md`
+section 4 (what shipped, and where), decisions D-015 and D-016, and the DES-06 to DES-09,
+DES-13 and DES-14 rows of `docs/ACCEPTANCE.md`. It is not on production: that needs the
+owner's go for the pull request into `main`, the migration
+`20260926000200_media_focal_point.sql` on the production project (`pnpm db:migrate
+--project-ref fvpooyxkuvltjzjbevxf`; it adds two nullable columns, nothing else) and a look at
+the live deployment afterwards. The owner's production test site has no design settings yet,
+so it renders as before (its releases are normalised at read time); the D1 controls appear
+in Settings → Design and in the page editor after the deployment.
 
-The Vercel project `lerner-works-platform` serves `main` at
-`https://app.lernerworksplatform.dev` against the Supabase project
-`lerner-works-platform-production` (`fvpooyxkuvltjzjbevxf`). No customer organization, site or
-hostname exists yet. This evidence commit sits on the working branch (restarted from
-`main` after the merge) and reaches `main` with the next pull request.
+Rendering-hash re-record (D-015): the hashes in `tests/fixtures/releases/hashes.json` were
+re-recorded for the version-1 and version-2 fixtures because D1 changes the markup of every
+page (section frames, `--section-*` variables, design variables); the visual check that
+justifies it is the screenshot comparison recorded under DES-09: the D0-era releases render
+identically with the D1 code once three retail differences found by the comparison were
+fixed. Version-3 fixtures (the re-composed pilots, release 6 of each) were added.
+
+Phase D0 remains on production as merged on 2026-09-26 (`9c49d7a`; live checks in
+`docs/evidence/production/d0-2026-09-26-live-checks.txt`). The Vercel project
+`lerner-works-platform` serves `main` at `https://app.lernerworksplatform.dev` against the
+Supabase project `lerner-works-platform-production` (`fvpooyxkuvltjzjbevxf`). No customer
+organization, site or hostname exists yet.
 
 ## Next action
 
-Owner: look at the test site on production (logo upload and a publish will show the new
-header; Settings → Brand shows the contrast pairings). Then phase D1 (`docs/DESIGN-PLAN.md`:
-bounded design options, section variants, new section types, media focal point,
-rendering-hash test), about three sessions, starting on the owner's go. The plan's open
-points (fonts, video providers, delegation default) can be answered along the way.
+Owner: say the word for the pull request and the production migration; then look at a
+pilot-style composition on the test site (Settings → Design; a page with a coloured
+call-to-action band, an FAQ and a gallery; the media library's focal point editor). Then phase
+D2 (`docs/DESIGN-PLAN.md`: theme catalogue with capability declarations, a second composition
+per preset, theme switching per site, design preview of the draft configuration, more
+typography presets), starting on the owner's go. Open points carried from D1: header overlaid
+on the hero and the configurable "Find a store" button (D2 compositions), a dark-surface logo
+variant, delegation of design to publishers (kept off, D-016), further video providers.
 
 Owner: accept the pending invitation from its email (the last owner-session check of
 `docs/LAUNCH-CHECKLIST.md` section 6); decide the backup routine (the free tier has no

@@ -21,6 +21,8 @@ export interface ChangeSummary {
   configFields: string[];
   mediaAdded: string[];
   mediaRemoved: string[];
+  /** Assets present in both releases whose published data changed (for example the focal point). */
+  mediaChanged?: string[];
 }
 
 const fieldLabels: Record<string, string> = {
@@ -125,6 +127,7 @@ export function summarizeChanges(base: ReleaseSnapshot | null, next: ReleaseSnap
     }
     summary.mediaAdded = Object.keys(next.media).filter((id) => !base.media[id]);
     summary.mediaRemoved = Object.keys(base.media).filter((id) => !next.media[id]);
+    summary.mediaChanged = Object.keys(next.media).filter((id) => base.media[id] && stable(base.media[id]) !== stable(next.media[id]));
   } else {
     summary.addedRoutes = next.routes.map((r) => r.path).sort();
     summary.mediaAdded = Object.keys(next.media);

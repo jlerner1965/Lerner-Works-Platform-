@@ -9,6 +9,7 @@ import { kindRegistry, isContentKind, type ContentKind } from "@/modules/registr
 import { validatePayload, createContentItem, saveRevision, getItem } from "@/server/data/content";
 import { ingestImage } from "@/server/media/ingest";
 import { normalizeSnapshot } from "@/server/publishing/snapshot";
+import { sectionCapabilityIssues, themeKeyForPreset } from "@/themes/capabilities";
 
 export const PACKAGE_VERSION = 1;
 export const MAX_PACKAGE_BYTES = 64 * 1024 * 1024;
@@ -43,6 +44,8 @@ interface PackagedMedia {
   attribution: string;
   license: string;
   sourceUrl: string;
+  /** Focal point (0–1) kept in view by every crop; absent or null = centre. */
+  focal?: { x: number; y: number } | null;
 }
 
 const sha = (b: Uint8Array) => createHash("sha256").update(b).digest("hex");
@@ -67,8 +70,8 @@ export async function exportSitePackage(db: Db, site: SiteRow): Promise<Uint8Arr
   const [active] = await db<{ snapshot: unknown }[]>`select snapshot from public.releases where id = ${site.activeReleaseId}`;
   const redirects = (active ? normalizeSnapshot(active.snapshot) : null)?.redirects ?? [];
   add("redirects.json", strToU8(JSON.stringify(redirects, null, 2)));
-  const media = await db<Array<{ id: string; title: string | null; altText: string | null; decorative: boolean; attributionText: string | null; license: string | null; sourceUrl: string | null; derivatives: Record<string, { key: string; width: number; height: number; hash: string }> }>>`
-    select id, title, alt_text, decorative, attribution_text, license, source_url, derivatives from public.media_assets where site_id = ${site.id} and status = 'ready' order by created_at`;
+  const media = await db<Array<{ id: string; title: string | null; altText: string | null; decorative: boolean; attributionText: string | null; license: string | null; sourceUrl: string | null; derivatives: Record<string, { key: string; width: number; height: number; hash: string }>; focalX: number | null; focalY: number | null }>>`
+    select id, title, alt_text, decorative, attribution_text, license, source_url, derivatives, focal_x::float as focal_x, focal_y::float as focal_y from public.media_assets where site_id = ${site.id} and status = 'ready' order by created_at`;
   const storage = getStorage();
   let mediaCount = 0;
   for (const m of media) {
@@ -78,7 +81,7 @@ export async function exportSitePackage(db: Db, site: SiteRow): Promise<Uint8Arr
     if (!data) continue;
     const file = `media/${m.id}/image.webp`;
     add(file, data);
-    const meta: PackagedMedia = { id: m.id, file, sha256: sha(data), width: best.width, height: best.height, title: m.title ?? "", alt: m.altText ?? "", decorative: m.decorative, attribution: m.attributionText ?? "", license: m.license ?? "", sourceUrl: m.sourceUrl ?? "" };
+    const meta: PackagedMedia = { id: m.id, file, sha256: sha(data), width: best.width, height: best.height, title: m.title ?? "", alt: m.altText ?? "", decorative: m.decorative, attribution: m.attributionText ?? "", license: m.license ?? "", sourceUrl: m.sourceUrl ?? "", focal: m.focalX !== null && m.focalY !== null ? { x: m.focalX, y: m.focalY } : null };
     add(`media/${m.id}/meta.json`, strToU8(JSON.stringify(meta, null, 2)));
     mediaCount++;
   }
@@ -215,6 +218,13 @@ export async function dryRunPackage(db: Db, site: SiteRow, bytes: Uint8Array): P
       out.errors.push(`${p}: ${parsed.error.issues[0]?.path.join(".")}: ${parsed.error.issues[0]?.message}`);
       continue;
     }
+    if (item.kind === "page") {
+      const unsupported = sectionCapabilityIssues(themeKeyForPreset(site.preset), ((parsed.data as { sections?: Array<{ type: string; variant?: string }> }).sections ?? []));
+      if (unsupported.length) {
+        out.errors.push(`${p}: ${unsupported[0]!.message}`);
+        continue;
+      }
+    }
     out.items.push(item);
     out.summary.byKind[item.kind] = (out.summary.byKind[item.kind] ?? 0) + 1;
   }
@@ -252,6 +262,10 @@ export async function applyPackage(db: Db, site: SiteRow, userId: string, dry: P
   for (const m of dry.media) {
     const result = await ingestImage(db, { siteId: site.id, organizationId: site.organizationId, userId, bytes: m.data, filename: `${m.id}.webp`, declaredMime: "image/webp", title: m.title, altText: m.alt, decorative: m.decorative, attributionText: m.attribution, license: m.license, sourceUrl: m.sourceUrl });
     if (!result.ok) throw new Error(`image ${m.id}: ${result.error}`);
+    const focal = m.focal;
+    if (focal && Number.isFinite(focal.x) && Number.isFinite(focal.y) && focal.x >= 0 && focal.x <= 1 && focal.y >= 0 && focal.y <= 1) {
+      await db`update public.media_assets set focal_x = ${Math.round(focal.x * 1000) / 1000}, focal_y = ${Math.round(focal.y * 1000) / 1000} where id = ${result.asset.id} and site_id = ${site.id}`;
+    }
     idMap.set(m.id, result.asset.id);
     mediaCount++;
   }

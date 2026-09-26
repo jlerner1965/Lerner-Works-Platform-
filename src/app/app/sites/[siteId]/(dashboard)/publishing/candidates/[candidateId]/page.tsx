@@ -68,7 +68,8 @@ export default async function CandidatePage({ params }: { params: Promise<{ site
           {s.navigationChanged ? <div className="mb-3 text-sm"><p className="font-medium">Navigation changed</p><p className="text-ink-muted">Before: {s.navigationChanged.before.join(" · ") || "none"}</p><p className="text-ink-muted">After: {s.navigationChanged.after.join(" · ") || "none"}</p></div> : null}
           <SummaryList title="Configuration changed" items={s.configFields} />
           <SummaryList title="Media added" items={s.mediaAdded.map((id) => cand.manifest.media[id]?.title || id.slice(0, 8))} />
-          {!s.firstRelease && s.added.length + s.changed.length + s.removed.length + s.configFields.length + s.mediaAdded.length === 0 && !s.navigationChanged ? <p className="text-sm text-ink-muted">No differences from the active release.</p> : null}
+          <SummaryList title="Media changed (focal point or details)" items={(s.mediaChanged ?? []).map((id) => cand.manifest.media[id]?.title || id.slice(0, 8))} />
+          {!s.firstRelease && s.added.length + s.changed.length + s.removed.length + s.configFields.length + s.mediaAdded.length + (s.mediaChanged?.length ?? 0) === 0 && !s.navigationChanged ? <p className="text-sm text-ink-muted">No differences from the active release.</p> : null}
           {excluded.length ? (
             <div className="mt-3 rounded border border-warning/40 bg-warning-soft p-3 text-sm">
               <p className="font-medium">Not included (unapproved)</p>

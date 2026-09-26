@@ -6,8 +6,9 @@ import { requireUser } from "@/server/auth/session";
 import { withUser, describeDbError } from "@/server/data/db";
 import { loadSiteContext } from "@/server/data/access";
 import { getCurrentSiteConfig, saveSiteConfig } from "@/server/data/sites";
-import { siteConfigSchema, footerVariants, typographyPresetKeys, type SiteConfig, type IndexModuleKey } from "@/modules/site-config";
+import { siteConfigSchema, footerVariants, typographyPresetKeys, headerStyles, heroStyles, cardStyles, radiusScales, densities, containerWidths, tokenOverrideKeys, type SiteConfig, type IndexModuleKey } from "@/modules/site-config";
 import { normalizeHost } from "@/server/publishing/public-site";
+import { designCapabilityIssues, themeKeyForPreset } from "@/themes/capabilities";
 
 export interface SettingsState {
   message?: string;
@@ -17,9 +18,9 @@ export interface SettingsState {
 
 const uuid = z.uuid();
 
-type Patch = (config: SiteConfig, form: FormData) => SiteConfig;
+type Patch = (config: SiteConfig, form: FormData, preset: "community_guide" | "location_business") => SiteConfig;
 
-async function saveConfigSection(formData: FormData, section: string, patch: Patch): Promise<SettingsState> {
+async function saveConfigSection(formData: FormData, section: string, patch: Patch, opts: { design?: boolean } = {}): Promise<SettingsState> {
   const user = await requireUser();
   const siteId = String(formData.get("siteId") ?? "");
   const baseRevisionId = String(formData.get("baseRevisionId") ?? "");
@@ -28,11 +29,12 @@ async function saveConfigSection(formData: FormData, section: string, patch: Pat
     return await withUser(user.id, async (db) => {
       const ctx = await loadSiteContext(db, siteId);
       if (!ctx?.capabilities.canManageSettings) return { error: "You do not have permission to change settings for this site." };
+      if (opts.design && !ctx.capabilities.canDesign) return { error: "Only organization owners change the design of a site." };
       const current = await getCurrentSiteConfig(db, siteId);
       if (!current) return { error: "The site has no configuration revision." };
       let next: SiteConfig;
       try {
-        next = siteConfigSchema.parse(patch(structuredClone(current.config), formData));
+        next = siteConfigSchema.parse(patch(structuredClone(current.config), formData, ctx.site.preset));
       } catch (err) {
         if (err instanceof z.ZodError) {
           const fieldErrors: Record<string, string> = {};
@@ -41,14 +43,48 @@ async function saveConfigSection(formData: FormData, section: string, patch: Pat
         }
         throw err;
       }
+      const designIssues = designCapabilityIssues(themeKeyForPreset(ctx.site.preset), next.design);
+      if (designIssues.length) return { error: "Some design choices are not offered by this site's theme.", fieldErrors: Object.fromEntries(designIssues.map((i) => [i.path, i.message])) };
       const result = await saveSiteConfig(db, { siteId, organizationId: ctx.site.organizationId, baseRevisionId, config: next, authorId: user.id, changeNote: `Updated ${section}` });
       if (!result.ok) return { error: "Settings changed elsewhere while you were editing. Reload the page and apply your change again." };
+      if (opts.design) {
+        await db`insert into public.audit_events (organization_id, site_id, actor_id, action, entity_type, entity_id, metadata)
+          values (${ctx.site.organizationId}, ${siteId}, ${user.id}, 'design.updated', 'site_config_revision', ${result.revision.id}, ${db.json({ design: next.design })})`;
+      }
       revalidatePath(`/app/sites/${siteId}/settings`);
       return { message: `${section} saved as configuration revision ${result.revision.version}. Publish a release to make it public.` };
     });
   } catch (err) {
     return { error: describeDbError(err).message };
   }
+}
+
+function pick<T extends string>(form: FormData, name: string, allowed: readonly T[], fallback: T): T {
+  const value = String(form.get(name) ?? "");
+  return (allowed as readonly string[]).includes(value) ? (value as T) : fallback;
+}
+
+/** Site-wide design options (owners only; every change is audited). */
+export async function saveDesignAction(_prev: SettingsState, formData: FormData): Promise<SettingsState> {
+  return saveConfigSection(
+    formData,
+    "Design",
+    (config, form) => {
+      const overrides = { ...config.design.overrides };
+      for (const key of tokenOverrideKeys) overrides[key] = String(form.get(`override_${key}`) ?? "").trim().toLowerCase();
+      config.design = {
+        header: pick(form, "header", headerStyles, "default"),
+        hero: pick(form, "hero", heroStyles, "default"),
+        cards: pick(form, "cards", cardStyles, "default"),
+        radius: pick(form, "radius", radiusScales, "none"),
+        density: pick(form, "density", densities, "regular"),
+        container: pick(form, "container", containerWidths, "regular"),
+        overrides,
+      };
+      return config;
+    },
+    { design: true },
+  );
 }
 
 /** A media asset id from a select, or null for "none". Asset ownership is enforced when the release is built. */

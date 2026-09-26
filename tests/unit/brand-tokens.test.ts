@@ -53,6 +53,16 @@ describe("derived brand tokens", () => {
     expect(brandPairings(hopeless).every((p) => p.minimum === 4.5 || p.minimum === 3)).toBe(true);
   });
 
+  it("applies owner overrides to derived tokens and gates the result", () => {
+    const t = deriveBrandTokens(guide, { surface: "#FFFFFF", muted: "#777777", focus: "" });
+    expect(t.surface).toBe("#ffffff");
+    expect(t.muted).toBe("#777777");
+    expect(t.focus).toBe(deriveBrandTokens(guide).focus);
+    // A too-light muted override fails the gate by name.
+    expect(failingPairings(guide, { muted: "#bbbbbb" }).map((p) => p.id)).toEqual(["muted-bg"]);
+    expect(brandPairings(guide).length).toBe(15);
+  });
+
   it("exposes one CSS variable per token", () => {
     const vars = brandCssVariables(deriveBrandTokens(guide));
     expect(Object.keys(vars).sort()).toEqual([

@@ -111,10 +111,18 @@ function textOn(bg: string, colors: BrandColors): string {
   return pickReadable([WHITE, colors.text, colors.background, NEAR_BLACK], [bg], 4.5);
 }
 
-export function deriveBrandTokens(colors: BrandColors): BrandTokens {
+/** Owner overrides of derived tokens (design programme D1): empty string means "derived". */
+export type BrandOverrides = Partial<Record<"surface" | "surfaceStrong" | "muted" | "border" | "borderStrong" | "focus", string>>;
+
+function override(overrides: BrandOverrides, key: keyof BrandOverrides, derived: string): string {
+  const value = overrides[key];
+  return value && /^#[0-9a-fA-F]{6}$/.test(value) ? value.toLowerCase() : derived;
+}
+
+export function deriveBrandTokens(colors: BrandColors, overrides: BrandOverrides = {}): BrandTokens {
   const { primary, accent, background, text } = colors;
-  const surface = mix(background, text, 0.04);
-  const surfaceStrong = mix(background, text, 0.09);
+  const surface = override(overrides, "surface", mix(background, text, 0.04));
+  const surfaceStrong = override(overrides, "surfaceStrong", mix(background, text, 0.09));
 
   let muted = text;
   for (const t of [0.4, 0.35, 0.3, 0.25, 0.2, 0.15, 0.1, 0.05]) {
@@ -124,8 +132,9 @@ export function deriveBrandTokens(colors: BrandColors): BrandTokens {
       break;
     }
   }
+  muted = override(overrides, "muted", muted);
 
-  const border = mix(background, text, 0.18);
+  const border = override(overrides, "border", mix(background, text, 0.18));
   let borderStrong = text;
   for (let t = 0.35; t <= 1.0001; t += 0.05) {
     const candidate = mix(background, text, t);
@@ -134,8 +143,9 @@ export function deriveBrandTokens(colors: BrandColors): BrandTokens {
       break;
     }
   }
+  borderStrong = override(overrides, "borderStrong", borderStrong);
 
-  const focus = pickReadable([accent, primary, text], [background, surfaceStrong], 3);
+  const focus = override(overrides, "focus", pickReadable([accent, primary, text], [background, surfaceStrong], 3));
   const danger = ensureContrast(DANGER_BASE, [background, surface], 4.5);
   const success = ensureContrast(SUCCESS_BASE, [background, surface], 4.5);
   const dangerSoftCandidate = mix(background, danger, 0.1);
@@ -189,20 +199,20 @@ export function brandCssVariables(tokens: BrandTokens): Record<string, string> {
  * Every colour pairing the themes render, with the WCAG 2.2 AA minimum that applies. The
  * publication gate blocks on any failing pairing; the settings page shows the same list.
  */
-export function brandPairings(colors: BrandColors): BrandPairing[] {
-  const t = deriveBrandTokens(colors);
+export function brandPairings(colors: BrandColors, overrides: BrandOverrides = {}): BrandPairing[] {
+  const t = deriveBrandTokens(colors, overrides);
   const pair = (id: string, label: string, fg: string, bg: string, minimum: 4.5 | 3 = 4.5): BrandPairing => {
     const ratio = contrastRatio(fg, bg);
     return { id, label, fg, bg, minimum, ratio, passes: ratio >= minimum };
   };
   return [
     pair("text-bg", "Body text on the background", t.text, t.background),
-    pair("text-surface", "Body text on tinted panels (forms, callouts, notices)", t.text, t.surface),
+    pair("text-surface", "Body text on tinted panels and bands (forms, callouts, notices)", t.text, t.surface),
     pair("muted-bg", "Secondary text on the background", t.muted, t.background),
     pair("primary-bg", "Headings and primary-coloured text on the background", t.primary, t.background),
-    pair("primary-surface", "Headings on tinted panels", t.primary, t.surface),
+    pair("primary-surface", "Headings on tinted panels and bands", t.primary, t.surface),
     pair("accent-bg", "Links and accent text on the background", t.accent, t.background),
-    pair("accent-surface", "Links on tinted panels", t.accent, t.surface),
+    pair("accent-surface", "Links on tinted panels and bands", t.accent, t.surface),
     pair("on-primary", "Text on primary buttons and primary-coloured areas", t.onPrimary, t.primary),
     pair("on-accent", "Text on accent buttons", t.onAccent, t.accent),
     pair("on-text", "Text on text-coloured bars (demonstration banner, skip link)", t.onText, t.text),
@@ -214,6 +224,6 @@ export function brandPairings(colors: BrandColors): BrandPairing[] {
   ];
 }
 
-export function failingPairings(colors: BrandColors): BrandPairing[] {
-  return brandPairings(colors).filter((p) => !p.passes);
+export function failingPairings(colors: BrandColors, overrides: BrandOverrides = {}): BrandPairing[] {
+  return brandPairings(colors, overrides).filter((p) => !p.passes);
 }

@@ -5,11 +5,13 @@ import { TextInput, TextArea, SelectInput, Checkbox, MultiSelect, Fieldset } fro
 import { BodyEditor } from "@/components/admin/editor/body-editor";
 import { MediaPicker } from "@/components/admin/editor/media-picker";
 import { SectionsEditor } from "@/components/admin/editor/sections-editor";
+import { AddressFields } from "@/components/admin/editor/address-fields";
 import { WeeklyHoursEditor, ExceptionsEditor, emptyWeek } from "@/components/admin/editor/hours-editor";
-import type { PageSection, SectionType } from "@/modules/page";
+import type { PageSection } from "@/modules/page";
 import type { Address, HoursException, WeeklyHours } from "@/modules/common";
 import type { Block } from "@/lib/richtext";
 import type { ContentKind } from "@/modules/registry";
+import { themeCapabilities } from "@/themes/capabilities";
 
 interface FieldsProps {
   kind: ContentKind;
@@ -20,32 +22,15 @@ interface FieldsProps {
   issues: Issues;
 }
 
-function AddressFields({ value, onChange, issues, prefix }: { value: Address; onChange: (a: Address) => void; issues: Issues; prefix: string }) {
-  return (
-    <div className="grid gap-x-3 sm:grid-cols-2">
-      <TextInput label="Address line 1" value={value.line1} onChange={(v) => onChange({ ...value, line1: v })} error={issues[`${prefix}.line1`]} />
-      <TextInput label="Address line 2" value={value.line2} onChange={(v) => onChange({ ...value, line2: v })} />
-      <TextInput label="City / locality" value={value.locality} onChange={(v) => onChange({ ...value, locality: v })} />
-      <TextInput label="State / region" value={value.region} onChange={(v) => onChange({ ...value, region: v })} />
-      <TextInput label="Postal code" value={value.postalCode} onChange={(v) => onChange({ ...value, postalCode: v })} />
-      <div className="sm:col-span-2">
-        <Checkbox label="Address approved by the owner for public direction links" checked={value.approved} onChange={(v) => onChange({ ...value, approved: v })} hint="Direction links are generated only from approved addresses on live sites." />
-      </div>
-    </div>
-  );
-}
-
 export function KindFields(props: FieldsProps) {
   const { kind, payload, set, ctx, issues } = props;
   const s = (k: string) => String(payload[k] ?? "");
   switch (kind) {
     case "page": {
-      const allowed: SectionType[] = props.preset === "community_guide"
-        ? ["image_hero", "text_hero", "rich_text", "feature_list", "content_collection", "contact_callout", "inquiry_form"]
-        : ["text_hero", "image_hero", "rich_text", "feature_list", "location_collection", "content_collection", "contact_callout", "inquiry_form"];
+      const capabilities = themeCapabilities[ctx.themeKey];
       return (
-        <Fieldset legend="Page sections" description="Ordered sections make up the page. Use Move up/Move down to reorder.">
-          <SectionsEditor sections={(payload.sections as PageSection[]) ?? []} onChange={(sections) => set({ sections })} ctx={ctx} issues={issues} allowedTypes={allowed} />
+        <Fieldset legend="Page sections" description={`Ordered sections make up the page. Use Move up/Move down to reorder. Each section has a style and an appearance; the ${capabilities.label} theme offers the choices shown.`}>
+          <SectionsEditor sections={(payload.sections as PageSection[]) ?? []} onChange={(sections) => set({ sections })} ctx={ctx} issues={issues} capabilities={capabilities} />
         </Fieldset>
       );
     }
