@@ -112,14 +112,13 @@ Release label: **hosted staging verified**, with these open items before "live p
   (`docs/LAUNCH-CHECKLIST.md` section 7). Staging holds test data.
 - Supabase Auth SMTP through Resend (the session's safety check refused to write that
   secret; the default Supabase mailer is rate-limited and meant for testing).
-- A long-lived Vercel API token in both project environments (the one on staging is the
-  owner's 24-hour token; the API refused to create one from it).
 - Real customer content, the customer's hostname and DNS, and the go-live decision.
 - Plan costs for Vercel, Supabase and Resend remain the owner's to confirm; none is quoted here.
 
 Credentials shared during setup: the Resend key was replaced by two sending-only keys (one
-per environment) and deleted; the Vercel token expires within a day; the Supabase access
-token is the owner's to revoke in the dashboard.
+per environment) and deleted; the 24-hour Vercel token was replaced on both projects on
+2026-09-26 by a long-lived team-scoped token supplied through the build environment's
+secrets; the Supabase access token is the owner's to revoke in the dashboard.
 
 ## 6. Known defects and limitations
 

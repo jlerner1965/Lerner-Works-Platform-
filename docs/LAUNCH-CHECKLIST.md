@@ -144,9 +144,10 @@ Only after all seven pass can the release be labelled **hosted staging verified*
       2026-09-26: Vercel project `lerner-works-platform` exists with
       `app.lernerworksplatform.dev` attached, Node 22.x, and every variable of section 3 set
       for the production target except `DATABASE_URL`, `DATABASE_ADMIN_URL`, `SUPABASE_URL`,
-      `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` and `VERCEL_API_TOKEN`. Do not link the
-      repository or deploy before the production Supabase project exists and those are set;
-      with the link in place every push to `main` deploys to production.
+      `SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY` (the long-lived `VERCEL_API_TOKEN`
+      was set on 2026-09-26). Do not link the repository or deploy before the production
+      Supabase project exists and those are set; with the link in place every push to `main`
+      deploys to production.
 - [ ] `pnpm launch:check --env-file .env.production` reports no FAIL and no `.example` accounts.
 - [ ] Deploy the same commit that passed staging. Vercel keeps previous deployments for an
       application rollback; content rollback is a release restore in the dashboard.

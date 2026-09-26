@@ -77,8 +77,8 @@ has no deployment, so nothing is served on that hostname yet.
 
 Owner: create the production Supabase project in the Supabase dashboard (the access token
 shared during setup can neither list organizations nor create projects), enter the Supabase
-Auth SMTP settings for staging, choose the Supabase plan, make `main` the default branch and
-provide long-lived provider tokens through the build environment's secrets, never in chat.
+Auth SMTP settings for staging, choose the Supabase plan and make `main` the default branch;
+any further provider secret goes through the build environment's secrets, never in chat.
 Then: `pnpm db:migrate --project-ref <prod>`, `pnpm hosted:roles --project-ref <prod>`, auth
 settings and buckets, the remaining production variables, repository link, deployment,
 `pnpm launch:check`, `pnpm bootstrap:owner`, and the smoke tests against production
@@ -184,9 +184,28 @@ deployment until the smoke tests in `docs/LAUNCH-CHECKLIST.md` run.
   until it is replaced. The session's own environment ("Aragonite Soil 2") is one of three
   the owner has; the token must be saved in that one, under exactly that name, and the
   step is repeated from a fresh session.
+- 2026-09-26 Long-lived Vercel token set (05:09–05:11 UTC). The owner saved a manual,
+  team-scoped Vercel token (team ARProject, no expiry) in the build environment as
+  `VERCEL_API_TOKEN`; the session verified it read-only first (`/v5/user/tokens/current`,
+  `/v2/teams`). The staging project's existing `VERCEL_API_TOKEN` variable was updated in
+  place (sensitive, production + preview targets; its previous value had last been changed
+  from the owner's account at 04:48 UTC) and `VERCEL_API_TOKEN` was created on the
+  production project (sensitive, production target only, matching its other variables).
+  Staging was redeployed from `main` (commit `7f4caf7`, deployment
+  `dpl_6Z8ZtGJfF1kVbgRLo16K8Dv1wTwK`, READY after 32 s, now the project's production
+  deployment behind `staging.lernerworksplatform.dev`); `/healthz` answers
+  `{"ok":true,"database":"reachable"}` and `/app` redirects to sign-in. Domain check with
+  the new token through the application's own Vercel adapter (`VercelDomainProvider` with
+  the staging project and team ids, run from the build environment):
+  `tokencheck.lernerworksplatform.dev` was registered and reported verified and configured
+  (`configuredBy: A`; the zone is on Vercel DNS), served `/healthz` 200 from the new
+  deployment, was removed, and was then reported as not registered; the hostname answers
+  404 again. Not run: the same workflow from the staging dashboard, which needs an owner
+  session (smoke test 6 covers it with owner credentials). The production project remains
+  unlinked and without a deployment. No token value was printed, logged or committed.
 - Pending (owner): Supabase Auth SMTP through Resend entered in the dashboard (a Resend key
-  the owner creates there); Supabase plan; production Supabase project; long-lived Vercel
-  token on both projects; revocation of the pasted Supabase token; default branch `main`.
+  the owner creates there); Supabase plan; production Supabase project; revocation of the
+  pasted Supabase token; default branch `main`.
 
 ## Feature ledger
 
