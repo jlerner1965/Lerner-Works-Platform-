@@ -260,6 +260,22 @@ deployment until the smoke tests in `docs/LAUNCH-CHECKLIST.md` run.
   `refs/heads/main`, at `7f4caf7`); the work of this session is on
   `claude/lucid-darwin-cif2y6`, ahead of `main`, and reaches it through a pull request
   the owner opens or approves.
+- 2026-09-26 Decision by the owner: no Supabase plan upgrade for now; production takes the
+  staging project's free slot ("Option A": pause staging, create production fresh, retire
+  staging; pre-production checks rely on the local environment and `pnpm verify`; free-tier
+  caveats recorded in the session: idle pausing kept at bay only by the five-minute delivery
+  cron, no provider backups, published size and compute limits). Pausing the staging project
+  through the Management API was refused by the session's safety check (it refuses changes
+  to shared resources), so the owner pauses `Lerner-Works-Platform-`
+  (`pgnffhnlgxqpsvgloshz`) in the Supabase dashboard (Project Settings → General → Pause
+  project). Prepared and waiting for the free slot: creation of `lerner-works-platform-production`
+  (us-east-1) with generated database passwords kept in 0600 files only, then
+  `pnpm db:migrate`, `pnpm hosted:roles`, `pnpm hosted:auth --site-url
+  https://app.lernerworksplatform.dev --redirect …/auth/recovery --redirect …/** --disable-signups`,
+  buckets through the Storage API, the five database and Supabase variables on the
+  production Vercel project, and `pnpm launch:check --env-file --project-ref`. Auth SMTP on
+  production will need the owner's hand as on staging. The first production deployment and
+  the repository link wait for the owner's explicit go-ahead.
 - Pending (owner): Supabase Auth SMTP through Resend (the prepared command, run from a
   workstation, or the dashboard); Supabase plan (the free plan's two active projects are in
   use, so production needs an upgrade); production Supabase project; revocation of the
