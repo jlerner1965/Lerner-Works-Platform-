@@ -114,8 +114,15 @@ deployment until the smoke tests in `docs/LAUNCH-CHECKLIST.md` run.
   Verified state: 19 tables all with RLS, no PostgREST grants on `app_sessions`, `lw_app`
   can execute the session functions, no local auth shim. A separate production project is
   still to be created before launch.
-- Pending: Vercel project (owner creates it in the dashboard) + environment variables +
-  staging hostname; elevated database connection string; first owner; smoke tests.
+- 2026-09-26 Vercel project `lerner-works-platform-staging` (`prj_3o7NzqXkOF4OWCiMeXrJ40e68UYL`)
+  created through the API without a Git link (the linked variant was refused by the session's
+  safety check as a deployment); Next.js, Node 22, `pnpm install --frozen-lockfile` /
+  `pnpm build`; all 21 environment variables set (secrets as sensitive); hostname
+  `staging.lernerworksplatform.dev` attached and reported as configured. The database password
+  of the Supabase project was rotated with the owner's approval so the elevated connection
+  string could be set. Sender: `notifications@lernerworksplatform.dev`.
+- Pending: connect the repository to the Vercel project (first deployment); first owner;
+  smoke tests.
 
 ## Feature ledger
 

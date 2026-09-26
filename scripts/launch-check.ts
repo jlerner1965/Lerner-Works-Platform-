@@ -15,6 +15,7 @@ import dotenv from "dotenv";
 import postgres from "postgres";
 import { loadEnv, projectRoot } from "./lib/env";
 import { listMigrationFiles, migrationsDir } from "./lib/db-admin";
+import { assertProjectRef, executeSql } from "./lib/supabase-management";
 
 const envFileIndex = process.argv.indexOf("--env-file");
 if (envFileIndex >= 0) {
@@ -27,6 +28,11 @@ if (envFileIndex >= 0) {
 } else {
   loadEnv();
 }
+
+// --project-ref <ref>: run the database checks through the Supabase Management API (needs
+// SUPABASE_ACCESS_TOKEN) where the database ports are not reachable from this machine.
+const refIndex = process.argv.indexOf("--project-ref");
+const projectRef = refIndex >= 0 ? assertProjectRef(process.argv[refIndex + 1]) : null;
 
 type Status = "OK" | "WARN" | "FAIL" | "SKIP";
 const rows: Array<{ status: Status; item: string; detail: string }> = [];
@@ -51,8 +57,12 @@ async function main(): Promise<void> {
   const appHost = process.env.APP_HOST ?? "";
   add(/^(localhost|127\.0\.0\.1)/.test(appHost) ? need("FAIL") : "OK", "Application host", appHost || "unset");
 
-  await databaseChecks();
-  await appRoleChecks();
+  if (projectRef) {
+    await managedDatabaseChecks(projectRef);
+  } else {
+    await databaseChecks();
+    await appRoleChecks();
+  }
   await authChecks(cfg);
   await storageChecks(cfg);
   await notifyChecks(cfg);
@@ -114,6 +124,62 @@ async function databaseChecks(): Promise<void> {
     add("FAIL", "Database (elevated)", err instanceof Error ? err.message : String(err));
   } finally {
     await sql.end();
+  }
+}
+
+/** The elevated and application-role checks, as SQL through the Management API. */
+async function managedDatabaseChecks(ref: string): Promise<void> {
+  const token = process.env.SUPABASE_ACCESS_TOKEN;
+  if (!token) {
+    add("FAIL", "Database (managed)", "SUPABASE_ACCESS_TOKEN is required with --project-ref");
+    return;
+  }
+  const q = <T = Record<string, unknown>>(sql: string) => executeSql<T>(ref, token, sql);
+  try {
+    const [v] = await q<{ v: string }>("select version() as v");
+    add("OK", "Database (managed)", `${ref}: ${(v?.v ?? "connected").split(",")[0]}`);
+    const [bypass] = await q<{ b: boolean }>("select rolbypassrls as b from pg_roles where rolname = 'postgres'");
+    add(bypass?.b ? "OK" : "FAIL", "Elevated role", bypass?.b ? "postgres bypasses row-level security" : "postgres does not bypass row-level security");
+    const [mt] = await q<{ t: string | null }>("select to_regclass('platform_meta.schema_migrations')::text as t");
+    if (!mt?.t) {
+      add("FAIL", "Migrations", "not applied (pnpm db:migrate --project-ref)");
+    } else {
+      const applied = new Set((await q<{ name: string }>("select name from platform_meta.schema_migrations")).map((r) => r.name));
+      const pending = listMigrationFiles(migrationsDir).filter((f) => !applied.has(f));
+      add(pending.length ? "FAIL" : "OK", "Migrations", pending.length ? `${pending.length} pending: ${pending.join(", ")}` : `${applied.size} applied`);
+    }
+    const [shim] = await q<{ n: number }>("select count(*)::int as n from pg_namespace where nspname = 'local_auth'");
+    add(shim?.n ? "FAIL" : "OK", "Local auth shim", shim?.n ? "local_auth schema present on a hosted database" : "absent, as required");
+    const noRls = await q<{ relname: string }>("select c.relname from pg_class c join pg_namespace n on n.oid = c.relnamespace where n.nspname = 'public' and c.relkind = 'r' and not c.relrowsecurity order by 1");
+    add(noRls.length ? "FAIL" : "OK", "Row-level security", noRls.length ? `enabled on all but: ${noRls.map((r) => r.relname).join(", ")}` : "enabled on every public table");
+    const exposed = await q<{ grantee: string }>("select distinct grantee from information_schema.role_table_grants where table_schema = 'public' and table_name = 'app_sessions' and grantee in ('anon', 'authenticated')");
+    add(exposed.length ? "FAIL" : "OK", "Session table", exposed.length ? `granted to ${exposed.map((e) => e.grantee).join(", ")}` : "not reachable by anon/authenticated");
+    const [role] = await q<{ exists: boolean; login: boolean | null; inherit: boolean | null; bypass: boolean | null; members: number; direct: boolean | null; fn: boolean | null }>(`
+      select exists (select 1 from pg_roles where rolname = 'lw_app') as exists,
+        (select rolcanlogin from pg_roles where rolname = 'lw_app') as login,
+        (select rolinherit from pg_roles where rolname = 'lw_app') as inherit,
+        (select rolbypassrls from pg_roles where rolname = 'lw_app') as bypass,
+        (select count(*)::int from pg_auth_members m join pg_roles r on r.oid = m.roleid join pg_roles g on g.oid = m.member where g.rolname = 'lw_app' and r.rolname in ('anon', 'authenticated')) as members,
+        (select has_table_privilege('lw_app', 'public.sites', 'select') where exists (select 1 from pg_roles where rolname = 'lw_app')) as direct,
+        (select has_function_privilege('lw_app', 'private.resolve_app_session(text)', 'execute') where exists (select 1 from pg_roles where rolname = 'lw_app')) as fn`);
+    if (!role?.exists) {
+      add("FAIL", "Application role", "lw_app does not exist (pnpm hosted:roles --project-ref)");
+    } else {
+      const ok = role.login && role.inherit === false && role.bypass === false && role.members === 2 && role.direct === false;
+      add(ok ? "OK" : "FAIL", "Application role", ok ? "lw_app: login, no inheritance, no RLS bypass, member of anon/authenticated, no direct table access" : `lw_app state: login=${role.login} inherit=${role.inherit} bypass=${role.bypass} memberships=${role.members} directTableAccess=${role.direct}`);
+      add(role.fn ? "OK" : "FAIL", "Session functions", role.fn ? "executable by the application role" : "not executable by the application role (pnpm hosted:roles --project-ref)");
+    }
+    const [demo] = await q<{ n: number }>("select count(*)::int as n from auth.users where email like '%.example'");
+    add((demo?.n ?? 0) === 0 ? "OK" : process.env.APP_ENV === "production" ? "FAIL" : "WARN", "Demonstration accounts", (demo?.n ?? 0) === 0 ? "none" : `${demo?.n} account(s) with .example addresses present`);
+    const sites = await q<{ key: string; mode: string; hasRelease: boolean; hasCanonical: boolean }>(`
+      select s.key, s.mode::text as mode, s.active_release_id is not null as "hasRelease",
+        exists (select 1 from public.domains d where d.site_id = s.id and d.is_canonical and d.status = 'active' and d.verified_at is not null) as "hasCanonical"
+      from public.sites s where s.status = 'active' order by s.key`);
+    const live = sites.filter((x) => x.mode === "live");
+    const broken = live.filter((x) => !x.hasRelease || !x.hasCanonical);
+    add(broken.length ? "FAIL" : "OK", "Sites", `${sites.length} active, ${live.length} live${broken.length ? `; live without release/canonical domain: ${broken.map((x) => x.key).join(", ")}` : ""}`);
+  } catch (err) {
+    add("FAIL", "Database (managed)", err instanceof Error ? err.message : String(err));
   }
 }
 
