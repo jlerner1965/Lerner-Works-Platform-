@@ -179,9 +179,11 @@ deployment until the smoke tests in `docs/LAUNCH-CHECKLIST.md` run.
   environment (`VERCEL_API_TOKEN` and `VERCEL_TOKEN` were both unset/empty), so nothing
   was sent to Vercel: no environment variable was written on either project, no deployment
   was created, and the domain check (`tokencheck.lernerworksplatform.dev`) was not run. The
-  staging project still carries the owner's 24-hour token (expires 2026-09-27 03:16 UTC).
-  The owner adds the long-lived token to the cloud environment as `VERCEL_API_TOKEN` and
-  the step is repeated.
+  staging project's `VERCEL_API_TOKEN` still holds the owner's 24-hour token, which was
+  revoked earlier the same day, so registering a hostname from the staging dashboard fails
+  until it is replaced. The session's own environment ("Aragonite Soil 2") is one of three
+  the owner has; the token must be saved in that one, under exactly that name, and the
+  step is repeated from a fresh session.
 - Pending (owner): Supabase Auth SMTP through Resend entered in the dashboard (a Resend key
   the owner creates there); Supabase plan; production Supabase project; long-lived Vercel
   token on both projects; revocation of the pasted Supabase token; default branch `main`.
