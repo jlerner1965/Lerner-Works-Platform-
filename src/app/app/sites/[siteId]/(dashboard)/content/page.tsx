@@ -9,6 +9,8 @@ import { presets } from "@/modules/presets";
 import { Alert, Badge, Button, EmptyState, LinkButton, PageHeader, formatDateTime, inputClass, selectClass } from "@/components/admin/ui";
 import { archiveItemsAction } from "@/server/actions/content";
 import { BulkSelectionForm } from "@/components/admin/bulk-selection";
+import { QuickAddForm } from "@/components/admin/new-item-form";
+import { loadCategories } from "@/server/data/editor-context";
 
 export const dynamic = "force-dynamic";
 
@@ -25,7 +27,10 @@ export default async function ContentListPage({ params, searchParams }: { params
   const status = (["all", "draft", "archived", "published", "unpublished"].includes(sp.status ?? "") ? sp.status : "draft") as "all" | "draft" | "archived" | "published" | "unpublished";
   const page = Math.max(1, Number(sp.page ?? "1") || 1);
   const sort = sp.sort === "title" ? "title" : "updated";
-  const result = await withUser(user.id, (db) => listItems(db, { siteId, kind, search: sp.q, status, page, pageSize: 25, sort }));
+  const { result, categories } = await withUser(user.id, async (db) => ({
+    result: await listItems(db, { siteId, kind, search: sp.q, status, page, pageSize: 25, sort }),
+    categories: kind === "place" && ctx.capabilities.canEdit ? await loadCategories(db, siteId) : [],
+  }));
   const pages = Math.max(1, Math.ceil(result.total / result.pageSize));
   const base = `/app/sites/${siteId}/content`;
   const qs = (overrides: Record<string, string | undefined>) => {
@@ -45,6 +50,7 @@ export default async function ContentListPage({ params, searchParams }: { params
       {sp.notice === "archived" ? <div className="mb-4"><Alert tone="success">Archived {sp.count} item(s). Archiving is a draft change until the next release removes them from public routes.</Alert></div> : null}
       {sp.notice === "restored" ? <div className="mb-4"><Alert tone="success">Restored {sp.count} item(s) from the archive.</Alert></div> : null}
       {sp.notice === "nothing-selected" ? <div className="mb-4"><Alert tone="warning">Select at least one item first.</Alert></div> : null}
+      {kind && ctx.capabilities.canEdit ? <QuickAddForm siteId={siteId} kind={kind} label={kindRegistry[kind].label} categories={categories} /> : null}
       <form method="get" action={base} className="mb-4 flex flex-wrap items-end gap-3 rounded border border-line bg-surface p-3 text-sm">
         <label className="flex flex-col gap-1">
           <span className="text-xs font-medium text-ink-subtle">Type</span>

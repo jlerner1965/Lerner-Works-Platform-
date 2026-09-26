@@ -6,6 +6,7 @@ import { getStorage } from "@/server/media/storage";
 import { parseCsv, autoMap, dryRun, MAX_BYTES } from "@/server/import/csv";
 import { isImportableKind } from "@/server/import/csv-spec";
 import { dryRunPackage, MAX_PACKAGE_BYTES } from "@/server/import/package";
+import { dryRunOnboarding, onboardingJobSummary, MAX_ONBOARDING_BYTES } from "@/server/import/onboarding";
 
 export const dynamic = "force-dynamic";
 
@@ -47,7 +48,17 @@ export async function POST(request: Request, { params }: { params: Promise<{ sit
         await getStorage().putPrivate(`${ctx.site.organizationId}/${siteId}/imports/${job!.id}.zip`, bytes, "application/zip");
         return job!.id;
       }
-      if (!isImportableKind(kind)) throw new Error("Choose what the file contains (stores, places or events).");
+      if (type === "onboarding") {
+        if (file.size > MAX_ONBOARDING_BYTES) throw new Error("The package is larger than 64 MB.");
+        const bytes = new Uint8Array(await file.arrayBuffer());
+        const dry = await dryRunOnboarding(db, ctx.site, bytes, { canApplySettings: ctx.capabilities.isOwner });
+        const sha = createHash("sha256").update(bytes).digest("hex");
+        const [job] = await db<{ id: string }[]>`insert into public.import_jobs (organization_id, site_id, package_type, filename, file_sha256, row_count, dry_run_result, created_by)
+          values (${ctx.site.organizationId}, ${siteId}, 'onboarding', ${file.name.slice(0, 200)}, ${sha}, ${dry.summary.items}, ${db.json(onboardingJobSummary(dry) as never)}, ${user.id}) returning id`;
+        await getStorage().putPrivate(`${ctx.site.organizationId}/${siteId}/imports/${job!.id}.zip`, bytes, "application/zip");
+        return job!.id;
+      }
+      if (!isImportableKind(kind)) throw new Error("Choose what the file contains (stores, services, places, events or articles).");
       if (file.size > MAX_BYTES) throw new Error("The file is larger than 5 MB. Split it into smaller files.");
       const text = await file.text();
       const parsed = parseCsv(text);

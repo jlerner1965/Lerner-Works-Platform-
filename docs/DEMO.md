@@ -43,7 +43,9 @@ Before the demonstration: `pnpm dev` in one terminal and `pnpm worker:dev` in an
    store page shows the old hours again; the inquiry is still in the inbox; drafts are
    untouched.
 10. **Reusable delivery.** Owner: Create site → Community guide preset → "Cedar Bend Guide".
-    The new site has starter pages and empty states only. Pine Hollow → Import & export →
+    The new site has starter pages whose slots fill themselves once content exists (nothing
+    is shown for an empty slot; the onboarding package on Import & export is the fast way to
+    fill them). Pine Hollow → Import & export →
     Download site package. Cedar Bend → Import & export → upload the package → the
     validation summary lists items, images and the starter pages that will be replaced →
     Import package as drafts → Content shows the imported places, events and articles as

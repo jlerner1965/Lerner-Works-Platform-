@@ -105,16 +105,17 @@ test("create a site, brand it, add five places and publish, counted per task (SB
 
   rec.start("Add five places");
   for (const place of places) {
+    // Quick add on the list (B2): the title and category create the draft and open the editor; one screen fewer than the New item page.
     await rec.follow(nav.getByRole("link", { name: "Places", exact: true }));
     await expect(page.getByRole("heading", { name: "Places", exact: true })).toBeVisible();
-    await rec.follow(page.getByRole("link", { name: "New place" }));
-    await expect(page.getByRole("heading", { name: "New item", exact: true })).toBeVisible();
-    await rec.fill(page.getByLabel("Title"), place.title);
-    await rec.press(page.getByRole("button", { name: "Create draft" }));
+    const quick = page.locator("form", { has: page.getByText("Add a place") });
+    await rec.fill(quick.getByLabel("Title"), place.title);
+    await rec.fill(quick.getByLabel("Category"), place.category);
+    await rec.press(quick.getByRole("button", { name: "Add place" }));
     rec.arrive();
     const field = (name: string) => page.getByRole("textbox", { name, exact: true });
-    await expect(field("Category")).toBeVisible();
-    await rec.fill(field("Category"), place.category);
+    // The Category field offers the site's existing categories (a datalist), so its role is a combobox once suggestions exist.
+    await expect(page.getByLabel("Category")).toHaveValue(place.category);
     await rec.fill(field("Summary"), place.summary);
     await rec.fill(field("Address line 1"), place.line1);
     await rec.fill(field("City / locality"), "Cedar Bend");
@@ -131,14 +132,17 @@ test("create a site, brand it, add five places and publish, counted per task (SB
   await expect(page.getByText(/Published as release v1\b/)).toBeVisible();
   rec.finish();
 
-  // The result, as a visitor sees it: the five places are public, and the home page still carries
-  // the preset's empty-state notices until B2 gives a fresh site a real structure.
+  // The result, as a visitor sees it: the five places and their categories are public, and the
+  // home page carries no empty-state notice (B2: a section with nothing to show is left out).
   const visitor = await browser.newContext();
   const pub = await visitor.newPage();
   const home = await pub.goto(`/demo/${key}`);
   expect(home?.status()).toBe(200);
   await expect(pub.getByRole("link", { name: "Cedar Bend Guide" }).first()).toBeVisible();
+  await expect(pub.locator("body")).toContainText("Browse by category");
+  await expect(pub.locator("body")).toContainText("Cedar Bend Bakery");
   const emptyNotices = await pub.evaluate(() => Array.from(document.querySelectorAll("main *")).filter((el) => el.children.length === 0 && /\byet\.$/.test(el.textContent?.trim() ?? "")).length);
+  expect(emptyNotices).toBe(0);
   fs.mkdirSync("docs/evidence/walkthrough", { recursive: true });
   await pub.screenshot({ path: "docs/evidence/walkthrough/published-home.png", fullPage: true });
   await pub.goto(`/demo/${key}/places`);

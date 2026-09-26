@@ -1,0 +1,31 @@
+guide-home 1 perf 97 a11y 100 bp 100 seo 66 CLS 0.000 LCP 2.55s jsKiB 144 totalKiB 329 offOrigin 0 types Document=56,Image=30,Script=144,Font=99,Other=1
+guide-home 2 perf 94 a11y 100 bp 100 seo 66 CLS 0.000 LCP 3.06s jsKiB 144 totalKiB 329 offOrigin 0 types Document=56,Image=30,Script=144,Font=99,Other=1
+guide-home 3 perf 94 a11y 100 bp 100 seo 66 CLS 0.000 LCP 3.08s jsKiB 144 totalKiB 329 offOrigin 0 types Document=56,Image=30,Script=144,Font=99,Other=1
+store-detail 1 perf 98 a11y 100 bp 100 seo 66 CLS 0.000 LCP 2.43s jsKiB 144 totalKiB 236 offOrigin 0 types Document=45,Image=20,Script=144,Font=27,Other=1
+store-detail 2 perf 97 a11y 100 bp 100 seo 66 CLS 0.000 LCP 2.54s jsKiB 144 totalKiB 236 offOrigin 0 types Document=45,Image=20,Script=144,Font=27,Other=1
+store-detail 3 perf 97 a11y 100 bp 100 seo 66 CLS 0.000 LCP 2.50s jsKiB 144 totalKiB 236 offOrigin 0 types Document=45,Image=20,Script=144,Font=27,Other=1
+retail-home 1 perf 95 a11y 100 bp 100 seo 66 CLS 0.000 LCP 2.73s jsKiB 144 totalKiB 271 offOrigin 0 types Document=51,Image=49,Script=144,Font=27,Other=1
+retail-home 2 perf 96 a11y 100 bp 100 seo 66 CLS 0.000 LCP 2.59s jsKiB 144 totalKiB 271 offOrigin 0 types Document=51,Image=49,Script=144,Font=27,Other=1
+retail-home 3 perf 99 a11y 100 bp 100 seo 66 CLS 0.000 LCP 1.95s jsKiB 144 totalKiB 271 offOrigin 0 types Document=51,Image=49,Script=144,Font=27,Other=1
+guide-about 1 perf 97 a11y 100 bp 100 seo 66 CLS 0.000 LCP 2.38s jsKiB 144 totalKiB 319 offOrigin 0 types Document=48,Image=28,Script=144,Font=99,Other=1
+guide-about 2 perf 94 a11y 100 bp 100 seo 66 CLS 0.000 LCP 3.09s jsKiB 144 totalKiB 319 offOrigin 0 types Document=48,Image=28,Script=144,Font=99,Other=1
+guide-about 3 perf 92 a11y 100 bp 100 seo 66 CLS 0.000 LCP 3.02s jsKiB 144 totalKiB 319 offOrigin 0 types Document=48,Image=28,Script=144,Font=99,Other=1
+
+# pilots on the almanac (guide) and practice (retail) compositions
+guide-home 1 perf 97 a11y 100 bp 100 seo 66 CLS 0.000 LCP 2.42s jsKiB 144 totalKiB 330 offOrigin 0 types Document=58,Image=30,Script=144,Font=99,Other=1
+guide-home 2 perf 93 a11y 100 bp 100 seo 66 CLS 0.000 LCP 3.06s jsKiB 144 totalKiB 330 offOrigin 0 types Document=58,Image=30,Script=144,Font=99,Other=1
+guide-home 3 perf 96 a11y 100 bp 100 seo 66 CLS 0.000 LCP 2.35s jsKiB 144 totalKiB 330 offOrigin 0 types Document=58,Image=30,Script=144,Font=99,Other=1
+store-detail 1 perf 96 a11y 100 bp 100 seo 66 CLS 0.000 LCP 2.57s jsKiB 144 totalKiB 237 offOrigin 0 types Document=45,Image=20,Script=144,Font=27,Other=1
+store-detail 2 perf 99 a11y 100 bp 100 seo 66 CLS 0.000 LCP 2.00s jsKiB 144 totalKiB 237 offOrigin 0 types Document=45,Image=20,Script=144,Font=27,Other=1
+store-detail 3 perf 97 a11y 100 bp 100 seo 66 CLS 0.000 LCP 2.46s jsKiB 144 totalKiB 237 offOrigin 0 types Document=45,Image=20,Script=144,Font=27,Other=1
+retail-home 1 perf 96 a11y 100 bp 100 seo 66 CLS 0.000 LCP 2.52s jsKiB 144 totalKiB 272 offOrigin 0 types Document=52,Image=49,Script=144,Font=27,Other=1
+retail-home 2 perf 96 a11y 100 bp 100 seo 66 CLS 0.000 LCP 2.46s jsKiB 144 totalKiB 272 offOrigin 0 types Document=52,Image=49,Script=144,Font=27,Other=1
+retail-home 3 perf 98 a11y 100 bp 100 seo 66 CLS 0.000 LCP 2.30s jsKiB 144 totalKiB 272 offOrigin 0 types Document=52,Image=49,Script=144,Font=27,Other=1
+guide-about 1 perf 94 a11y 96 bp 100 seo 66 CLS 0.000 LCP 3.03s jsKiB 144 totalKiB 320 offOrigin 0 types Document=48,Image=28,Script=144,Font=99,Other=1
+guide-about 2 perf 98 a11y 96 bp 100 seo 66 CLS 0.000 LCP 2.36s jsKiB 144 totalKiB 320 offOrigin 0 types Document=48,Image=28,Script=144,Font=99,Other=1
+guide-about 3 perf 94 a11y 96 bp 100 seo 66 CLS 0.000 LCP 3.07s jsKiB 144 totalKiB 320 offOrigin 0 types Document=48,Image=28,Script=144,Font=99,Other=1
+
+# almanac about, re-run after the prose-button contrast fix (.lw-site a.lw-prose-button)
+guide-about 1 perf 96 a11y 100 bp 100 seo 66 CLS 0.000 LCP 2.56s jsKiB 144 totalKiB 319
+guide-about 2 perf 94 a11y 100 bp 100 seo 66 CLS 0.000 LCP 3.00s jsKiB 144 totalKiB 319
+guide-about 3 perf 98 a11y 100 bp 100 seo 66 CLS 0.000 LCP 2.37s jsKiB 144 totalKiB 319

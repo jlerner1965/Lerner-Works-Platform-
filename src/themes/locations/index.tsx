@@ -8,10 +8,12 @@ import { RichText } from "@/themes/shared/richtext";
 import { Picture } from "@/themes/shared/picture";
 import { InquiryForm } from "@/themes/shared/inquiry-form";
 import { resolveCollection, featuredImage, itemPath } from "@/themes/shared/collections";
+import { visibleSections } from "@/themes/shared/empty";
 import { SiteRoot, BrandMark, linkProps, showSearchLink, pageHeaderImage } from "@/themes/shared/site-root";
 import { SectionFrame, PageContainer } from "@/themes/shared/frame";
 import { siteDesign, isColouredBand, columnsFor } from "@/themes/shared/design";
 import { FaqSection, QuotesSection, CtaBannerSection, GallerySection, FactsSection, VideoSection, MapLinkSection, columnsClass, type SectionStyle } from "@/themes/shared/sections";
+import { TeamSection, LogoStripSection, ImageTextSection, ImageBandSection, HeroCollage, heroExtras } from "@/themes/shared/rich-sections";
 import { hoursStatusAt } from "@/lib/hours";
 import type { HoursException, WeeklyHours } from "@/modules/common";
 import { LocationsStoreDetail, LocationsServiceDetail, LocationsIndex, LocationsSearch } from "@/themes/locations/pages";
@@ -35,6 +37,8 @@ export const outlineButton = "inline-block rounded-(--radius) border-2 border-(-
 export const locationsStyle: SectionStyle = {
   theme: "locations",
   heading: (text) => <LocRule>{text}</LocRule>,
+  display: "text-4xl font-extrabold uppercase leading-none tracking-tight text-(--section-heading) sm:text-5xl",
+  subtitle: "text-2xl font-extrabold uppercase tracking-wide text-(--section-heading)",
   intro: "mt-2 max-w-2xl text-lg",
   eyebrow: "text-xs font-bold uppercase tracking-wide text-(--section-accent)",
   title: "font-extrabold uppercase tracking-wide text-(--section-fg)",
@@ -172,13 +176,20 @@ export function StoreCard({ ctx, item, featured = false }: { ctx: RenderContext;
 const narrowByDefault = new Set<PageSection["type"]>(["rich_text", "inquiry_form", "faq", "video", "map_link"]);
 
 export function LocationsSections({ ctx, page }: { ctx: RenderContext; page: PagePayload }) {
+  // Sections with nothing to show are left out (B2, D-021); publication lists them.
+  const sections = visibleSections(ctx, page.sections);
   return (
     <div className="space-y-(--section-gap)">
-      {page.sections.map((section, i) => (
-        <SectionFrame key={section.id} appearance={section.appearance} narrowAlign="start" narrow={narrowByDefault.has(section.type) || (section.type === "quotes" && (section.variant === "single" || (section.variant === "default" && section.items.length <= 1)))}>
-          <LocationsSection ctx={ctx} section={section} first={i === 0} />
-        </SectionFrame>
-      ))}
+      {sections.map((section, i) =>
+        section.type === "image_band" ? (
+          // The photo band spans the full width and sets its own colours, so it renders without the section frame (B3).
+          <ImageBandSection key={section.id} ctx={ctx} section={section} style={locationsStyle} />
+        ) : (
+          <SectionFrame key={section.id} appearance={section.appearance} narrowAlign="start" narrow={narrowByDefault.has(section.type) || (section.type === "quotes" && (section.variant === "single" || (section.variant === "default" && section.items.length <= 1)))}>
+            <LocationsSection ctx={ctx} section={section} first={i === 0} />
+          </SectionFrame>
+        ),
+      )}
     </div>
   );
 }
@@ -199,6 +210,35 @@ function ImageHero({ ctx, section }: { ctx: RenderContext; section: Extract<Page
       <Cta ctx={ctx} label={section.ctaLabel} path={section.ctaPath} onBand={onBand} className="mt-5" />
     </>
   );
+  // B3 treatments: an oversized heading with the picture beneath, the words on a panel overlapping the picture, the picture with up to three more.
+  if (variant === "statement") {
+    return (
+      <div>
+        <div className="max-w-5xl">
+          <h1 className="text-6xl font-extrabold uppercase leading-none tracking-tight text-(--section-heading) sm:text-8xl">{section.heading}</h1>
+          {section.subheading ? <p className="mt-5 max-w-2xl text-lg">{section.subheading}</p> : null}
+          <Cta ctx={ctx} label={section.ctaLabel} path={section.ctaPath} onBand={onBand} className="mt-6" />
+        </div>
+        {media ? <Picture ctx={ctx} media={media} sizes="(min-width: 1408px) 1408px, 100vw" className="mt-8 aspect-[21/9] w-full rounded-(--radius) object-cover" loading="eager" fetchPriority="high" /> : null}
+      </div>
+    );
+  }
+  if (variant === "offset" && media) {
+    return (
+      <div className="md:grid md:grid-cols-12 md:items-end">
+        <Picture ctx={ctx} media={media} sizes="(min-width: 768px) 66vw, 100vw" className="aspect-[16/10] w-full rounded-(--radius) object-cover md:col-span-8 md:col-start-5 md:row-start-1" loading="eager" fetchPriority="high" />
+        <div className="relative mx-4 -mt-12 rounded-(--radius) border-t-8 border-(--section-accent) bg-(--section-bg) p-6 md:col-span-6 md:col-start-1 md:row-start-1 md:mx-0 md:mb-10 md:p-8">{text}</div>
+      </div>
+    );
+  }
+  if (variant === "collage" && media) {
+    return (
+      <div>
+        <div className="max-w-3xl">{text}</div>
+        <HeroCollage ctx={ctx} main={media} extras={heroExtras(ctx, section)} className="mt-8" />
+      </div>
+    );
+  }
   if (variant === "stacked") {
     return (
       <div>
@@ -247,9 +287,7 @@ function LocationsSection({ ctx, section, first }: { ctx: RenderContext; section
           {section.heading ? (first ? <h1 className={`mb-5 ${h1}`}>{section.heading}</h1> : <LocRule>{section.heading}</LocRule>) : null}
           {section.body.length ? (
             <RichText ctx={ctx} blocks={section.body as Block[]} className={`loc-prose ${section.variant === "columns" ? "md:columns-2 md:gap-10" : ""} ${section.variant === "lead" ? "[&>p:first-child]:text-xl [&>p:first-child]:font-semibold" : ""}`} />
-          ) : (
-            <p className="text-(--section-muted)">This section has no text yet.</p>
-          )}
+          ) : null}
         </>
       );
     case "feature_list": {
@@ -263,7 +301,7 @@ function LocationsSection({ ctx, section, first }: { ctx: RenderContext; section
       return (
         <>
           {section.heading ? <LocRule>{section.heading}</LocRule> : null}
-          {section.items.length === 0 ? <p className="text-(--section-muted)">Nothing listed yet.</p> : variant === "list" ? (
+          {section.items.length === 0 ? null : variant === "list" ? (
             <ul className="divide-y divide-(--section-border) border-y border-(--section-border)">{section.items.map((it) => <li key={it.title} className="py-3">{item(it)}</li>)}</ul>
           ) : variant === "grid" ? (
             <ul className={`grid gap-x-8 ${columnsClass[columnsFor("locations", "feature_list", section.columns)]}`}>{section.items.map((it) => <li key={it.title} className="border-t-4 border-(--section-heading) py-3">{item(it)}</li>)}</ul>
@@ -279,9 +317,7 @@ function LocationsSection({ ctx, section, first }: { ctx: RenderContext; section
       return (
         <>
           {section.heading ? <LocRule>{section.heading}</LocRule> : null}
-          {items.length === 0 ? (
-            <p className="rounded-(--radius) border border-dashed border-(--brand-border-strong) p-6 text-(--section-muted)">{section.mode === "selected" ? "No featured store selected." : "No store locations have been published yet."}</p>
-          ) : variant === "featured" || variant === "list" ? (
+          {items.length === 0 ? null : variant === "featured" || variant === "list" ? (
             <div className="space-y-4">{items.map((s) => <StoreCard key={s.id} ctx={ctx} item={s} featured />)}</div>
           ) : (
             <ul className={`grid gap-4 ${columnsClass[columnsFor("locations", "location_collection", section.columns)]}`}>{items.map((s) => <li key={s.id}><StoreCard ctx={ctx} item={s} /></li>)}</ul>
@@ -298,6 +334,9 @@ function LocationsSection({ ctx, section, first }: { ctx: RenderContext; section
         </>
       );
     }
+    case "category_list":
+      // Categories belong to places; this composition does not declare the type (capabilities), so it never gets here.
+      return null;
     case "contact_callout": {
       const { contact } = ctx.snapshot.site;
       const banner = section.variant === "banner";
@@ -325,7 +364,7 @@ function LocationsSection({ ctx, section, first }: { ctx: RenderContext; section
     case "faq":
       return <FaqSection ctx={ctx} section={section} style={locationsStyle} />;
     case "quotes":
-      return <QuotesSection section={section} style={locationsStyle} />;
+      return <QuotesSection ctx={ctx} section={section} style={locationsStyle} />;
     case "cta_banner":
       return <CtaBannerSection ctx={ctx} section={section} style={locationsStyle} />;
     case "gallery":
@@ -336,12 +375,22 @@ function LocationsSection({ ctx, section, first }: { ctx: RenderContext; section
       return <VideoSection ctx={ctx} section={section} style={locationsStyle} />;
     case "map_link":
       return <MapLinkSection ctx={ctx} section={section} style={locationsStyle} />;
+    case "team":
+      return <TeamSection ctx={ctx} section={section} style={locationsStyle} />;
+    case "logo_strip":
+      return <LogoStripSection ctx={ctx} section={section} style={locationsStyle} />;
+    case "image_text":
+      return <ImageTextSection ctx={ctx} section={section} style={locationsStyle} />;
+    case "image_band":
+      // Rendered by LocationsSections outside the section frame.
+      return null;
   }
 }
 
 /** Content collections (services on this preset): cell grid by default, cards or rows with images, or text. */
 export function LocationsCollection({ ctx, items, variant = "default", columns = 4 }: { ctx: RenderContext; items: SnapshotItem[]; variant?: string; columns?: 2 | 3 | 4 }) {
-  if (items.length === 0) return <p className="rounded-(--radius) border border-dashed border-(--brand-border-strong) p-6 text-(--section-muted)">Nothing has been published here yet.</p>;
+  // An empty collection renders nothing; the section is left out of the page before this point (B2, D-021).
+  if (items.length === 0) return null;
   const v = variant === "default" ? (siteDesign(ctx).cards === "image-side" ? "list" : siteDesign(ctx).cards === "image-top" ? "text" : "text") : variant;
   const title = (it: SnapshotItem, className: string) => {
     const p = itemPath(ctx, it);

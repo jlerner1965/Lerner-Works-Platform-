@@ -90,6 +90,61 @@ test("the retail pilot under the storefront composition keeps the store finder, 
   await publishNow(page, sites.rangeAthletics);
 });
 
+test("the guide under the almanac composition: navigation rail, script-free lightbox and click-to-load map (B3)", async ({ page, browser }) => {
+  const { sites } = seed();
+  await signIn(page, emails.owner);
+  await saveTheme(page, sites.pineHollow, "Almanac (reference)");
+  await expect(page.getByText(/Theme changed to Almanac/)).toBeVisible();
+  await publishNow(page, sites.pineHollow);
+  const visitor = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const pub = await visitor.newPage();
+  await pub.goto("/demo/pine-hollow");
+  await expect(pub.locator(".almanac-theme")).toHaveCount(1);
+  await expect(pub.getByRole("navigation", { name: "Primary" }).getByRole("link", { name: /Directory/ })).toBeVisible();
+  // The gallery lightbox is drawn by :target alone: the thumbnail links open a dialog, Next moves on, Close returns to the gallery.
+  await pub.goto("/demo/pine-hollow/about");
+  const first = pub.locator("#lb-s-gallery-0");
+  await expect(first).toBeHidden();
+  await pub.getByRole("link", { name: /^Open picture 1 of 6/ }).click();
+  await expect(first).toBeVisible();
+  await expect(first.getByRole("dialog")).toHaveCount(0); // the dialog is the element itself
+  await first.getByRole("link", { name: "Next", exact: true }).click();
+  await expect(pub.locator("#lb-s-gallery-1")).toBeVisible();
+  await expect(first).toBeHidden();
+  await pub.locator("#lb-s-gallery-1").getByRole("link", { name: "Close", exact: true }).click();
+  await expect(pub.locator("#lb-s-gallery-1")).toBeHidden();
+  // The map is offered on a plain panel; on a demonstration site the button stays disabled and no frame is loaded.
+  await pub.goto("/demo/pine-hollow/contact");
+  await expect(pub.getByRole("button", { name: "Show map" })).toBeDisabled();
+  await expect(pub.getByText("The map is disabled on demonstration sites.")).toBeVisible();
+  await expect(pub.locator("iframe")).toHaveCount(0);
+  await visitor.close();
+  await saveTheme(page, sites.pineHollow, "Preset default (Community guide (editorial))");
+  await publishNow(page, sites.pineHollow);
+});
+
+test("the retail pilot under the practice composition keeps the phone number, location cards and the hours table (B3)", async ({ page, browser }) => {
+  const { sites } = seed();
+  await signIn(page, emails.owner);
+  await saveTheme(page, sites.rangeAthletics, "Practice (calm)");
+  await publishNow(page, sites.rangeAthletics);
+  const visitor = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const pub = await visitor.newPage();
+  await pub.goto("/demo/range-athletics");
+  await expect(pub.locator(".practice-theme")).toHaveCount(1);
+  await expect(pub.getByRole("banner").getByRole("link", { name: "(720) 555-0190" })).toBeVisible();
+  await expect(pub.getByRole("banner").getByRole("link", { name: "Contact us" })).toBeVisible();
+  await expect(pub.getByRole("link", { name: "Location details" }).first()).toBeVisible();
+  await expect(pub.getByText(/Open now|Closed/).first()).toBeVisible();
+  await pub.goto("/demo/range-athletics/locations/fort-collins");
+  await expect(pub.getByText("Temporarily closed").first()).toBeVisible();
+  await expect(pub.getByRole("table", { name: "Regular weekly hours" })).toBeVisible();
+  await expect(pub.getByRole("heading", { name: "Services at this location" })).toBeVisible();
+  await visitor.close();
+  await saveTheme(page, sites.rangeAthletics, "Preset default (Location business (retail))");
+  await publishNow(page, sites.rangeAthletics);
+});
+
 test("design is owner-only until the owner delegates it to a site's publishers (DES-11)", async ({ page }) => {
   const { sites } = seed();
   await signIn(page, emails.publisherB);

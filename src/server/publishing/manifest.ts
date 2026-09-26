@@ -115,7 +115,8 @@ export async function resolveDefaultSelection(db: Db, siteId: string, base: Rele
   return { selection, notes };
 }
 
-function collectAssetRefs(kind: ContentKind, payload: Record<string, unknown>): Array<{ assetId: string; field: string }> {
+/** Every media asset a payload refers to, with the field that refers to it (missing ones become `missing_media` blockers). */
+export function collectAssetRefs(kind: ContentKind, payload: Record<string, unknown>): Array<{ assetId: string; field: string }> {
   const refs: Array<{ assetId: string; field: string }> = [];
   const featured = payload.featuredImageAssetId;
   if (typeof featured === "string") refs.push({ assetId: featured, field: "featuredImageAssetId" });
@@ -124,12 +125,19 @@ function collectAssetRefs(kind: ContentKind, payload: Record<string, unknown>): 
   if (kind === "page") {
     const sections = (payload.sections as Array<Record<string, unknown>> | undefined) ?? [];
     sections.forEach((s, i) => {
-      if (s.type === "image_hero" && typeof s.imageAssetId === "string") refs.push({ assetId: s.imageAssetId, field: `sections.${i}.imageAssetId` });
+      if ((s.type === "image_hero" || s.type === "image_band") && typeof s.imageAssetId === "string") refs.push({ assetId: s.imageAssetId, field: `sections.${i}.imageAssetId` });
+      if (s.type === "image_hero" && Array.isArray(s.extraImageAssetIds)) {
+        (s.extraImageAssetIds as unknown[]).forEach((id, j) => {
+          if (typeof id === "string" && id) refs.push({ assetId: id, field: `sections.${i}.extraImageAssetIds.${j}` });
+        });
+      }
       if (s.type === "rich_text" && Array.isArray(s.body)) for (const id of collectImageAssetIds(s.body as Block[])) refs.push({ assetId: id, field: `sections.${i}.body` });
       if (s.type === "video" && typeof s.posterAssetId === "string") refs.push({ assetId: s.posterAssetId, field: `sections.${i}.posterAssetId` });
-      if (s.type === "gallery") {
-        ((s.items as Array<{ assetId?: string }>) ?? []).forEach((it, j) => {
+      // Item lists whose entries carry a picture: gallery images, logos, portraits (quotes, team) and image rows.
+      if (s.type === "gallery" || s.type === "logo_strip" || s.type === "quotes" || s.type === "team" || s.type === "image_text") {
+        ((s.items as Array<{ assetId?: string | null; body?: Block[] }>) ?? []).forEach((it, j) => {
           if (typeof it.assetId === "string" && it.assetId) refs.push({ assetId: it.assetId, field: `sections.${i}.items.${j}.assetId` });
+          if (Array.isArray(it.body)) for (const id of collectImageAssetIds(it.body)) refs.push({ assetId: id, field: `sections.${i}.items.${j}.body` });
         });
       }
       if (s.type === "faq") {

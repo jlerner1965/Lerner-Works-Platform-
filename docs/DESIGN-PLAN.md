@@ -163,7 +163,7 @@ header button (both need the composition work of the theme catalogue); per-site 
 design to publishers (D-016 keeps design owner-only until a customer asks); a second logo for
 dark surfaces.
 
-### D2 · Theme catalogue and design preview — BUILT 2026-09-26 (production on the owner's go)
+### D2 · Theme catalogue and design preview — SHIPPED 2026-09-26 (pull request #9, migration applied, live checks in `docs/evidence/production/d2-b1-2026-09-26-live-checks.txt`)
 
 About three sessions.
 
@@ -220,6 +220,15 @@ and layout-shift targets met on all eight measured pages, with the LCP target mi
 by 0.02 s; `docs/evidence/LIGHTHOUSE.md`); DES-14 unchanged at 143 KiB. Two findings of the
 first measurement were fixed in the phase: the magazine's layout shift (font delivery, D-019)
 and the storefront tiles' city label contrast.
+
+Extended by the site-building programme's phase B3 (2026-09-26, `docs/SITE-BUILDING-PLAN.md`,
+decision D-022): the catalogue has three compositions per preset (the almanac joined the
+guide and the magazine; the practice joined the retail and the storefront compositions), and
+the section vocabulary gained people, a logo strip, image-and-text rows, a photo band,
+portraits on quotations, the hero treatments offset, collage and statement, a gallery lightbox
+drawn by CSS, a click-to-load map and rich text divider, callout and button blocks, all typed
+and enumerated, rendered by every composition from shared renderers, with snapshot schema
+version 5 and ten frozen releases in the rendering-hash test. The D3 question is unchanged.
 
 ### D3 · Visual, in-context editing — OPTIONAL
 

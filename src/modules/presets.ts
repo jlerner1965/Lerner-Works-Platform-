@@ -10,7 +10,13 @@ export interface PresetDefinition {
   defaultTimeZone: string;
   /** Starting configuration; callers parse it through `siteConfigSchema` to apply defaults. */
   config: (input: { siteName: string }) => SiteConfigInput;
-  /** Initial pages for a clean site: structure and empty states, no fictional content. Parsed through the page schema when created. */
+  /**
+   * Initial pages for a clean site: a real structure whose slots fill themselves from the
+   * site's content (category list, latest places, upcoming events) or wait for the owner's
+   * words (introduction, About). No fictional copy; a slot with nothing to show is left out
+   * of the public page until it has something (site-building programme B2, D-021). Parsed
+   * through the page schema when created.
+   */
   initialPages: (input: { siteName: string }) => Array<{ slug: string; title: string; payload: PagePayloadInput }>;
   kinds: Array<"page" | "place" | "event" | "article" | "store" | "service">;
 }
@@ -55,10 +61,11 @@ export const presets: Record<PresetKey, PresetDefinition> = {
           slug: "home",
           sections: [
             { id: uid("hero"), type: "image_hero", heading: siteName, subheading: "", imageAssetId: null, ctaLabel: "Browse the directory", ctaPath: "/places" },
-            { id: uid("cats"), type: "feature_list", heading: "Browse by category", items: [] },
+            { id: uid("intro"), type: "rich_text", heading: `About ${siteName}`, body: [] },
+            { id: uid("cats"), type: "category_list", heading: "Browse by category" },
+            { id: uid("places"), type: "content_collection", heading: "From the directory", kind: "place", mode: "latest", itemIds: [], limit: 6 },
             { id: uid("events"), type: "content_collection", heading: "Upcoming events", kind: "event", mode: "upcoming", itemIds: [], limit: 4 },
-            { id: uid("places"), type: "content_collection", heading: "Selected places", kind: "place", mode: "selected", itemIds: [], limit: 6 },
-            { id: uid("feature"), type: "content_collection", heading: "From the guide", kind: "article", mode: "latest", itemIds: [], limit: 1 },
+            { id: uid("articles"), type: "content_collection", heading: "Latest articles", kind: "article", mode: "latest", itemIds: [], limit: 3 },
             { id: uid("contact"), type: "contact_callout", heading: "Know a place we should list?", text: "", showContactDetails: true },
           ],
         }),
@@ -66,7 +73,7 @@ export const presets: Record<PresetKey, PresetDefinition> = {
       {
         slug: "about",
         title: "About",
-        payload: page({ title: "About", slug: "about", sections: [{ id: uid("about"), type: "rich_text", heading: "", body: [] }] }),
+        payload: page({ title: "About", slug: "about", sections: [{ id: uid("about"), type: "rich_text", heading: `About ${siteName}`, body: [] }] }),
       },
       {
         slug: "contact",
@@ -118,9 +125,9 @@ export const presets: Record<PresetKey, PresetDefinition> = {
           slug: "home",
           sections: [
             { id: uid("hero"), type: "text_hero", heading: siteName, subheading: "", ctaLabel: "Find a store", ctaPath: "/locations" },
+            { id: uid("intro"), type: "rich_text", heading: `About ${siteName}`, body: [] },
             { id: uid("stores"), type: "location_collection", heading: "Find a store", mode: "all", itemIds: [] },
-            { id: uid("services"), type: "content_collection", heading: "Services", kind: "service", mode: "latest", itemIds: [], limit: 4 },
-            { id: uid("featured"), type: "location_collection", heading: "Featured store", mode: "selected", itemIds: [] },
+            { id: uid("services"), type: "content_collection", heading: "Services", kind: "service", mode: "latest", itemIds: [], limit: 6 },
             { id: uid("contact"), type: "contact_callout", heading: "Questions? Ask a store", text: "", showContactDetails: true },
           ],
         }),
@@ -128,7 +135,7 @@ export const presets: Record<PresetKey, PresetDefinition> = {
       {
         slug: "about",
         title: "About",
-        payload: page({ title: "About", slug: "about", sections: [{ id: uid("about"), type: "rich_text", heading: "", body: [] }] }),
+        payload: page({ title: "About", slug: "about", sections: [{ id: uid("about"), type: "rich_text", heading: `About ${siteName}`, body: [] }] }),
       },
       {
         slug: "contact",

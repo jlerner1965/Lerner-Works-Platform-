@@ -3,7 +3,7 @@
 import { useId, type ReactNode } from "react";
 import { inputClass, selectClass, textareaClass } from "@/components/admin/ui";
 
-export function TextInput({ label, value, onChange, hint, error, required, type = "text", placeholder, maxLength }: { label: string; value: string; onChange: (v: string) => void; hint?: ReactNode; error?: string; required?: boolean; type?: string; placeholder?: string; maxLength?: number }) {
+export function TextInput({ label, value, onChange, hint, error, required, type = "text", placeholder, maxLength, suggestions }: { label: string; value: string; onChange: (v: string) => void; hint?: ReactNode; error?: string; required?: boolean; type?: string; placeholder?: string; maxLength?: number; /** Values offered while typing (a datalist); anything else may still be typed. */ suggestions?: string[] }) {
   const id = useId();
   return (
     <div className="mb-3">
@@ -11,7 +11,8 @@ export function TextInput({ label, value, onChange, hint, error, required, type 
         {label}
         {required ? <span aria-hidden="true" className="text-danger"> *</span> : null}
       </label>
-      <input id={id} type={type} value={value} onChange={(e) => onChange(e.target.value)} className={inputClass} aria-invalid={error ? true : undefined} aria-describedby={error ? `${id}-err` : hint ? `${id}-hint` : undefined} placeholder={placeholder} maxLength={maxLength} />
+      <input id={id} type={type} value={value} onChange={(e) => onChange(e.target.value)} className={inputClass} aria-invalid={error ? true : undefined} aria-describedby={error ? `${id}-err` : hint ? `${id}-hint` : undefined} placeholder={placeholder} maxLength={maxLength} list={suggestions?.length ? `${id}-list` : undefined} autoComplete={suggestions?.length ? "off" : undefined} />
+      {suggestions?.length ? <datalist id={`${id}-list`}>{suggestions.map((s) => <option key={s} value={s} />)}</datalist> : null}
       {hint ? <p id={`${id}-hint`} className="mt-1 text-xs text-ink-subtle">{hint}</p> : null}
       {error ? <p id={`${id}-err`} className="mt-1 text-sm text-danger">{error}</p> : null}
     </div>

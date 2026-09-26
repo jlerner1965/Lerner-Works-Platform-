@@ -3,7 +3,7 @@
 import { useActionState, useCallback, useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { saveItemAction, reviewAction, type SaveState, type ReviewActionState } from "@/server/actions/content";
+import { saveItemAction, reviewAction, duplicateItemAction, type SaveState, type ReviewActionState, type DuplicateState } from "@/server/actions/content";
 import type { EditorContext, Issues, Payload } from "@/components/admin/editor/types";
 import { KindFields, CommonFields } from "@/components/admin/editor/kind-fields";
 import { Alert, Badge, Button, LinkButton, formatDateTime } from "@/components/admin/ui";
@@ -143,11 +143,25 @@ export function ItemEditor(props: ItemEditorProps) {
             <LinkButton variant="secondary" href={`/app/sites/${props.siteId}/content/${props.item.id}/preview`} className="w-full">{directPublish ? "Preview" : "Preview draft"}</LinkButton>
             {dirty ? <p className="text-xs text-ink-subtle">Preview shows the last saved version; save first to preview these changes.</p> : null}
             {props.capabilities.canPublish ? <LinkButton variant="secondary" href={`/app/sites/${props.siteId}/publishing`} className="w-full">Publish…</LinkButton> : null}
+            {props.capabilities.canEdit ? <DuplicateForm siteId={props.siteId} itemId={props.item.id} kindLabel={props.kindLabel} dirty={dirty} /> : null}
           </div>
         </div>
         <ReviewPanel {...props} baseRevisionId={base.id} baseVersion={base.version} dirty={dirty} />
       </aside>
     </div>
+  );
+}
+
+/** Copies the saved version into a new draft of the same kind and opens it (site-building programme B2). */
+function DuplicateForm({ siteId, itemId, kindLabel, dirty }: { siteId: string; itemId: string; kindLabel: string; dirty: boolean }) {
+  const [state, action, pending] = useActionState<DuplicateState, FormData>(duplicateItemAction, {});
+  return (
+    <form action={action}>
+      <input type="hidden" name="siteId" value={siteId} />
+      <input type="hidden" name="itemId" value={itemId} />
+      {state.error ? <p role="alert" className="mb-1 text-xs text-danger">{state.error}</p> : null}
+      <Button type="submit" variant="ghost" className="w-full" disabled={pending} title={dirty ? "Copies the last saved version, not the unsaved changes." : undefined}>{pending ? "Copying…" : `Duplicate this ${kindLabel.toLowerCase()}`}</Button>
+    </form>
   );
 }
 

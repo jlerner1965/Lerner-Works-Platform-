@@ -8,6 +8,8 @@ import { linkProps } from "@/themes/shared/site-root";
 import { isColouredBand, columnsFor } from "@/themes/shared/design";
 import type { ThemeKey } from "@/themes/capabilities";
 import { VideoEmbed, type VideoPoster } from "@/themes/shared/video";
+import { MapEmbed, type MapEmbedProvider } from "@/themes/shared/map-embed";
+import { mapEmbedProviders } from "@/modules/page";
 
 type Of<T extends PageSection["type"]> = Extract<PageSection, { type: T }>;
 
@@ -21,6 +23,10 @@ export interface SectionStyle {
   theme: ThemeKey;
   /** Section heading element in the theme's style (h2). */
   heading: (text: string) => ReactNode;
+  /** Large display heading classes (h2 on a photo band), B3. */
+  display: string;
+  /** Heading of a row or panel inside a section (h3 above an image-and-text row), B3. */
+  subtitle: string;
   intro: string;
   eyebrow: string;
   title: string;
@@ -59,9 +65,7 @@ export function FaqSection({ ctx, section, style }: { ctx: RenderContext; sectio
   return (
     <>
       {section.heading ? style.heading(section.heading) : null}
-      {section.items.length === 0 ? (
-        <p className="text-(--section-muted)">No questions have been added yet.</p>
-      ) : open ? (
+      {section.items.length === 0 ? null : open ? (
         <dl className="divide-y divide-(--section-border) border-y border-(--section-border)">
           {section.items.map((item, i) => (
             <div key={i} className="py-4">
@@ -87,24 +91,37 @@ export function FaqSection({ ctx, section, style }: { ctx: RenderContext; sectio
   );
 }
 
-export function QuotesSection({ section, style }: { section: Of<"quotes">; style: SectionStyle }) {
+export function QuotesSection({ ctx, section, style }: { ctx?: RenderContext; section: Of<"quotes">; style: SectionStyle }) {
   const items = section.items;
   const single = section.variant === "single" || (section.variant === "default" && items.length <= 1);
-  const quote = (item: Of<"quotes">["items"][number], large: boolean) => (
-    <figure className={large ? "mx-auto max-w-3xl" : ""}>
-      <blockquote className={`${style.quote} ${large ? "text-2xl sm:text-3xl" : "text-lg"}`}>“{item.text}”</blockquote>
-      <figcaption className="mt-3 text-sm text-(--section-muted)">
-        <span className="font-semibold text-(--section-fg)">{item.attribution}</span>
-        {item.role ? `, ${item.role}` : ""}
-      </figcaption>
-    </figure>
-  );
+  const quote = (item: Of<"quotes">["items"][number], large: boolean) => {
+    // A portrait beside the attribution (B3); quotations without one keep their original markup.
+    const media = ctx && item.assetId ? ctx.snapshot.media[item.assetId] : undefined;
+    const portrait = media && ctx && Object.keys(media.variants).length > 0 ? <Picture ctx={ctx} media={media} sizes="96px" className={`shrink-0 rounded-full object-cover ${large ? "h-14 w-14" : "h-11 w-11"}`} /> : null;
+    return (
+      <figure className={large ? "mx-auto max-w-3xl" : ""}>
+        <blockquote className={`${style.quote} ${large ? "text-2xl sm:text-3xl" : "text-lg"}`}>“{item.text}”</blockquote>
+        {portrait ? (
+          <figcaption className={`mt-4 flex items-center gap-3 text-sm text-(--section-muted) ${large && section.appearance.align === "center" ? "justify-center" : ""}`}>
+            {portrait}
+            <span>
+              <span className="block font-semibold text-(--section-fg)">{item.attribution}</span>
+              {item.role ? <span className="block">{item.role}</span> : null}
+            </span>
+          </figcaption>
+        ) : (
+          <figcaption className="mt-3 text-sm text-(--section-muted)">
+            <span className="font-semibold text-(--section-fg)">{item.attribution}</span>
+            {item.role ? `, ${item.role}` : ""}
+          </figcaption>
+        )}
+      </figure>
+    );
+  };
   return (
     <>
       {section.heading ? style.heading(section.heading) : null}
-      {items.length === 0 ? (
-        <p className="text-(--section-muted)">No quotations have been added yet.</p>
-      ) : single ? (
+      {items.length === 0 ? null : single ? (
         <div className="space-y-10">{items.map((item, i) => <div key={i}>{quote(item, true)}</div>)}</div>
       ) : (
         <ul className={`grid gap-8 ${columnsClass[items.length >= 3 ? 3 : 2]}`}>
@@ -138,24 +155,49 @@ export function GallerySection({ ctx, section, style }: { ctx: RenderContext; se
   const variant = section.variant === "default" ? "grid" : section.variant;
   const columns = columnsFor(style.theme, "gallery", section.columns);
   const sizes = `(min-width: 1024px) ${Math.round(100 / columns)}vw, (min-width: 640px) 50vw, 100vw`;
-  const figure = (it: (typeof items)[number], extra = "") => (
-    <figure key={it.assetId} className={`${extra} break-inside-avoid`}>
-      <Picture ctx={ctx} media={it.media!} sizes={sizes} className={`w-full rounded-(--radius) ${variant === "columns" ? "" : aspectClass[section.aspect]} ${section.aspect === "natural" || variant === "columns" ? "h-auto" : "object-cover"}`} />
-      {it.caption ? <figcaption className="mt-1.5 text-sm text-(--section-muted)">{it.caption}</figcaption> : null}
-    </figure>
+  // Lightbox (B3): each thumbnail links to a hidden full-size copy shown by :target alone (see globals.css); no script.
+  const lightbox = section.lightbox === true;
+  const galleryId = `g-${section.id}`;
+  const boxId = (i: number) => `lb-${section.id}-${i}`;
+  const figure = (it: (typeof items)[number], i: number, extra = "") => {
+    const img = <Picture ctx={ctx} media={it.media!} sizes={sizes} className={`w-full rounded-(--radius) ${variant === "columns" ? "" : aspectClass[section.aspect]} ${section.aspect === "natural" || variant === "columns" ? "h-auto" : "object-cover"}`} />;
+    return (
+      <figure key={it.assetId} className={`${extra} break-inside-avoid`}>
+        {lightbox ? <a href={`#${boxId(i)}`} className="block rounded-(--radius)" aria-label={`Open picture ${i + 1} of ${items.length} at full size${it.caption ? `: ${it.caption}` : ""}`}>{img}</a> : img}
+        {it.caption ? <figcaption className="mt-1.5 text-sm text-(--section-muted)">{it.caption}</figcaption> : null}
+      </figure>
+    );
+  };
+  const grid = variant === "columns" ? (
+    <div className={`gap-4 space-y-4 ${columns === 2 ? "sm:columns-2" : columns === 3 ? "sm:columns-2 lg:columns-3" : "sm:columns-2 lg:columns-4"}`}>{items.map((it, i) => figure(it, i))}</div>
+  ) : variant === "strip" ? (
+    <div className="-mx-4 flex snap-x gap-4 overflow-x-auto px-4 pb-2">{items.map((it, i) => figure(it, i, "w-72 shrink-0 snap-start"))}</div>
+  ) : (
+    <div className={`grid gap-4 ${columnsClass[columns]}`}>{items.map((it, i) => figure(it, i))}</div>
   );
   return (
     <>
       {section.heading ? style.heading(section.heading) : null}
-      {items.length === 0 ? (
-        <p className="text-(--section-muted)">No images have been added yet.</p>
-      ) : variant === "columns" ? (
-        <div className={`gap-4 space-y-4 ${columns === 2 ? "sm:columns-2" : columns === 3 ? "sm:columns-2 lg:columns-3" : "sm:columns-2 lg:columns-4"}`}>{items.map((it) => figure(it))}</div>
-      ) : variant === "strip" ? (
-        <div className="-mx-4 flex snap-x gap-4 overflow-x-auto px-4 pb-2">{items.map((it) => figure(it, "w-72 shrink-0 snap-start"))}</div>
-      ) : (
-        <div className={`grid gap-4 ${columnsClass[columns]}`}>{items.map((it) => figure(it))}</div>
-      )}
+      {items.length === 0 ? null : lightbox ? <div id={galleryId}>{grid}</div> : grid}
+      {lightbox
+        ? items.map((it, i) => (
+            <div key={`lb-${it.assetId}`} id={boxId(i)} className="lw-lightbox" role="dialog" aria-modal="true" aria-label={`Picture ${i + 1} of ${items.length}`}>
+              {/* Clicking away closes too; the backdrop is a pointer affordance only, so the dialog offers one Close link to keyboards and screen readers. */}
+              <a href={`#${galleryId}`} className="lw-lightbox-backdrop" aria-hidden="true" tabIndex={-1} />
+              <a href={`#${galleryId}`} className="lw-lightbox-close">Close</a>
+              <figure>
+                <Picture ctx={ctx} media={it.media!} sizes="(min-width: 1400px) 1400px, 96vw" focal={false} />
+                {it.caption ? <figcaption>{it.caption}</figcaption> : null}
+              </figure>
+              {items.length > 1 ? (
+                <nav className="lw-lightbox-nav" aria-label="Pictures">
+                  {i > 0 ? <a href={`#${boxId(i - 1)}`}>Previous</a> : null}
+                  {i < items.length - 1 ? <a href={`#${boxId(i + 1)}`}>Next</a> : null}
+                </nav>
+              ) : null}
+            </div>
+          ))
+        : null}
     </>
   );
 }
@@ -165,9 +207,7 @@ export function FactsSection({ section, style }: { section: Of<"facts">; style: 
   return (
     <>
       {section.heading ? style.heading(section.heading) : null}
-      {section.items.length === 0 ? (
-        <p className="text-(--section-muted)">No facts have been added yet.</p>
-      ) : variant === "list" ? (
+      {section.items.length === 0 ? null : variant === "list" ? (
         <dl className="divide-y divide-(--section-border) border-y border-(--section-border)">
           {section.items.map((f, i) => (
             <div key={i} className="grid gap-1 py-3 sm:grid-cols-[minmax(0,1fr)_2fr] sm:gap-6">
@@ -223,9 +263,7 @@ export function VideoSection({ ctx, section, style }: { ctx: RenderContext; sect
       {section.heading ? style.heading(section.heading) : null}
       {section.videoId ? (
         <VideoEmbed provider={section.provider} videoId={section.videoId} title={title} poster={poster} caption={section.caption} buttonClass={style.buttonPrimary} frameClass="rounded-(--radius) bg-(--brand-text)" />
-      ) : (
-        <p className="text-(--section-muted)">No video has been chosen yet.</p>
-      )}
+      ) : null}
     </>
   );
 }
@@ -243,18 +281,24 @@ export function MapLinkSection({ ctx, section, style }: { ctx: RenderContext; se
   const query = [line1, line2].filter(Boolean).join(", ");
   const canLink = ctx.mode === "live" && a.approved && query.length > 0;
   const onBand = isColouredBand(section.appearance.background);
+  const withheld = ctx.mode !== "live" ? "Directions are disabled on demonstration sites." : "Directions appear once the owner approves this address.";
+  // Click-to-load map (B3): offered only with coordinates and a provider that embeds without a key; it follows the directions rule.
+  const embeddable = section.embed === true && typeof section.latitude === "number" && typeof section.longitude === "number" && mapEmbedProviders.includes(section.provider);
   const body = (
     <>
       {section.heading ? style.heading(section.heading) : null}
       {section.text ? <p className={style.intro}>{section.text}</p> : null}
-      {query ? <p className="mt-3 text-lg">{line1}{line1 && line2 ? <br /> : null}{line2}</p> : <p className="text-(--section-muted)">No address has been entered yet.</p>}
+      {query ? <p className="mt-3 text-lg">{line1}{line1 && line2 ? <br /> : null}{line2}</p> : null}
       {canLink ? (
         <p className="mt-4"><a href={mapUrl[section.provider](query)} rel="noreferrer" className={onBand ? style.buttonInverse : style.buttonPrimary}>{section.label || "Get directions"}</a></p>
       ) : query ? (
         <p className="mt-4 text-sm text-(--section-muted)">
           <span className="inline-block border border-(--section-border) px-3 py-1" aria-disabled="true">{section.label || "Get directions"}</span>{" "}
-          {ctx.mode !== "live" ? "Directions are disabled on demonstration sites." : "Directions appear once the owner approves this address."}
+          {withheld}
         </p>
+      ) : null}
+      {embeddable ? (
+        <MapEmbed provider={section.provider as MapEmbedProvider} latitude={section.latitude!} longitude={section.longitude!} address={query} enabled={canLink} disabledNote={ctx.mode !== "live" ? "The map is disabled on demonstration sites." : "The map appears once the owner approves this address."} buttonClass={style.buttonPrimary} frameClass={style.panel} />
       ) : null}
     </>
   );

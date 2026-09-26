@@ -71,19 +71,33 @@ fail the bar.
   "Save draft" and "Request review" otherwise. Preview stays.
 - Exit: SB-01 to SB-03 PASS (section 4); the walk-through measured (SB-06).
 - Status: built and verified in the repository on 2026-09-26 (`docs/ACCEPTANCE.md` SB-01 to
-  SB-03 PASS, SB-06 recorded; decision D-020); production with D2 on the owner's go.
+  SB-03 PASS, SB-06 recorded; decision D-020); on production since pull request #10 the same
+  day (`docs/evidence/production/d2-b1-2026-09-26-live-checks.txt`).
 
 ### B2 · From empty to launch
 
-- Starter pages with a real structure and clearly marked placeholders (headline, intro,
-  image slots, category list, contact) instead of empty sections, still no fictional copy.
-- Onboarding package: a downloadable template (one spreadsheet per content kind, a settings
-  sheet, an images folder) imported in the existing dry-run-then-confirm step; media
-  uploaded many files at once with alt text prompts.
-- Editor speed: fewer required fields, duplicate an item, quick add from the list, defaults
-  from the site (time zone, category list).
+- Starter pages with a real structure whose slots fill themselves (category list from the
+  published places, latest places, upcoming events, latest articles; store finder and
+  services) or wait for the owner's words (introduction, About), still no fictional copy. A
+  section with nothing to show is left out of the public page (D-021); publication lists what
+  is left out; the editor marks each slot; the setup checklist names the text still to write.
+- Onboarding package: a downloadable template (one spreadsheet per content kind including
+  articles and services, a settings sheet for the brand, contact details and the starter
+  pages' text, an images folder with a sheet for alternative text and rights) imported in the
+  existing dry-run-then-confirm step; images, rows and settings applied in one transaction.
+- Media uploaded many files at once with one rights statement, then an alternative-text pass
+  for every image on one screen.
+- Editor speed: quick add from the list (title, and the category for a place, then the
+  editor), duplicate an item, category suggestions from the site, the site as the default
+  attribution of an article, the site's time zone for events and stores.
+- Imports follow the site's review policy: approved on save for someone who may publish when
+  review is not required.
 - Exit: SB-04 and SB-05 PASS; a fresh site reaches a presentable first release from a
   package in under ten minutes of dashboard time.
+- Status: built and verified in the repository on 2026-09-26 (`docs/ACCEPTANCE.md` SB-04 and
+  SB-05 PASS, SB-06 re-measured; decision D-021; migration
+  `20260926000500_onboarding_package.sql`, already applied to the production project);
+  production on the owner's go (pull request, live checks).
 
 ### B3 · Design richness inside the boundary
 
@@ -93,6 +107,15 @@ fail the bar.
 - A third, visibly different composition per preset.
 - Exit: DES-13 and DES-14 hold; screenshots per composition; the owner's judgement on two
   sample sites built with real photography.
+- Status: built and verified in the repository on 2026-09-26 (decision D-022): the section
+  vocabulary (people, logo strip, image-and-text rows, photo band, portraits on quotations,
+  hero collage, offset and statement, gallery lightbox, click-to-load map, rich text divider,
+  callout and button), rendered by all six compositions, and the almanac (guide) and practice
+  (location business) compositions; both pilots re-composed with the new sections; DES-13 and
+  DES-14 re-measured (`docs/evidence/LIGHTHOUSE.md`), screenshots per composition in
+  `docs/evidence/screenshots/` and its `magazine`, `storefront`, `almanac` and `practice`
+  folders; SB-07 PASS. Open: the owner's judgement on two sample sites built with real
+  photography (B4 supplies the photography); production on the owner's go with B2.
 
 ### B4 · The proof
 
@@ -110,6 +133,7 @@ fail the bar.
 | SB-04 | Create a site and reach a first release from a package | Under ten minutes of dashboard time; no empty section on the published home page |
 | SB-05 | Bulk media upload with alt text | Twenty images in one upload; each with alt text before use |
 | SB-06 | Walk-through measured after each phase | Create site, brand it, add five places, publish, through the dashboard as a person would: screens, fields and actions per task and the scripted run's time recorded per phase by `tests/e2e/walkthrough.spec.ts` (`docs/evidence/walkthrough/`), with the empty-state notices left on the published home; a person's own timing of a complete build is B4's evidence |
+| SB-07 | Publish a page carrying every B3 section, then view it under each composition of the preset | The release carries every picture the sections refer to; every composition renders the page from the frozen release with no script for the lightbox or the band and no frame before the visitor asks for the map; the editor offers the sections and treatments and says what each slot still needs |
 
 ## 5 Open points for the owner
 

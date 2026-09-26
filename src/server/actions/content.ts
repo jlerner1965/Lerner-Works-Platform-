@@ -79,14 +79,21 @@ export interface CreateItemState {
   fieldErrors?: Record<string, string>;
 }
 
+/**
+ * Creates a draft from a title (and, for places, a category), with the site's defaults for
+ * everything else, then opens the editor. Used by the New item page and by the quick-add
+ * field on the content lists (site-building programme B2).
+ */
 export async function createItemAction(_prev: CreateItemState, formData: FormData): Promise<CreateItemState> {
   const user = await requireUser();
   const siteId = String(formData.get("siteId") ?? "");
   const kind = String(formData.get("kind") ?? "");
   const title = String(formData.get("title") ?? "").trim();
   const slugInput = String(formData.get("slug") ?? "").trim();
+  const category = String(formData.get("category") ?? "").trim().slice(0, 60);
   if (!uuid.safeParse(siteId).success || !isContentKind(kind)) return { error: "Invalid request." };
   if (!title) return { fieldErrors: { title: "Enter a title." } };
+  if (kind === "place" && formData.has("category") && !category) return { fieldErrors: { category: "Enter the category visitors will find it under." } };
   const slug = slugInput ? slugify(slugInput) : slugify(title);
   if (!slug) return { fieldErrors: { slug: "Enter a slug using letters, numbers and hyphens." } };
   let newId: string | null = null;
@@ -97,7 +104,7 @@ export async function createItemAction(_prev: CreateItemState, formData: FormDat
       if (!presets[ctx.site.preset].kinds.includes(kind as ContentKind)) return { error: `${kindRegistry[kind as ContentKind].plural} are not part of this site's preset.` };
       const collision = await findSlugCollision(db, siteId, kind as ContentKind, slug, null);
       if (collision) return { fieldErrors: { slug: `The slug "${slug}" is already used by "${collision.title}".` } };
-      const payload = defaultPayload(kind as ContentKind, title, slug, ctx.site.timeZone);
+      const payload = defaultPayload(kind as ContentKind, title, slug, { timeZone: ctx.site.timeZone, siteName: ctx.site.name, category });
       const { item, revision } = await createContentItem(db, { siteId, organizationId: ctx.site.organizationId, kind: kind as ContentKind, payload, authorId: user.id });
       if (approvesOnSave(ctx.site, ctx.capabilities)) await approveOnSave(db, { item, revisionId: revision.id, actorId: user.id });
       newId = item.id;
@@ -111,7 +118,12 @@ export async function createItemAction(_prev: CreateItemState, formData: FormDat
   redirect(`/app/sites/${siteId}/content/${newId}`);
 }
 
-function defaultPayload(kind: ContentKind, title: string, slug: string, timeZone: string): Record<string, unknown> {
+/**
+ * A new item's payload from the site's defaults: the site's time zone for events and stores,
+ * the site's name as an article's organizational attribution (changed in the editor when a
+ * person wrote it), the category given at creation for a place.
+ */
+function defaultPayload(kind: ContentKind, title: string, slug: string, site: { timeZone: string; siteName: string; category?: string }): Record<string, unknown> {
   const base = { schemaVersion: 1, title, slug, summary: "", body: [], featuredImageAssetId: null, metaTitle: "", metaDescription: "", indexable: true, sourceUrl: "", lastVerifiedOn: "", attribution: "" };
   const now = new Date();
   const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 7, 18, 0));
@@ -120,16 +132,56 @@ function defaultPayload(kind: ContentKind, title: string, slug: string, timeZone
     case "page":
       return { ...base, sections: [{ id: `s-${Date.now().toString(36)}`, type: "rich_text", heading: title, body: [] }] };
     case "place":
-      return { ...base, category: "Uncategorized", address: { line1: "", line2: "", locality: "", region: "", postalCode: "", approved: false }, areaDescription: "", website: "", phone: "", hours: null, nextAction: { label: "", path: "" } };
+      return { ...base, category: site.category || "Uncategorized", address: { line1: "", line2: "", locality: "", region: "", postalCode: "", approved: false }, areaDescription: "", website: "", phone: "", hours: null, nextAction: { label: "", path: "" } };
     case "event":
-      return { ...base, startsAt: start.toISOString(), endsAt: end.toISOString(), timeZone, venueItemId: null, venueText: "", organizerName: "", organizerUrl: "", status: "scheduled", eventUrl: "", admission: "" };
+      return { ...base, startsAt: start.toISOString(), endsAt: end.toISOString(), timeZone: site.timeZone, venueItemId: null, venueText: "", organizerName: "", organizerUrl: "", status: "scheduled", eventUrl: "", admission: "" };
     case "article":
-      return { ...base, authorName: "", publishedOn: now.toISOString().slice(0, 10), updatedOn: "" };
+      return { ...base, authorName: site.siteName, publishedOn: now.toISOString().slice(0, 10), updatedOn: "" };
     case "store":
-      return { ...base, address: { line1: "", line2: "", locality: "", region: "", postalCode: "", approved: false }, phone: "", timeZone, weeklyHours: null, exceptions: [], serviceItemIds: [], status: "open", statusNote: "" };
+      return { ...base, address: { line1: "", line2: "", locality: "", region: "", postalCode: "", approved: false }, phone: "", timeZone: site.timeZone, weeklyHours: null, exceptions: [], serviceItemIds: [], status: "open", statusNote: "" };
     case "service":
       return { ...base, inquiryPrompt: "" };
   }
+}
+
+export interface DuplicateState {
+  error?: string;
+}
+
+/**
+ * Copies an item's current working revision into a new draft ("<title> (copy)", a free slug)
+ * of the same site and opens its editor. Approval on save applies as for any new item; the
+ * copy carries no external id and no review history (site-building programme B2).
+ */
+export async function duplicateItemAction(_prev: DuplicateState, formData: FormData): Promise<DuplicateState> {
+  const user = await requireUser();
+  const siteId = String(formData.get("siteId") ?? "");
+  const itemId = String(formData.get("itemId") ?? "");
+  if (!uuid.safeParse(siteId).success || !uuid.safeParse(itemId).success) return { error: "Invalid request." };
+  let newId: string | null = null;
+  try {
+    const result = await withUser(user.id, async (db) => {
+      const ctx = await loadSiteContext(db, siteId);
+      if (!ctx?.capabilities.canEdit) return { error: "You do not have edit access to this site." };
+      const current = await getItem(db, itemId);
+      if (!current || current.item.siteId !== siteId) return { error: "The item was not found." };
+      const source = current.revision.payload;
+      const baseSlug = `${String(source.slug)}-copy`;
+      let slug = baseSlug;
+      for (let n = 2; (await findSlugCollision(db, siteId, current.item.kind, slug, null)) && n < 50; n++) slug = `${baseSlug}-${n}`;
+      const payload = validatePayload(current.item.kind, { ...source, title: `${String(source.title)} (copy)`.slice(0, 200), slug });
+      const { item, revision } = await createContentItem(db, { siteId, organizationId: ctx.site.organizationId, kind: current.item.kind, payload, authorId: user.id, changeNote: `Duplicated from "${String(source.title)}"` });
+      if (approvesOnSave(ctx.site, ctx.capabilities)) await approveOnSave(db, { item, revisionId: revision.id, actorId: user.id });
+      newId = item.id;
+      return {};
+    });
+    if (result.error) return result;
+  } catch (err) {
+    if (err instanceof ContentValidationError) return { error: err.issues.map((i) => `${i.path}: ${i.message}`).join("; ") };
+    return { error: describeDbError(err).message };
+  }
+  revalidatePath(`/app/sites/${siteId}/content`);
+  redirect(`/app/sites/${siteId}/content/${newId}`);
 }
 
 export async function archiveItemsAction(formData: FormData): Promise<void> {

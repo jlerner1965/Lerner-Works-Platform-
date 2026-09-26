@@ -1,4 +1,4 @@
-import { common, page, p, h2, list, localInstant, dateKey, type FixtureSite, type FixtureItem } from "@/server/demo/fixtures/types";
+import { common, page, p, h2, list, divider, note, button, localInstant, dateKey, type FixtureSite, type FixtureItem } from "@/server/demo/fixtures/types";
 
 const TZ = "America/Denver";
 const verified = (base: Date, daysAgo: number) => dateKey(base, -daysAgo, TZ);
@@ -378,7 +378,8 @@ export function pineHollowFixture(now: Date): FixtureSite {
         summary: "A resident-written guide to Pine Hollow, Colorado: places worth the drive, events worth the evening, and the small facts that make a visit go well.",
         metaDescription: "A resident-written guide to Pine Hollow, Colorado (fictional): places, events and short articles.",
         sections: [
-          { id: "s-hero", type: "image_hero", heading: "Pine Hollow, at walking pace", subheading: "A small mountain town, written up by the people who live in it. Verified details, no sponsored listings, and an honest note when the hours are unknown.", imageAssetId: "@hero" as unknown as null, ctaLabel: "Browse the directory", ctaPath: "/places" },
+          // The collage treatment (B3): the valley with three more pictures of the places in it.
+          { id: "s-hero", type: "image_hero", variant: "collage", heading: "Pine Hollow, at walking pace", subheading: "A small mountain town, written up by the people who live in it. Verified details, no sponsored listings, and an honest note when the hours are unknown.", imageAssetId: "@hero" as unknown as null, extraImageAssetIds: ["@larkspur", "@mill-pond", "@timber-falls"], ctaLabel: "Browse the directory", ctaPath: "/places" },
           { id: "s-cats", type: "feature_list", heading: "Browse by category", items: [
             { title: "Eat & Drink", text: "Coffee at dawn, pie by nine, music on the porch.", path: "/places?category=Eat%20%26%20Drink" },
             { title: "Outdoors", text: "Trails, the pond and the falls, with the caveats that matter.", path: "/places?category=Outdoors" },
@@ -386,7 +387,12 @@ export function pineHollowFixture(now: Date): FixtureSite {
             { title: "Arts & Community", text: "Library, gallery and the hall with the terrible acoustics.", path: "/places?category=Arts%20%26%20Community" },
           ] },
           { id: "s-events", type: "content_collection", heading: "Upcoming events", kind: "event", mode: "upcoming", itemIds: [], limit: 4 },
+          { id: "s-how", type: "image_text", heading: "How the guide works", items: [
+            { assetId: "@creekside", heading: "Checked in person", body: [p("Every listing carries the date someone from the guide last stood in the doorway, and the source of what it says. Nothing is copied from a directory or inferred from a category.")], ctaLabel: "", ctaPath: "" },
+            { assetId: "@bakery", heading: "Honest about the unknowns", body: [p("If the bakery has not confirmed its winter Mondays, the listing shows no hours rather than a guess, and asks you to call ahead. A cancelled event stays visible so nobody drives out for it.")], ctaLabel: "Send a correction", ctaPath: "/contact" },
+          ] },
           { id: "s-places", type: "content_collection", heading: "Selected places", kind: "place", mode: "selected", itemIds: ["@place-creekside-coffee", "@place-larkspur-loop", "@place-hollow-mercantile", "@place-public-library", "@place-ridge-house", "@place-mill-pond"] as unknown as string[], limit: 6 },
+          { id: "s-band", type: "image_band", heading: "Autumn is elk season", text: "The herd moves through the lower meadows from late September. Where to look, and how not to be the person who gets too close.", imageAssetId: "@meadows-dusk" as unknown as null, tint: "dark", strength: "medium", ctaLabel: "Where to watch", ctaPath: "/articles/where-to-watch-the-elk-this-fall", appearance: { align: "center" } },
           { id: "s-feature", type: "content_collection", heading: "From the guide", kind: "article", mode: "latest", itemIds: [], limit: 3 },
           { id: "s-facts", type: "facts", heading: "Pine Hollow at a glance", variant: "grid", columns: 4, items: [
             { label: "Elevation", value: "8,240 ft" },
@@ -395,8 +401,19 @@ export function pineHollowFixture(now: Date): FixtureSite {
             { label: "From Denver", value: "90 minutes by car" },
           ] },
           { id: "s-voices", type: "quotes", heading: "From people who live here", variant: "grid", appearance: { background: "tint" }, items: [
-            { text: "The guide is the only place that tells you the Mercantile closes at noon on Wednesdays. Everything else online is a guess.", attribution: "Marta Ellison", role: "Runs the roaster on Creek Path (fictional)" },
-            { text: "When the trail day got rained out, the listing said so within the hour. That is why people trust it.", attribution: "Dev Okafor", role: "Larkspur Loop volunteer crew (fictional)" },
+            { text: "The guide is the only place that tells you the Mercantile closes at noon on Wednesdays. Everything else online is a guess.", attribution: "Marta Ellison", role: "Runs the roaster on Creek Path (fictional)", assetId: "@portrait-marta" },
+            { text: "When the trail day got rained out, the listing said so within the hour. That is why people trust it.", attribution: "Dev Okafor", role: "Larkspur Loop volunteer crew (fictional)", assetId: "@portrait-dev" },
+          ] },
+          { id: "s-editors", type: "team", heading: "The editors", intro: "Three residents keep the guide honest, on their own time. All three are fictional.", items: [
+            { name: "June Hollis", role: "Editor", text: "Walks every trail listing twice a year and keeps the verification dates.", assetId: "@portrait-june", path: "" },
+            { name: "Ravi Sethi", role: "Photographs and maps", text: "Draws the trail maps sold at the Mercantile.", assetId: "@portrait-ravi", path: "" },
+            { name: "Ann Peltier", role: "Events desk", text: "Talks to every organizer before a listing goes up, and marks the cancellations within the hour.", assetId: "@portrait-ann", path: "" },
+          ] },
+          { id: "s-members", type: "logo_strip", heading: "Members of", items: [
+            { assetId: "@mark-trails", label: "", path: "https://pinehollowtrails.example" },
+            { assetId: "@mark-growers", label: "", path: "" },
+            { assetId: "@mark-depot", label: "", path: "" },
+            { assetId: "@mark-town", label: "", path: "" },
           ] },
           { id: "s-contact", type: "cta_banner", heading: "Know a place we should list?", text: "The guide is written by residents and updated when someone checks the facts. Tell us what changed or what is missing.", ctaLabel: "Tell the editors", ctaPath: "/contact", appearance: { background: "primary", align: "center" } },
         ],
@@ -410,20 +427,23 @@ export function pineHollowFixture(now: Date): FixtureSite {
         slug: "about",
         summary: "Who writes the Pine Hollow Guide, how listings are verified, and what this demonstration is and is not.",
         sections: [
+          // The offset treatment (B3): the words overlap the picture.
+          { id: "s-about-hero", type: "image_hero", variant: "offset", heading: "About the guide", subheading: "Who writes it, how listings are verified, and what this demonstration is and is not.", imageAssetId: "@article-creekside" as unknown as null, ctaLabel: "", ctaPath: "" },
           { id: "s-about", type: "rich_text", heading: "About the Pine Hollow Guide", body: [
             p("Pine Hollow is a fictional mountain town, and this guide is a demonstration of a community-guide website. Every place, event, person and phone number on these pages was invented for the demonstration; none of it describes a real business in Colorado or anywhere else."),
             h2("How a real guide would work"),
             p("Listings carry a verification date and a source. When a detail is unknown, the page says so rather than guessing: hours are never inferred from a category, and a cancelled event stays visible so nobody drives out for it."),
             list("Places are checked in person or with the owner", "Events come from organizers and are marked cancelled rather than removed", "Articles are short, signed and dated"),
-            h2("Contact"),
-            p("Corrections and suggestions go through the contact page. Messages are stored with a receipt reference and answered by the editors."),
+            divider(),
+            note("Corrections and suggestions go through the contact page. Messages are stored with a receipt reference and answered by the editors within a week."),
+            button("Send a correction", "/contact"),
           ] },
           { id: "s-faq", type: "faq", heading: "Visiting Pine Hollow", items: [
             { question: "When is the best time to visit?", answer: [p("Late June to early October for the trails and the pond; the **Harvest Market** in October is the busiest weekend of the year. Winter visits are quiet, and several places keep shorter hours, which the listings show per day.")] },
             { question: "Is there mobile coverage in the valley?", answer: [p("In town, yes. It fades past the Mill Pond dam and is gone at Timber Falls, so download directions before you leave the Mercantile.")] },
             { question: "Can I bring a dog to the trailheads?", answer: [p("On a leash at Larkspur Loop and Mill Pond Park. Timber Falls Overlook asks visitors to leave dogs in town because of the drop-offs near the viewpoint.")] },
           ] },
-          { id: "s-gallery", type: "gallery", heading: "The valley through the year", variant: "grid", columns: 3, aspect: "landscape", items: [
+          { id: "s-gallery", type: "gallery", heading: "The valley through the year", variant: "grid", columns: 3, aspect: "landscape", lightbox: true, items: [
             { assetId: "@hero" as unknown as string, caption: "The valley from Saddle Ridge at midday" },
             { assetId: "@larkspur" as unknown as string, caption: "Larkspur Loop above the tree line" },
             { assetId: "@timber-falls" as unknown as string, caption: "Timber Falls after the spring melt" },
@@ -444,6 +464,8 @@ export function pineHollowFixture(now: Date): FixtureSite {
         sections: [
           { id: "s-callout", type: "contact_callout", heading: "Get in touch", text: "Corrections, new places and event listings all start here. Include a way to reach you if we have questions.", showContactDetails: true },
           { id: "s-form", type: "inquiry_form", heading: "Send a message", intro: "Tell us what you noticed. If it concerns a specific place, choose it below.", locationSelect: true },
+          // Click-to-load map (B3): the address on a plain panel; the map itself only on request, and never on a demonstration site.
+          { id: "s-map", type: "map_link", variant: "card", heading: "Find the editors", text: "The guide's desk is the reading room of the public library; someone is usually there on weekday mornings.", label: "Get directions", provider: "openstreetmap", embed: true, latitude: 39.742, longitude: -105.513, address: { line1: "30 School Street", line2: "", locality: "Pine Hollow", region: "CO", postalCode: "80999", approved: false } },
         ],
       }),
     },
@@ -488,7 +510,22 @@ export function pineHollowFixture(now: Date): FixtureSite {
       logoImageKey: "logo",
       shareImageKey: "hero",
     },
-    images: [{ key: "logo", title: "Pine Hollow Guide logo", alt: "Pine Hollow Guide", scene: { type: "logo", lines: ["Pine Hollow", "GUIDE"], fg: "#2f5d3a", accent: "#a4502b", emblem: "pine" } }],
+    images: [
+      { key: "logo", title: "Pine Hollow Guide logo", alt: "Pine Hollow Guide", scene: { type: "logo", lines: ["Pine Hollow", "GUIDE"], fg: "#2f5d3a", accent: "#a4502b", emblem: "pine" } },
+      // Wide picture for the photo band (B3). Image keys share the "@" namespace with item external ids, so a key must not repeat one.
+      { key: "meadows-dusk", title: "Lower meadows at dusk, wide", alt: "Illustrated dusk sky over layered mountain ridges and a dark meadow", scene: { type: "landscape", palette: "dusk", seed: 52, ratio: "wide" }, focal: { x: 0.5, y: 0.45 } },
+      // Portraits of the fictional residents quoted and the fictional editors (B3: quotations with a portrait, the people section).
+      { key: "portrait-marta", title: "Marta Ellison", alt: "Stylised portrait of Marta Ellison, a fictional resident", scene: { type: "portrait", initials: "ME", bg: "#f2e6cf", fg: "#2f5d3a", accent: "#a4502b", seed: 5 } },
+      { key: "portrait-dev", title: "Dev Okafor", alt: "Stylised portrait of Dev Okafor, a fictional resident", scene: { type: "portrait", initials: "DO", bg: "#cfe4f5", fg: "#2b3a4a", accent: "#e7a37a", seed: 8 } },
+      { key: "portrait-june", title: "June Hollis", alt: "Stylised portrait of June Hollis, the guide's fictional editor", scene: { type: "portrait", initials: "JH", bg: "#e9dcc6", fg: "#24382f", accent: "#a4502b", seed: 12 } },
+      { key: "portrait-ravi", title: "Ravi Sethi", alt: "Stylised portrait of Ravi Sethi, the guide's fictional photographer", scene: { type: "portrait", initials: "RS", bg: "#dfe9f3", fg: "#12213a", accent: "#2f5d3a", seed: 17 } },
+      { key: "portrait-ann", title: "Ann Peltier", alt: "Stylised portrait of Ann Peltier, the guide's fictional events editor", scene: { type: "portrait", initials: "AP", bg: "#f5d3b3", fg: "#5a3a22", accent: "#2f5d3a", seed: 21 } },
+      // Marks of the fictional organisations the guide belongs to (B3: logo strip).
+      { key: "mark-trails", title: "Pine Hollow Trails Association mark", alt: "Pine Hollow Trails Association (fictional)", scene: { type: "logo", lines: ["Pine Hollow", "TRAILS ASSOCIATION"], fg: "#2f5d3a", accent: "#a4502b", emblem: "peak" } },
+      { key: "mark-growers", title: "Growers' Circle mark", alt: "Pine Hollow Growers' Circle (fictional)", scene: { type: "logo", lines: ["Growers'", "CIRCLE"], fg: "#5a3a22", accent: "#2f5d3a", emblem: "leaf" } },
+      { key: "mark-depot", title: "Old Depot Gallery cooperative mark", alt: "Old Depot Gallery cooperative (fictional)", scene: { type: "logo", lines: ["Old Depot", "GALLERY CO-OP"], fg: "#8a2b16", accent: "#3a1d14", emblem: "ring" } },
+      { key: "mark-town", title: "Town of Pine Hollow mark", alt: "Town of Pine Hollow (fictional)", scene: { type: "logo", lines: ["Town of", "PINE HOLLOW"], fg: "#2b3a4a", accent: "#4f6f8a", emblem: "shield" } },
+    ],
     items: [...pages, ...places, ...events, ...articles, draft, pendingReview],
     secondRelease: {
       note: "Ridge House extends Friday hours for the harvest season",

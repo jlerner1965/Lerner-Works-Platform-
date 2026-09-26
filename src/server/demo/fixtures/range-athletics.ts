@@ -1,4 +1,4 @@
-import { common, page, p, h2, list, dateKey, nextThanksgiving, shiftDate, type FixtureSite, type FixtureItem } from "@/server/demo/fixtures/types";
+import { common, page, p, h2, list, divider, note, button, dateKey, nextThanksgiving, shiftDate, type FixtureSite, type FixtureItem } from "@/server/demo/fixtures/types";
 
 const TZ = "America/Denver";
 type Interval = { open: string; close: string; closesNextDay: boolean };
@@ -72,7 +72,8 @@ export function rangeAthleticsFixture(now: Date): FixtureSite {
         status: "open",
         statusNote: "",
       },
-      image: { key: "store-longmont", title: "Range Athletics Longmont storefront", alt: "Illustrated storefront with a navy facade and orange awning reading Range Athletics", scene: { type: "storefront", sign: "Range Athletics", awning: "#bf4a0d", wall: "#12213a", trim: "#0b1526", seed: 101, detail: "gear" } },
+      // Image keys share the "@" namespace with item external ids, so the pictures' keys differ from the stores' ids.
+      image: { key: "longmont-storefront", title: "Range Athletics Longmont storefront", alt: "Illustrated storefront with a navy facade and orange awning reading Range Athletics", scene: { type: "storefront", sign: "Range Athletics", awning: "#bf4a0d", wall: "#12213a", trim: "#0b1526", seed: 101, detail: "gear" } },
     },
     {
       externalId: "store-boulder",
@@ -89,7 +90,7 @@ export function rangeAthleticsFixture(now: Date): FixtureSite {
         status: "open",
         statusNote: "",
       },
-      image: { key: "store-boulder", title: "Range Athletics Boulder storefront", alt: "Illustrated downtown storefront with a navy awning and a bicycle drawn beside the sign", scene: { type: "storefront", sign: "Range Athletics", awning: "#12213a", wall: "#e6e9ee", trim: "#bf4a0d", seed: 113, detail: "bike" } },
+      image: { key: "boulder-storefront", title: "Range Athletics Boulder storefront", alt: "Illustrated downtown storefront with a navy awning and a bicycle drawn beside the sign", scene: { type: "storefront", sign: "Range Athletics", awning: "#12213a", wall: "#e6e9ee", trim: "#bf4a0d", seed: 113, detail: "bike" } },
     },
     {
       externalId: "store-fort-collins",
@@ -106,7 +107,7 @@ export function rangeAthleticsFixture(now: Date): FixtureSite {
         status: "temporarily_closed",
         statusNote: "Closed for floor replacement; team orders continue by phone",
       },
-      image: { key: "store-fort-collins", title: "Range Athletics Fort Collins storefront", alt: "Illustrated storefront with a grey facade and an orange awning", scene: { type: "storefront", sign: "Range Athletics", awning: "#bf4a0d", wall: "#7d8da0", trim: "#12213a", seed: 127, detail: "gear" } },
+      image: { key: "fort-collins-storefront", title: "Range Athletics Fort Collins storefront", alt: "Illustrated storefront with a grey facade and an orange awning", scene: { type: "storefront", sign: "Range Athletics", awning: "#bf4a0d", wall: "#7d8da0", trim: "#12213a", seed: 127, detail: "gear" } },
     },
   ];
 
@@ -127,8 +128,28 @@ export function rangeAthleticsFixture(now: Date): FixtureSite {
             { label: "Services", value: "4, each with the stores that offer it" },
             { label: "Founded", value: "1998 (fictional)" },
           ] },
+          { id: "s-why", type: "image_text", heading: "Why people drive to us", items: [
+            { assetId: "@longmont-storefront", heading: "A shoe wall with people who watch you run", body: [p("Twenty minutes on the treadmill, both feet measured, three or four options pulled before you try anything on. No charge, no obligation, and the socks you actually run in.")], ctaLabel: "Book a fitting", ctaPath: "/services/shoe-fitting" },
+            { assetId: "@boulder-storefront", heading: "A bike counter open whenever the store is", body: [p("Flats and quick adjustments while you wait, full tune-ups by appointment, and Friday nights that run late for the group rides that end downtown.")], ctaLabel: "Bike service", ctaPath: "/services/bike-service" },
+          ] },
           { id: "s-services", type: "content_collection", heading: "Services", kind: "service", mode: "latest", itemIds: [], limit: 4, variant: "cards", columns: 4 },
+          { id: "s-band", type: "image_band", heading: "Winter tuning is open", text: "Base grind, edge work and hot wax at Longmont and Boulder, usually back within two days.", imageAssetId: "@front-range" as unknown as null, tint: "primary", strength: "strong", ctaLabel: "Book a tune", ctaPath: "/services/ski-and-snowboard-tuning", secondaryLabel: "Find a store", secondaryPath: "/locations", appearance: { align: "center" } },
           { id: "s-featured", type: "location_collection", heading: "Featured store", mode: "selected", itemIds: ["@store-longmont"] as unknown as string[] },
+          { id: "s-voices", type: "quotes", heading: "What customers say", variant: "grid", appearance: { background: "tint" }, items: [
+            { text: "They watched me run before they sold me anything. The shoes fit, and my knees stopped complaining.", attribution: "Sam Delgado", role: "Runs the Boulder creek path (fictional)", assetId: "@portrait-sam" },
+            { text: "The site said Fort Collins was closed for the floor. It was. That is worth more than a slogan.", attribution: "Ruth Kimani", role: "Team coordinator, north county (fictional)", assetId: "@portrait-ruth" },
+          ] },
+          { id: "s-people", type: "team", heading: "At the counter", intro: "The people who answer the store inquiries. All three are fictional.", items: [
+            { name: "Priya Natarajan", role: "Store manager, Longmont", text: "Runs the shoe wall and the fitting bookings.", assetId: "@portrait-priya", path: "/locations/longmont" },
+            { name: "Cole Whitfield", role: "Head mechanic", text: "Suspension bench in Longmont, tuning in season.", assetId: "@portrait-cole", path: "" },
+            { name: "Lena Ortiz", role: "Team outfitting", text: "One coordinator, one invoice, size runs delivered for fittings.", assetId: "@portrait-lena", path: "/services/team-outfitting" },
+          ] },
+          { id: "s-brands", type: "logo_strip", heading: "Brands we fit", variant: "mono", items: [
+            { assetId: "@mark-ridgeline", label: "", path: "" },
+            { assetId: "@mark-northfork", label: "", path: "" },
+            { assetId: "@mark-summit", label: "", path: "" },
+            { assetId: "@mark-cycle", label: "", path: "" },
+          ] },
           { id: "s-contact", type: "cta_banner", heading: "Questions? Ask a store", text: "Each store answers its own inquiries. Choose the store on the contact page and you will hear back from the people who work there.", ctaLabel: "Contact us", ctaPath: "/contact", appearance: { background: "accent", align: "center" } },
         ],
       }),
@@ -141,12 +162,22 @@ export function rangeAthleticsFixture(now: Date): FixtureSite {
         slug: "about",
         summary: "What Range Athletics is, and what this demonstration site is and is not.",
         sections: [
+          // The statement treatment (B3): an oversized heading with the picture beneath.
+          { id: "s-about-hero", type: "image_hero", variant: "statement", heading: "Honest hours. Real people.", subheading: "What Range Athletics is, and what this demonstration site is and is not.", imageAssetId: "@longmont-storefront" as unknown as null, ctaLabel: "", ctaPath: "" },
           { id: "s-about", type: "rich_text", heading: "About Range Athletics", body: [
             p("Range Athletics is a fictional retailer created to demonstrate a multi-location business website. The stores, addresses, phone numbers and people on this site do not exist; the hours and services are realistic examples, not claims about any real business."),
             h2("What a real store site would do"),
             list("Publish hours per store with date exceptions, and say so when hours are unknown", "List which services each store actually offers", "Route questions to the store that can answer them"),
+            divider(),
             h2("What it deliberately does not do"),
             p("There is no inventory, no prices and no availability promise on this site. Those claims need a live connection to the stores' systems; without one, the honest choice is to let you ask."),
+            note("Want to know whether a size is on the shelf? Send the store a question with the model and size and the floor staff will check."),
+            button("Ask a store", "/contact"),
+          ] },
+          { id: "s-stores-gallery", type: "gallery", heading: "Three stores", variant: "grid", columns: 3, aspect: "landscape", lightbox: true, items: [
+            { assetId: "@longmont-storefront", caption: "Longmont: the flagship on Foothills Way" },
+            { assetId: "@boulder-storefront", caption: "Boulder: downtown on Walnut Street" },
+            { assetId: "@fort-collins-storefront", caption: "Fort Collins: closed while the floor is replaced" },
           ] },
         ],
       }),
@@ -166,7 +197,8 @@ export function rangeAthleticsFixture(now: Date): FixtureSite {
             { question: "How long does a ski tune take?", answer: [p("Same day if you drop off before noon at Boulder or Longmont, otherwise next day. Race tunes and base repairs are quoted in the store.")] },
             { question: "Do you ship?", answer: [p("No. Everything is collected in a store; that is how the fitting and tuning services stay honest.")] },
           ] },
-          { id: "s-office", type: "map_link", variant: "card", heading: "Head office", text: "Range Athletics Inc. is run from the Longmont store's upper floor. Deliveries and team orders go here.", label: "Get directions", provider: "google", address: { line1: "4100 Foothills Way", line2: "Suite 200", locality: "Longmont", region: "CO", postalCode: "80501", approved: false } },
+          // Click-to-load map (B3): coordinates for the map on request; nothing loads on a demonstration site.
+          { id: "s-office", type: "map_link", variant: "card", heading: "Head office", text: "Range Athletics Inc. is run from the Longmont store's upper floor. Deliveries and team orders go here.", label: "Get directions", provider: "google", embed: true, latitude: 40.1672, longitude: -105.1019, address: { line1: "4100 Foothills Way", line2: "Suite 200", locality: "Longmont", region: "CO", postalCode: "80501", approved: false } },
         ],
       }),
     },
@@ -206,6 +238,17 @@ export function rangeAthleticsFixture(now: Date): FixtureSite {
     images: [
       { key: "logo", title: "Range Athletics logo", alt: "Range Athletics", scene: { type: "logo", lines: ["Range", "ATHLETICS"], fg: "#12213a", accent: "#bf4a0d", emblem: "peak" } },
       { key: "front-range", title: "Front Range foothills at dusk", alt: "Illustrated foothills under a dusk sky, with a ridge line and a valley road", scene: { type: "landscape", palette: "dusk", seed: 7, ratio: "wide" }, focal: { x: 0.5, y: 0.38 } },
+      // Portraits of the fictional staff and customers (B3: the people section, quotations with a portrait).
+      { key: "portrait-priya", title: "Priya Natarajan", alt: "Stylised portrait of Priya Natarajan, the fictional Longmont store manager", scene: { type: "portrait", initials: "PN", bg: "#e6e9ee", fg: "#12213a", accent: "#bf4a0d", seed: 31 } },
+      { key: "portrait-cole", title: "Cole Whitfield", alt: "Stylised portrait of Cole Whitfield, the fictional head mechanic", scene: { type: "portrait", initials: "CW", bg: "#f5f6f8", fg: "#0b1526", accent: "#bf4a0d", seed: 34 } },
+      { key: "portrait-lena", title: "Lena Ortiz", alt: "Stylised portrait of Lena Ortiz, the fictional team outfitting coordinator", scene: { type: "portrait", initials: "LO", bg: "#fbe7d9", fg: "#12213a", accent: "#7d8da0", seed: 38 } },
+      { key: "portrait-sam", title: "Sam Delgado", alt: "Stylised portrait of Sam Delgado, a fictional customer", scene: { type: "portrait", initials: "SD", bg: "#e6e9ee", fg: "#3e4a5f", accent: "#bf4a0d", seed: 41 } },
+      { key: "portrait-ruth", title: "Ruth Kimani", alt: "Stylised portrait of Ruth Kimani, a fictional customer", scene: { type: "portrait", initials: "RK", bg: "#f2e6cf", fg: "#12213a", accent: "#bf4a0d", seed: 44 } },
+      // Marks of the fictional brands the stores fit (B3: logo strip).
+      { key: "mark-ridgeline", title: "Ridgeline Footwear mark", alt: "Ridgeline Footwear (fictional brand)", scene: { type: "logo", lines: ["Ridgeline", "FOOTWEAR"], fg: "#12213a", accent: "#bf4a0d", emblem: "peak" } },
+      { key: "mark-northfork", title: "North Fork Skis mark", alt: "North Fork Skis (fictional brand)", scene: { type: "logo", lines: ["North Fork", "SKIS"], fg: "#0b1526", accent: "#7d8da0", emblem: "shield" } },
+      { key: "mark-summit", title: "Summit Company mark", alt: "Summit Company (fictional brand)", scene: { type: "logo", lines: ["Summit", "COMPANY"], fg: "#3e4a5f", accent: "#bf4a0d", emblem: "sun" } },
+      { key: "mark-cycle", title: "Boulder Cycle Works mark", alt: "Boulder Cycle Works (fictional brand)", scene: { type: "logo", lines: ["Boulder", "CYCLE WORKS"], fg: "#12213a", accent: "#bf4a0d", emblem: "ring" } },
     ],
     items: [...pages, ...services, ...stores, draft, pendingReview],
     secondRelease: {

@@ -75,6 +75,36 @@ test("a published focal point positions every crop of the hero at 390, 768 and 1
   }
 });
 
+test("the editor offers the B3 sections and treatments, and a photo band saves with its picture and wash (B3)", async ({ page }) => {
+  const { sites } = seed();
+  await signIn(page, emails.owner);
+  await openPageEditor(page, sites.pineHollow, "About the guide");
+  const types = await page.locator("#add-section option").allTextContents();
+  for (const label of ["People", "Logo strip", "Image and text rows", "Photo band"]) expect(types).toContain(label);
+  // The hero's style list carries the new treatments.
+  const heroStyles = await page.locator("ol > li", { hasText: "Image hero" }).first().getByLabel("Style").locator("option").allTextContents();
+  expect(heroStyles.join(" | ")).toContain("Collage");
+  expect(heroStyles.join(" | ")).toContain("Offset");
+  await page.locator("#add-section").selectOption("image_band");
+  const band = page.locator("ol > li", { hasText: "Photo band" }).last();
+  await expect(band.getByText(/choose a picture or write a heading/)).toBeVisible();
+  await band.getByLabel("Heading").fill("Come for the weekend");
+  await band.getByLabel("Picture").selectOption({ index: 1 });
+  await band.getByLabel("Colour wash").selectOption("accent");
+  await expect(band.getByText(/choose a picture or write a heading/)).toHaveCount(0);
+  await page.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(page.getByText(/Saved version \d+.*It is approved/)).toBeVisible();
+  await openPageEditor(page, sites.pineHollow, "About the guide");
+  const saved = page.locator("ol > li", { hasText: "Photo band" }).last();
+  await expect(saved.getByLabel("Heading")).toHaveValue("Come for the weekend");
+  await expect(saved.getByLabel("Colour wash")).toHaveValue("accent");
+  // Remove it again so the pilot stays as composed.
+  await page.getByRole("button", { name: /^Remove section \d+$/ }).last().click();
+  await expect(page.locator("ol > li", { hasText: "Photo band" })).toHaveCount(0);
+  await page.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(page.getByText(/Saved version \d+/)).toBeVisible();
+});
+
 test("a video section loads nothing from the provider until the visitor activates it with the keyboard (DES-08)", async ({ page, browser }) => {
   const { sites } = seed();
   await signIn(page, emails.owner);

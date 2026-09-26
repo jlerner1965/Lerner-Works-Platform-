@@ -44,6 +44,25 @@ export function RichText({ ctx, blocks, className = "" }: { ctx: RenderContext; 
               </figure>
             );
           }
+          // B3 blocks: a rule, a callout panel and a link drawn as the theme's button (styled per prose family in globals.css).
+          case "divider":
+            return <hr key={i} />;
+          case "callout":
+            return (
+              <aside key={i} className="lw-callout">
+                <p>{inline(ctx, b.text)}</p>
+              </aside>
+            );
+          case "button": {
+            const target = resolveLinkTarget(ctx, b.target);
+            if (!target) return null;
+            const external = target.startsWith("http");
+            return (
+              <p key={i} className="lw-button-row">
+                <a href={target} className="lw-prose-button" {...(external ? { rel: "noreferrer" } : {})}>{b.label}</a>
+              </p>
+            );
+          }
         }
       })}
     </div>

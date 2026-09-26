@@ -6,6 +6,8 @@ import { guideTheme } from "@/themes/guide/index";
 import { locationsTheme } from "@/themes/locations/index";
 import { magazineTheme } from "@/themes/magazine/index";
 import { storefrontTheme } from "@/themes/storefront/index";
+import { almanacTheme } from "@/themes/almanac/index";
+import { practiceTheme } from "@/themes/practice/index";
 
 /**
  * The theme catalogue (design programme D2). Every composition the platform has ever
@@ -18,6 +20,8 @@ export const themes: Record<ThemeKey, Theme> = {
   locations: locationsTheme,
   magazine: magazineTheme,
   storefront: storefrontTheme,
+  almanac: almanacTheme,
+  practice: practiceTheme,
 };
 
 /** The theme a release renders with: the configuration's choice when compatible with the preset, else the preset's original composition. */

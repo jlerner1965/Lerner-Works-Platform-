@@ -62,18 +62,19 @@ test("1. owner signs in, creates a site, uploads an image, publishes; the demo r
   siteId = page.url().split("/app/sites/")[1]!.split(/[/?]/)[0]!;
   console.log(`created site ${siteId} (key ${siteKey}); set SMOKE_SITE_ID=${siteId} SMOKE_SITE_KEY=${siteKey} to reuse it`);
 
-  // Upload: a generated PNG through the media library.
+  // Upload: a generated PNG through the media library, then its alternative text in the pass that follows (B2-3).
   await page.goto(`/app/sites/${siteId}/media`);
   const png = path.join(evidence, "smoke-upload.png");
-  await page.getByLabel(/Image file/i).setInputFiles(png);
-  await page.getByRole("textbox", { name: "Title", exact: true }).fill("Smoke test image");
-  await page.getByRole("textbox", { name: "Alternative text", exact: true }).fill("A generated test pattern");
+  await page.getByLabel("Image files").setInputFiles(png);
   await page.getByRole("textbox", { name: /License/ }).fill("CC0-1.0, generated for this test");
   await page.getByRole("button", { name: "Upload", exact: true }).click();
-  await expect(page.getByText(/^Uploaded "Smoke test image"/)).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Alternative text for 1 uploaded image/ })).toBeVisible();
+  await page.getByLabel("smoke-upload", { exact: true }).fill("A generated test pattern");
+  await page.getByRole("button", { name: /Save alternative text for 1 image/ }).click();
+  await expect(page.getByText(/Saved alternative text for 1 image/)).toBeVisible();
   await shot(page, "02-media-uploaded");
 
-  // Approve the starter pages (new sites start with unapproved drafts), then publish.
+  // Starter pages are approved at creation for an owner (B1); this loop only approves what still needs it. Then publish.
   for (const title of ["Home", "About", "Contact"]) {
     await page.goto(`/app/sites/${siteId}/content?kind=page&q=${encodeURIComponent(title)}`);
     const link = page.getByRole("link", { name: title, exact: true }).first();

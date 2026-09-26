@@ -67,10 +67,13 @@ Local demonstration routes: `/demo/pine-hollow` and `/demo/range-athletics`. Das
   `docs/evidence/screenshots/`; fails on a non-200 response, horizontal overflow or a console
   error. Run it against a server that serves a database seeded with `pnpm seed:demo` (each
   design phase re-runs it). The pass is repeated per composition of the theme catalogue
-  (D2): switch a pilot's theme in Look → Design, publish, run the pass with `--only` the
-  pilot's pages and `--out docs/evidence/screenshots/<theme>` (`magazine` for the guide pages,
-  `storefront` for the retail pages), then switch the pilot back and publish again; the
-  default compositions stay in `docs/evidence/screenshots/`.
+  (D2): switch a pilot's theme (Look → Design → Theme, then publish; or
+  `pnpm exec tsx scripts/set-demo-theme.ts --site <key> --theme <theme key | default>`, which
+  makes the same configuration revision and publishes it as the owner, local databases
+  only), run the pass with `--only` the pilot's pages and
+  `--out docs/evidence/screenshots/<theme>` (`magazine` and `almanac` for the guide pages,
+  `storefront` and `practice` for the retail pages), then switch the pilot back and publish
+  again; the default compositions stay in `docs/evidence/screenshots/`.
 - `pnpm exec tsx scripts/screenshot-diff.ts --before <dir> --after <dir> [--out <dir>]` —
   pixel comparison of two screenshot directories (share of differing pixels per page, size
   changes, optional highlighted difference images). Used with the rendering-hash procedure below.
@@ -95,11 +98,13 @@ theme or renderer change, which is its job. To accept an intended change:
 New fixtures (after the pilots are re-composed) come from
 `pnpm exec tsx scripts/export-release-fixtures.ts`, which also writes a version-1 copy of each
 release so the normalisation path stays covered. The version-4 fixtures were exported with the
-pilots switched to the magazine and storefront compositions, so the hash test freezes every
-composition of the catalogue; the version-3 fixtures keep the same content under the original
-compositions. `tests/unit/themes.test.ts` additionally renders every route of the version-3
-fixtures under every compatible theme, without hashes, so a new composition is exercised on
-the pilots' content before it has fixtures of its own.
+pilots switched to the magazine and storefront compositions, and the version-5 fixtures (B3)
+with the pilots re-composed with the B3 sections and switched to the almanac and practice
+compositions, so the hash test freezes every composition of the catalogue; the version-3
+fixtures keep the earlier content under the original compositions. `tests/unit/themes.test.ts`
+additionally renders every route of the version-3 fixtures under every compatible theme,
+without hashes, so a new composition is exercised on the pilots' content before it has
+fixtures of its own.
 
 ## Local auth provider
 
@@ -219,6 +224,46 @@ and then accepts at `/invite/<token>`; that path is unverified in this environme
   action; warnings are recorded with the release. To look at the frozen result first or to
   waive a warning with a reason, build a candidate and activate it from its own page. Restore
   works as before from the release history.
+
+## From empty to launch (site-building programme B2)
+
+- A section with nothing to show is left out of the public page (D-021): an empty text slot,
+  a collection without published items, a category list without categories, a video without
+  an id, a map link without an address. Publication warns which sections are left out
+  (`section_left_out`) and when a page has nothing to show (`page_empty`); the editor says
+  under each section what fills it; the overview's setup checklist names the introduction and
+  the About page while they are unwritten. Nothing is generated: a slot stays empty until
+  written.
+- Onboarding package (Import & export → "Download the template"): a ZIP with one CSV per
+  content kind of the preset (`places.csv`, `events.csv`, `articles.csv`, or `services.csv`
+  and `stores.csv`; the CSV templates with `body`, `image` and `image_alt` columns),
+  `site.csv` (key/value rows: wordmark, tagline, description, contact details, the four brand
+  colours, typography, logo, share image, hero image, home subheading, home introduction,
+  About text; the `notes` column is ignored), `images.csv` (file, alt_text, title, license,
+  attribution, source_url, decorative) and an `images/` folder (JPEG, PNG or WebP, up to 10 MB
+  each, 100 files). Upload it on the same page: the dry run validates every sheet, image and
+  setting and writes nothing; confirming ingests the images, imports the rows in order
+  (services before stores, places before events) and applies the settings sheet (a
+  configuration revision, the contact details on the site, and the starter pages' text and
+  hero image as new revisions) in one transaction, audited as `import.onboarding_applied`. The
+  settings sheet needs an organization owner; others import the content and images. Importing
+  the same package again updates the rows and uploads the images again. Format details are in
+  the template's README and `src/server/import/onboarding.ts`.
+- CSV imports cover stores, services, places, events and articles. A plain CSV import cannot
+  name an image (the `image` column must be empty); the onboarding package can.
+- Imports follow the site's review policy: an import by someone who may publish on a site
+  that does not require review is approved on save (each written revision, audited
+  `review.approved_on_save`); otherwise the items are drafts awaiting review. The import
+  page and the job page say which.
+- Media: many files in one upload with one license, attribution and source for the batch,
+  two files at a time, then the alternative-text pass lists every uploaded image with a field
+  for its text or a decorative mark and saves them in one action; the library shows how many
+  images still need alternative text or a license, with a filter for each.
+- Quick add on a content list: a title (and, for a place, a category with the site's existing
+  categories suggested) creates the draft with the site's defaults and opens the editor. The
+  editor's "Duplicate this …" copies the saved version into a new draft with a free slug.
+  Articles are attributed to the site until a person is named; events and stores take the
+  site's time zone.
 
 ## Backups and restore rehearsal
 

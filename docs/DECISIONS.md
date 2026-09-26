@@ -279,3 +279,62 @@ exists, and the same computation is persisted as the candidate that is activated
 the careful path (frozen preview, waivers) and restore remain. The dashboard is organised by
 task: content by kind, Look, Publish, Inbox, Settings, Team, Import and export, Activity log.
 D-017 stands throughout the programme.
+
+## D-021 · 2026-09-26 · A section with nothing to show is left out; a fresh site is a structure, not a scaffold of notices
+
+Before phase B2 a fresh site published as a page of placeholders ("No hero image selected
+yet", "No places have been published yet", "This section has no text yet"), and every
+placeholder was a visible defect on a client's site. Decided: (1) a section with nothing to
+show is left out of the public page. One rule (`src/themes/shared/empty.ts`) decides it for
+every composition: an empty rich text, feature list, quotes, facts or FAQ section, a
+collection with no published items, a category list with no categories, a video without an
+id, a map link without an address, a gallery whose images are missing. The renderers apply it
+and print no notice; publication validation lists every section left out
+(`section_left_out`) and warns when a whole page has nothing to show (`page_empty`); the
+editor marks each slot with what fills it. The explicitly added list types (FAQ, quotes,
+gallery, facts) still block publication when empty, as they did since D1: they are only ever
+added on purpose. Index pages keep their empty states, because a page must show something.
+(2) Starter pages are a structure whose slots fill themselves: the community guide's home
+page has an introduction slot, a category list that lists the categories of the published
+places, and collections of the latest places, upcoming events and latest articles; the
+location business's home page has the introduction, the store finder and the services. The
+category list is a new typed section (`category_list`, guide compositions only). No fictional
+copy is generated anywhere: an empty slot is left out until the owner writes it, and the
+setup checklist names it. (3) The onboarding package is the way from empty to launch: one
+spreadsheet per content kind of the preset, a settings sheet for the brand, contact details and
+the starter pages' text, and an images folder listed with alternative text and rights, imported
+through the same dry-run-then-confirm step as a CSV file; images and settings are applied with
+the content in one transaction. Imports follow the site's review policy (D-020): what someone
+who may publish imports is approved on save when the site does not require review. The
+renderer change altered no frozen release (the pilots have no empty sections), so no
+rendering hash was re-recorded.
+
+## D-022 · 2026-09-26 · Richness stays inside the vocabulary: typed sections, enumerated treatments, compositions in code, no script for the lightbox or the band
+
+Phase B3 of the site-building programme had to make a client site look art-directed
+without crossing D-017. Decided: (1) richness is added only as typed sections and enumerated
+options, validated on save, on import and at publication exactly like the sections of D1:
+people (`team`), a logo strip (`logo_strip`), image-and-text rows whose sides alternate
+(`image_text`), a photo band (`image_band`: a picture under a wash of one of three brand
+colours at one of three strengths, the text in that colour's "on" token, a pairing the
+contrast gate already checks), a portrait on each quotation, up to three more pictures on the
+image hero with the treatments `offset`, `collage` and `statement`, a gallery lightbox, and
+the rich text blocks divider, callout and button. Nothing positions, sizes or colours an
+element freely. (2) No client script for any of it: the lightbox is drawn by `:target` CSS
+(every thumbnail links to a hidden full-size copy; close, next and previous are links), the
+band and the treatments are layout and CSS. The one client component added is the
+click-to-load map, which extends D-013 to maps: the page shows the address on a plain panel
+and requests nothing from Google Maps or OpenStreetMap until the visitor presses "Show map";
+Apple Maps has no keyless embed and stays a link; the map follows the directions rule (live
+site, owner-approved address; disabled on demonstration sites and previews). Measured cost
+of the phase: one kibibyte of script on every public page (144 KiB against the 143 KiB
+baseline, allowance 20 KiB). (3) A third composition per preset written in code with declared
+capabilities like D-018: the almanac for the community guide (navigation rail, numbered
+sections, fact sheets) and the practice for the location business (slim header with the phone
+number, soft panels, numbered services, an hours table). Keys are immutable. (4) Snapshot
+schema version 5 records the additions; every new field defaults to the earlier behaviour,
+so the eight frozen releases of versions 1 to 4 render unchanged (no re-record), and version-5
+fixtures of the pilots on the new compositions join the rendering-hash test. (5) In the
+demonstration fixtures, image keys share the "@" reference namespace with item ids and the
+loader resolves items first; the pictures of the stores were renamed so no key repeats an id,
+and the rule is noted in the fixtures.

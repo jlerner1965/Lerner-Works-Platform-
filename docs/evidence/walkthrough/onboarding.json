@@ -1,0 +1,35 @@
+{
+  "measure": "SB-04: create a site, download the template, upload the filled package, confirm the dry run, publish",
+  "recordedAt": "2026-09-26T22:11:38.736Z",
+  "siteId": "bd4c61ce-65f3-44e5-86f5-aba1c21890a6",
+  "totalMs": 4069,
+  "steps": [
+    {
+      "step": "site created",
+      "ms": 405
+    },
+    {
+      "step": "template downloaded",
+      "ms": 443
+    },
+    {
+      "step": "dry run shown",
+      "ms": 1375
+    },
+    {
+      "step": "package imported",
+      "ms": 2346
+    },
+    {
+      "step": "published",
+      "ms": 2956
+    },
+    {
+      "step": "public site checked",
+      "ms": 4069
+    }
+  ],
+  "publishedHome": {
+    "emptyNotices": 0
+  }
+}
