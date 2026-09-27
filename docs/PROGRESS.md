@@ -24,7 +24,7 @@ Resume point for the build. Update after every milestone and before any context 
 | B5 Documents, links and the workbook (`docs/SITE-BUILDING-PLAN.md`) | DONE (2026-09-27; on production: pull request #14 merged by the owner as `a601e6c`, deployed READY at 02:00 UTC; migrations `20260927000100_media_documents.sql` and `20260927000200_content_kind_link.sql` applied at 02:02 UTC through the Management API, after the merge; public live checks in `docs/evidence/production/b5-2026-09-27-live-checks.txt`; the dashboard side is the owner's look) | The owner's review of B4 asked for PDFs beside the pictures, pages that are links to other websites and Excel instead of CSV (D-024). Documents in Media (PDF only, 25 MB, `media_assets.kind`; `document:<id>` link targets in text, buttons and section links; attachments on every item; the Downloads page section; served from the release as `<sha256>.pdf` inline with `nosniff`; a withdrawn document blocks the release; the site and onboarding packages carry them). Links as a content kind of both presets (https only, category, picture, summary, button label; cards that open the other site without a referrer; the `/links` index and its navigation entry once a link is published; a page of its own for search). The onboarding workbook (`content.xlsx` template with a sheet per kind, Site, Images, Documents and a Read me; uploaded on its own or inside the package; read by an OOXML subset in code and converted to the CSV files before the dry run; the proof packages carry it). Snapshot schema version 6, the ten earlier frozen releases unchanged, both pilots carrying sample links and documents. SB-10, SB-11 and SB-12 PASS. |
 | B6 Removing a site or an organization (`docs/SITE-BUILDING-PLAN.md`) | DONE (2026-09-27; on production: pull request #15 merged by the owner as `4b0d99d` at 03:33 UTC and deployed at once, migration `20260927000300_removal.sql` applied at 02:52 UTC through the Management API, ahead of the merge this time, so the code found its functions in place; `/healthz` 200 on the deployment; the dashboard-side checks need the owner's session) | Owner-only deletion with a typed confirmation (D-025): Settings → Remove this site (the rows in one transaction with the `site.deleted` audit event, the files after, public copies kept while another site's release carries them, refused while live on a domain, the trail kept and the removed sites listed on the organizations page); Organizations → Remove organization… (sites first, then memberships and invitations, the row kept as a tombstone with its trail, the last organization owned refused). OPS-04 and OPS-05 PASS. |
 | SB-09, the bar | The owner's verdict on 2026-09-27: NOT MET ("not something I would use, way too complicated, not enough easy customization like being able to upload zip"); B7 decided the same day | The platform's machinery (hosting on the client's domain, releases and restore, the inquiry inbox, access, audit) stays; the layer that decides how a site looks is not what an agency builds with. The bar is re-judged on the first real client site hosted the B7 way (`docs/SITE-BUILDING-PLAN.md`). |
-| B7 Uploaded sites (`docs/SITE-BUILDING-PLAN.md`) | DONE in the repository (2026-09-27, D-026; on the branch as `d5125e9`, rebased onto `main` after pull request #15 had merged B6 six minutes before the B7 push; gated; migration `20260927000400_uploaded_sites.sql` applied to the production project at 03:38 UTC through the Management API, ahead of the merge). The Vercel side is done by the owner at 03:47 UTC: `*.preview.lernerworksplatform.dev` on the project's production target (verified) and `PREVIEW_DOMAIN` for production, redeployed. Waiting for the B7 pull request and its merge; then the live checks | A site built anywhere is uploaded as a ZIP and hosted as an immutable release: `sites.site_type` (`structured` or `uploaded`, chosen at creation; no preset, no starter pages), the archive checked before anything changes (`src/server/uploaded/archive.ts`: what a static host serves, safe paths, `index.html` at the top or inside one folder, 64 MB / 2,000 files / 25 MB a file, server-side files refused), files stored under their content hash and the release inserted and activated by one idempotent function (`publish_uploaded_release`, snapshot schema series 101), served on a preview hostname of its own (`<key>.<PREVIEW_DOMAIN>`, never the dashboard's origin, `no-store`, `noindex`) and on the live domain (clean addresses, the site's own 404 page, content-hash ETags, a minute at the CDN) by `src/server/uploaded/serve.ts` behind the proxy's rewrite (`/uploaded/<mode>/<target>/files/…`, the form to `…/inquiry`); the site's own contact form posts to `/_lw/inquiry` and lands in the inbox with a redirect back to its thanks page; a dashboard of Upload (check, publish, releases, restore), Inbox, Settings, Team and the activity log; the sample site "Harbor Lane Studio"; removal takes the files. UP-01 to UP-04 in `docs/ACCEPTANCE.md`; the owner's guide `docs/UPLOADED-SITES.md`. |
+| B7 Uploaded sites (`docs/SITE-BUILDING-PLAN.md`) | DONE (2026-09-27, D-026; on production: pull request #16 merged by the owner as `719fcfe` at 03:58 UTC, deployment `dpl_CC2iXit2pVAYvxp7SbREm8MmSYsa` READY at 03:59:34 UTC; migration `20260927000400_uploaded_sites.sql` applied at 03:38 UTC ahead of the merge; the wildcard `*.preview.lernerworksplatform.dev` and `PREVIEW_DOMAIN` on the project's production target by the owner at 03:47 UTC; live checks `docs/evidence/production/b7-2026-09-27-live-checks.txt`; the dashboard path, and the first real client site, are the owner's) | A site built anywhere is uploaded as a ZIP and hosted as an immutable release: `sites.site_type` (`structured` or `uploaded`, chosen at creation; no preset, no starter pages), the archive checked before anything changes (`src/server/uploaded/archive.ts`: what a static host serves, safe paths, `index.html` at the top or inside one folder, 64 MB / 2,000 files / 25 MB a file, server-side files refused), files stored under their content hash and the release inserted and activated by one idempotent function (`publish_uploaded_release`, snapshot schema series 101), served on a preview hostname of its own (`<key>.<PREVIEW_DOMAIN>`, never the dashboard's origin, `no-store`, `noindex`) and on the live domain (clean addresses, the site's own 404 page, content-hash ETags, a minute at the CDN) by `src/server/uploaded/serve.ts` behind the proxy's rewrite (`/uploaded/<mode>/<target>/files/…`, the form to `…/inquiry`); the site's own contact form posts to `/_lw/inquiry` and lands in the inbox with a redirect back to its thanks page; a dashboard of Upload (check, publish, releases, restore), Inbox, Settings, Team and the activity log; the sample site "Harbor Lane Studio"; removal takes the files. UP-01 to UP-04 in `docs/ACCEPTANCE.md`; the owner's guide `docs/UPLOADED-SITES.md`. |
 
 ## Environment blockers (precise)
 
@@ -60,7 +60,10 @@ Resume point for the build. Update after every milestone and before any context 
   signature gone, which the deployed B5 code still resolves through the default),
   `publish_uploaded_release`, `get_host_site_type` (callable by `anon`) and `delete_site`; the
   `import_jobs` check with `uploaded_site`
-  (`docs/evidence/production/b7-2026-09-27-migration.txt`).
+  (`docs/evidence/production/b7-2026-09-27-migration.txt`). Pull request #16 merged by the
+  owner as `719fcfe` at 03:58 UTC; deployment `dpl_CC2iXit2pVAYvxp7SbREm8MmSYsa` READY at
+  03:59:34 UTC with `*.preview.lernerworksplatform.dev` among its aliases; live checks at
+  03:59:52 UTC all as expected (`docs/evidence/production/b7-2026-09-27-live-checks.txt`).
 - 2026-09-27 (site-building phase B6, removal) `pnpm verify` on the final code: GATE PASSED in
   840 s (setup check 1 s, lint 19 s, typecheck 3 s, unit 6 s, integration 77 s, browser 703 s,
   production build 31 s): 161 unit tests in 21 files (adds the Supabase adapter's public
@@ -455,26 +458,26 @@ organization, site or hostname exists yet.
 
 ## Next action
 
-Phase B6 is on production (pull request #15, `4b0d99d`, merged by the owner at 03:33 UTC on
-2026-09-27 and deployed at once; its migration had been applied at 02:52 UTC). Phase B7 is on
-the branch `claude/lucid-darwin-cif2y6` as `d5125e9`, rebased onto that merge because the
-pull request had merged six minutes before the B7 push; its migration
-`20260927000400_uploaded_sites.sql` was applied to the production project at 03:38 UTC and
-verified (the enum, the column with its default, the four functions with their grants, the
-widened check), so the deployed B6 code runs against it unharmed and the B7 deployment will
-find everything in place. The owner has already done the Vercel side (03:47 UTC): the wildcard
-hostname `*.preview.lernerworksplatform.dev` on the project's production target, verified, and
-`PREVIEW_DOMAIN=preview.lernerworksplatform.dev` for production, redeployed (READY 03:49 UTC);
-the wildcard reaches the project (the B6 code answers 404 on it, as it treats the hostname as
-an unknown customer domain). What remains is the B7 pull request from the branch and its
-merge (on the owner's go; none is open), then the live checks on the deployment: create an
-uploaded site, upload the sample ZIP from its Upload page, publish, open
-`https://<key>.preview.lernerworksplatform.dev/` (the page, `X-Robots-Tag: noindex`, a
-`robots.txt` that disallows everything), send the sample's contact form and find the message
-in Inbox, restore v1. B7 is done in the sense of the programme when one real client site is
-live this way with its form delivering and the owner has used restore once; the step after
-that, a hand-built page pulling in the platform's live pieces through markers, is decided when
-a real site asks for it.
+Phases B6 and B7 are on production (2026-09-27): pull request #15 (`4b0d99d`, B6, merged
+03:33 UTC) and pull request #16 (`719fcfe`, B7, merged 03:58 UTC, deployment
+`dpl_CC2iXit2pVAYvxp7SbREm8MmSYsa` READY 03:59:34 UTC), both migrations applied ahead of
+their merges (02:52 and 03:38 UTC), the wildcard hostname `*.preview.lernerworksplatform.dev`
+and `PREVIEW_DOMAIN` on the project's production target (the owner, 03:47 UTC). The live
+checks that need no session pass (`docs/evidence/production/b7-2026-09-27-live-checks.txt`:
+health, the site-type lookup, the handler refused by path on the dashboard host, the wildcard
+hostname answered by the B7 handler with a plain `no-store` 404 while no uploaded site exists,
+hostnames normalised, an unsafe key refused). The session branch was restarted from `main`
+(`719fcfe`).
+
+Next is the owner's, on production, about three minutes: Organizations → Create site →
+*Uploaded* (key `harbor`), Upload → *Download the sample site (ZIP)* → choose it → *Upload and
+check* → *Publish as release v1*, open `https://harbor.preview.lernerworksplatform.dev/`,
+send the sample's contact form and find the message in Inbox, restore v1 from Upload →
+Releases. Then the first real client site hosted this way, with its domain: that is the
+programme's "done" (one real client site live, its form delivering, restore used once) and the
+moment the bar (SB-09) is re-judged. The step after it, a hand-built page pulling in the
+platform's live pieces through markers the publish step expands into plain HTML, is decided
+when a real site asks for it. Nothing is pending on the platform side.
 
 Site-building programme phase B5 (documents, links and the workbook, `docs/SITE-BUILDING-PLAN.md`
 section 3) is on production: the owner merged pull request #14 (`a601e6c`) on 2026-09-27 and
