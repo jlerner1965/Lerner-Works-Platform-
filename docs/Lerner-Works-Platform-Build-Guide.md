@@ -260,6 +260,8 @@ Use typed JSON payloads for the different content schemas, backed by shared rela
 
 **Article:** headline, summary, structured body, author display name, original publication date, updated date, and referenced assets. Require an actual author field or an organizational attribution; do not invent professional credentials.
 
+**Link (site-building programme B5):** a link to another website as content: the site's own title, summary, picture and body about the outside resource, its https address, a category, and an optional button label. Public listings show links as cards that open the other site directly without a referrer; each link also has a small page of its own for search results and sharing. Nothing is fetched from the other site. The links listing route exists only while at least one link is published.
+
 **Store:** name, approved address, phone, time zone, normal weekly intervals, date-specific exceptions, service references, and status such as open, temporarily closed, or permanently closed. Multiple intervals per day are allowed. Represent overnight hours explicitly with a next-day end flag. Date exceptions override weekly intervals for the local date. Unknown is different from closed.
 
 **Service:** name, description, optional inquiry prompt, and store associations. No invented prices. Store relationships reference stable IDs and resolve through the frozen release, not mutable working data.
@@ -320,6 +322,8 @@ For publication, copy approved web derivatives to immutable content-hash paths i
 Do not delete assets referenced by any retained release. An unused-media view may mark candidates for cleanup, but hard deletion is outside ordinary editor controls. Withdrawal for rights/privacy reasons requires disabling affected releases from restoration and replacing or removing the public derivative. Export assets as actual downloadable files, not expired signed links.
 
 Logo upload supports validated raster images and a text-wordmark fallback. Avoid building an SVG sanitization subsystem merely to support the initial demonstration.
+
+Documents (site-building B5, decision D-024): the media library also accepts PDF files, as assets of kind `document` beside the pictures. Validate by signature and trailer, agree the declared type and extension, cap at 25 MB, and accept no other document type. A document is referred to as `document:<id>` wherever a link target is typed (rich text, buttons, section links) and as an attachment (id and label) on any item; a page may list documents in a Downloads section. Publication copies each referenced document to an immutable content-hash path like a derivative, serves it inline with `nosniff` and a name from the title, and refuses a release that names a picture where a document is needed or the reverse, a download with no file, or a withdrawn document. The site package and the onboarding package carry documents with their rights.
 
 ## 11 Search and visitor tasks
 
@@ -396,6 +400,8 @@ Support initial imports for stores, places, and events. Provide downloadable tem
 Identify updates through an external ID scoped to the site and content kind. Do not match customers by title alone. On confirmation, record the input hash and job ID, write revisions within a transaction for the selected batch, and report actual results. A repeated identical job must not duplicate records. Imported items remain drafts requiring approval.
 
 Start with a 500-row cap and a 5 MB input cap. Reject oversized or invalid inputs with instructions to split the file. This bounded implementation is preferable to pretending to support unlimited imports.
+
+The onboarding package (site-building B2 and B5) is the client's path: the template downloads as one Excel workbook (`content.xlsx`: a sheet per content kind of the preset, a Site sheet of settings, an Images sheet, a Documents sheet and a Read me) to be returned on its own or zipped with the `images/` and `documents/` folders. The workbook is read by a small OOXML subset in code (no spreadsheet dependency), sheets matched by name, and converted to the same CSV files before the dry run, so the import has one shape; CSV files are still accepted, a sheet given both ways is refused, and Excel's dates, numbers, booleans and formula results are read as text the sheets expect.
 
 ### Portable site package
 

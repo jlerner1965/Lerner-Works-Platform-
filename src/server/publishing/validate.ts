@@ -9,6 +9,7 @@ import { sectionHasContent } from "@/themes/shared/empty";
 import type { PageSection } from "@/modules/page";
 import type { ReleaseSnapshot, SnapshotItem } from "@/server/publishing/snapshot";
 import type { BuiltManifest } from "@/server/publishing/manifest";
+import { isDocumentLink } from "@/server/media/content-types";
 
 export interface Finding {
   severity: "blocker" | "warning";
@@ -30,7 +31,10 @@ const MAX_IMAGE_WIDTH = 4000;
 const MAX_IMAGE_BYTES = 2_500_000;
 const VERIFICATION_STALE_DAYS = 365;
 /** Section types made of a list the owner writes by hand: empty ones block publication rather than being left out (B2, D-021). */
-const itemListTypes = new Set<string>(["faq", "quotes", "gallery", "facts", "team", "logo_strip", "image_text"]);
+const itemListTypes = new Set<string>(["faq", "quotes", "gallery", "facts", "team", "logo_strip", "image_text", "downloads"]);
+
+/** A link target that needs no route: an https address, or a document of the release (checked through the media references, B5). */
+const linksElsewhere = (p: string) => isExternalLink(p) || isDocumentLink(p);
 
 /**
  * Validates the entire resulting site, not only edited records. Blockers prevent activation;
@@ -38,6 +42,7 @@ const itemListTypes = new Set<string>(["faq", "quotes", "gallery", "facts", "tea
  */
 export function validateManifest(built: BuiltManifest, opts: { now: Date }): ValidationResult {
   const { manifest, mediaRows, missingMedia } = built;
+  const mediaKindMismatches = built.mediaKindMismatches ?? [];
   const siteBase = `/app/sites/${manifest.site.id}`;
   const blockers: Finding[] = [];
   const warnings: Finding[] = [];
@@ -124,12 +129,17 @@ export function validateManifest(built: BuiltManifest, opts: { now: Date }): Val
         if (type === "rich_text" && Array.isArray(s.body)) bodies.push({ field: `${field}.body`, blocks: s.body as Block[] });
         for (const key of ["ctaPath", "secondaryPath"]) {
           const p = s[key];
-          if (typeof p === "string" && p && !isExternalLink(p) && !routePaths.has(normalizePath(p))) {
+          if (typeof p === "string" && p && !linksElsewhere(p) && !routePaths.has(normalizePath(p))) {
             push({ severity: "blocker", code: "broken_link", message: `Section ${i + 1} links to ${p}, which is not a published route.`, itemId: item.id, itemTitle: item.title, field: `${field}.${key}`, href: itemHref(item.id) });
           }
         }
         if (itemListTypes.has(type) && (!Array.isArray(s.items) || s.items.length === 0)) {
           push({ severity: "blocker", code: "empty_section", message: `Section ${i + 1} (${label}) has no items; add some or remove the section.`, itemId: item.id, itemTitle: item.title, field, href: itemHref(item.id) });
+        }
+        if (type === "downloads") {
+          ((s.items as Array<{ assetId?: string }>) ?? []).forEach((it, j) => {
+            if (!it.assetId) push({ severity: "blocker", code: "empty_section", message: `Section ${i + 1} (${label}): document ${j + 1} has no file chosen.`, itemId: item.id, itemTitle: item.title, field: `${field}.items.${j}.assetId`, href: itemHref(item.id) });
+          });
         }
         if (type === "faq") {
           ((s.items as Array<{ answer?: Block[] }>) ?? []).forEach((it, j) => {
@@ -147,7 +157,7 @@ export function validateManifest(built: BuiltManifest, opts: { now: Date }): Val
           const key = type === "image_text" ? "ctaPath" : "path";
           ((s.items as Array<Record<string, unknown>>) ?? []).forEach((it, j) => {
             const p = it[key];
-            if (typeof p === "string" && p && !isExternalLink(p) && !routePaths.has(normalizePath(p))) {
+            if (typeof p === "string" && p && !linksElsewhere(p) && !routePaths.has(normalizePath(p))) {
               push({ severity: "blocker", code: "broken_link", message: `Section ${i + 1} (${label}): item ${j + 1} links to ${p}, which is not a published route.`, itemId: item.id, itemTitle: item.title, field: `${field}.items.${j}.${key}`, href: itemHref(item.id) });
             }
             if (type === "image_text" && Array.isArray(it.body)) bodies.push({ field: `${field}.items.${j}.body`, blocks: it.body as Block[] });
@@ -245,10 +255,12 @@ export function validateManifest(built: BuiltManifest, opts: { now: Date }): Val
       for (const target of collectLinkTargets(body.blocks)) {
         if (target.startsWith("item:")) {
           if (!itemById[target.slice(5)]) push({ severity: "blocker", code: "broken_link", message: `A link references an item that is not part of this release.`, itemId: item.id, itemTitle: item.title, field: body.field, href: itemHref(item.id) });
+        } else if (isDocumentLink(target)) {
+          // A document link is a media reference (B5): a missing or withdrawn document is reported with the media below.
         } else if (target.startsWith("/")) {
           if (!routePaths.has(normalizePath(target.split(/[?#]/)[0] ?? target))) push({ severity: "blocker", code: "broken_link", message: `A link points to ${target}, which is not a published route.`, itemId: item.id, itemTitle: item.title, field: body.field, href: itemHref(item.id) });
         } else if (!/^https:\/\//i.test(target)) {
-          push({ severity: "blocker", code: "unsafe_link", message: `A link uses an unsupported target (${target.slice(0, 40)}). Only same-site paths, item references and https URLs are allowed.`, itemId: item.id, itemTitle: item.title, field: body.field, href: itemHref(item.id) });
+          push({ severity: "blocker", code: "unsafe_link", message: `A link uses an unsupported target (${target.slice(0, 40)}). Only same-site paths, item references, document references and https URLs are allowed.`, itemId: item.id, itemTitle: item.title, field: body.field, href: itemHref(item.id) });
         }
       }
     }
@@ -265,19 +277,28 @@ export function validateManifest(built: BuiltManifest, opts: { now: Date }): Val
     }
   }
 
-  // Media: missing/withdrawn assets, required alternative text, licensing, oversized images.
+  // Media: missing/withdrawn assets, the right kind in each slot, required alternative text, licensing, oversized images.
   for (const m of missingMedia) {
     const item = m.itemId ? itemById[m.itemId] : undefined;
     const row = mediaRows.get(m.assetId);
+    const noun = row?.kind === "document" ? "document" : "image";
     const why = !row ? "does not exist in this site" : row.status === "withdrawn" ? "was withdrawn" : "is still processing";
-    push({ severity: "blocker", code: "missing_media", message: `A referenced image ${why}.`, itemId: m.itemId ?? undefined, itemTitle: item?.title, field: m.field, href: m.itemId ? itemHref(m.itemId) : settingsHref });
+    push({ severity: "blocker", code: "missing_media", message: `A referenced ${row ? noun : "image or document"} ${why}.`, itemId: m.itemId ?? undefined, itemTitle: item?.title, field: m.field, href: m.itemId ? itemHref(m.itemId) : settingsHref });
+  }
+  for (const m of mediaKindMismatches) {
+    const item = m.itemId ? itemById[m.itemId] : undefined;
+    const row = mediaRows.get(m.assetId);
+    const name = row?.title || m.assetId.slice(0, 8);
+    push({ severity: "blocker", code: "media_kind_mismatch", message: m.expected === "image" ? `"${name}" is a document, but this field needs a picture.` : `"${name}" is a picture, but this link needs a document.`, itemId: m.itemId ?? undefined, itemTitle: item?.title, field: m.field, href: m.itemId ? itemHref(m.itemId) : settingsHref });
   }
   for (const media of Object.values(manifest.media)) {
     const href = `${siteBase}/media/${media.id}`;
-    if (!media.decorative && !media.alt.trim()) push({ severity: "blocker", code: "missing_alt", message: `Image "${media.title || media.id.slice(0, 8)}" has no alternative text and is not marked decorative.`, field: "altText", href });
-    if (!media.license.trim()) push({ severity: "blocker", code: "unlicensed_asset", message: `Image "${media.title || media.id.slice(0, 8)}" has no recorded license or rights statement.`, field: "license", href });
+    const isDocument = media.kind === "document";
+    const name = `${isDocument ? "Document" : "Image"} "${media.title || media.id.slice(0, 8)}"`;
+    if (!isDocument && !media.decorative && !media.alt.trim()) push({ severity: "blocker", code: "missing_alt", message: `${name} has no alternative text and is not marked decorative.`, field: "altText", href });
+    if (!media.license.trim()) push({ severity: "blocker", code: "unlicensed_asset", message: `${name} has no recorded license or rights statement.`, field: "license", href });
     const w1600 = media.variants.w1600;
-    if (media.width > MAX_IMAGE_WIDTH || (w1600 && w1600.bytes > MAX_IMAGE_BYTES)) push({ severity: "warning", code: "large_image", message: `Image "${media.title || media.id.slice(0, 8)}" is unusually large (${media.width}px wide).`, href });
+    if (!isDocument && (media.width > MAX_IMAGE_WIDTH || (w1600 && w1600.bytes > MAX_IMAGE_BYTES))) push({ severity: "warning", code: "large_image", message: `${name} is unusually large (${media.width}px wide).`, href });
   }
 
   // Brand contrast: every pairing the themes render, from the four colours and the tokens

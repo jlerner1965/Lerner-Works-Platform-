@@ -5,7 +5,7 @@ import { sectionTypeLabels, emptySection, variantLabels, backgroundLabels, secti
 import type { EditorContext, Issues } from "@/components/admin/editor/types";
 import { TextInput, TextArea, SelectInput, Checkbox, MultiSelect } from "@/components/admin/editor/inputs";
 import { BodyEditor } from "@/components/admin/editor/body-editor";
-import { MediaPicker } from "@/components/admin/editor/media-picker";
+import { MediaPicker, DocumentPicker } from "@/components/admin/editor/media-picker";
 import { AddressFields } from "@/components/admin/editor/address-fields";
 import { Button } from "@/components/admin/ui";
 import type { Block } from "@/lib/richtext";
@@ -19,7 +19,7 @@ export function newSection(type: SectionType): PageSection {
   return emptySection(type, newId());
 }
 
-const kindPlural: Record<string, string> = { place: "places", event: "events", article: "articles", service: "services" };
+const kindPlural: Record<string, string> = { place: "places", event: "events", article: "articles", service: "services", link: "links" };
 
 /**
  * What a slot still needs, shown under its title. A section with nothing to show is left out
@@ -39,6 +39,8 @@ export function slotHint(section: PageSection): string | null {
     case "logo_strip":
     case "image_text":
       return section.items.length ? null : "Nothing to show yet: add items, or remove the section. Publication needs at least one.";
+    case "downloads":
+      return section.items.length ? null : "Nothing to show yet: add documents from Media, or remove the section. Publication needs at least one.";
     case "image_band":
       return section.heading || section.text || section.imageAssetId ? null : "Nothing to show yet: choose a picture or write a heading. The band is left out of the public page until it has one.";
     case "content_collection":
@@ -143,7 +145,7 @@ function AppearanceControls({ section, onChange, capabilities, prefix, issues }:
   );
 }
 
-function ItemList<T>({ items, render, onChange, empty, addLabel, max, blank }: { items: T[]; render: (item: T, update: (next: T) => void, i: number) => React.ReactNode; onChange: (items: T[]) => void; empty: string; addLabel: string; max: number; blank: () => T }) {
+export function ItemList<T>({ items, render, onChange, empty, addLabel, max, blank }: { items: T[]; render: (item: T, update: (next: T) => void, i: number) => React.ReactNode; onChange: (items: T[]) => void; empty: string; addLabel: string; max: number; blank: () => T }) {
   const move = (i: number, dir: -1 | 1) => {
     const j = i + dir;
     if (j < 0 || j >= items.length) return;
@@ -247,7 +249,7 @@ function SectionFields({ section, onChange, ctx, prefix, issues }: { section: Pa
         <>
           <TextInput label="Heading" value={section.heading} onChange={(v) => onChange({ ...section, heading: v })} error={err("heading")} />
           <div className="grid gap-3 sm:grid-cols-4">
-            <SelectInput label="Content type" value={section.kind} onChange={(v) => onChange({ ...section, kind: v as typeof section.kind, itemIds: [] })} options={[{ value: "place", label: "Places" }, { value: "event", label: "Events" }, { value: "article", label: "Articles" }, { value: "service", label: "Services" }]} />
+            <SelectInput label="Content type" value={section.kind} onChange={(v) => onChange({ ...section, kind: v as typeof section.kind, itemIds: [] })} options={[{ value: "place", label: "Places" }, { value: "event", label: "Events" }, { value: "article", label: "Articles" }, { value: "service", label: "Services" }, { value: "link", label: "Links to other websites" }]} />
             <SelectInput label="Selection" value={section.mode} onChange={(v) => onChange({ ...section, mode: v as typeof section.mode })} options={[{ value: "latest", label: "Latest / all" }, { value: "upcoming", label: "Upcoming (events)" }, { value: "selected", label: "Selected items" }]} />
             <TextInput label="Limit" type="number" value={String(section.limit)} onChange={(v) => onChange({ ...section, limit: Math.max(1, Math.min(24, Number(v) || 1)) })} />
             <SelectInput label="Columns (cards)" value={section.columns ? String(section.columns) : ""} onChange={(v) => onChange({ ...section, columns: v ? (Number(v) as 2 | 3 | 4) : undefined })} options={columnOptions} />
@@ -534,6 +536,31 @@ function SectionFields({ section, onChange, ctx, prefix, issues }: { section: Pa
             <TextInput label="Second button label (optional)" value={section.secondaryLabel} onChange={(v) => onChange({ ...section, secondaryLabel: v })} error={err("secondaryLabel")} />
             <TextInput label="Second button link" value={section.secondaryPath} onChange={(v) => onChange({ ...section, secondaryPath: v })} error={err("secondaryPath")} />
           </div>
+        </>
+      );
+    case "downloads":
+      return (
+        <>
+          <div className="grid gap-3 sm:grid-cols-[1fr_10rem]">
+            <TextInput label="Heading" value={section.heading} onChange={(v) => onChange({ ...section, heading: v })} error={err("heading")} />
+            <SelectInput label="Columns (grid style)" value={section.columns ? String(section.columns) : ""} onChange={(v) => onChange({ ...section, columns: v ? (Number(v) as 2 | 3 | 4) : undefined })} options={columnOptions} />
+          </div>
+          <TextArea label="Introduction (optional)" value={section.intro} onChange={(v) => onChange({ ...section, intro: v })} rows={2} />
+          <ItemList
+            items={section.items}
+            onChange={(items) => onChange({ ...section, items })}
+            empty="No documents yet. Upload PDFs in Media, then choose them here; each is served from the published site like a picture."
+            addLabel="Add document"
+            max={24}
+            blank={() => ({ assetId: "", label: "", note: "" })}
+            render={(item, update, i) => (
+              <div className="grid gap-2 sm:grid-cols-3">
+                <DocumentPicker label="Document" value={item.assetId || null} onChange={(v) => update({ ...item, assetId: v ?? "" })} assets={ctx.assets} siteId={ctx.siteId} error={err(`items.${i}.assetId`)} />
+                <TextInput label="Link text (optional)" value={item.label} onChange={(v) => update({ ...item, label: v })} hint="The document's title when empty." error={err(`items.${i}.label`)} />
+                <TextInput label="Note (optional)" value={item.note} onChange={(v) => update({ ...item, note: v })} hint="What it is, or when it was issued." error={err(`items.${i}.note`)} />
+              </div>
+            )}
+          />
         </>
       );
   }

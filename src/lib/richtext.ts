@@ -4,14 +4,15 @@ import { z } from "zod";
  * Restricted structured body content. Stored as JSON blocks; edited as a small line-based
  * markup ("structured text") that cannot carry HTML or scripts. Inline links use
  * [label](target) where target is a same-site path (/about), a stable item reference
- * (item:<uuid>) resolved at render time, or an https URL. Inline emphasis uses **bold** and
+ * (item:<uuid>) resolved at render time, a document in the media library (document:<uuid>,
+ * site-building programme B5) or an https URL. Inline emphasis uses **bold** and
  * *italic* (or _italic_); nothing else is interpreted. Block markup: `## ` and `### ` headings,
  * `- ` and `1. ` lists, `> ` quotes, `!image ID | caption`, and since the site-building
  * programme's phase B3 `---` (a divider), `!note text` (a callout panel) and
  * `!button Label | target` (a link drawn as the theme's button).
  */
 
-export const inlineLinkTargetPattern = /^(?:\/[^\s)]*|item:[0-9a-f-]{36}|https:\/\/[^\s)]+)$/i;
+export const inlineLinkTargetPattern = /^(?:\/[^\s)]*|item:[0-9a-f-]{36}|document:[0-9a-f-]{36}|https:\/\/[^\s)]+)$/i;
 
 export const blockSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("paragraph"), text: z.string().max(4000) }),
@@ -98,6 +99,13 @@ export function collectLinkTargets(blocks: Block[]): string[] {
 
 export function collectImageAssetIds(blocks: Block[]): string[] {
   return blocks.filter((b): b is Extract<Block, { type: "image" }> => b.type === "image").map((b) => b.assetId);
+}
+
+/** Documents linked from a body (`document:<uuid>` targets in links and buttons), for the release's media set (B5). */
+export function collectDocumentAssetIds(blocks: Block[]): string[] {
+  return collectLinkTargets(blocks)
+    .filter((t) => /^document:[0-9a-f-]{36}$/i.test(t))
+    .map((t) => t.slice(9).toLowerCase());
 }
 
 /** Parses the line-based structured text into blocks. Never produces HTML. */

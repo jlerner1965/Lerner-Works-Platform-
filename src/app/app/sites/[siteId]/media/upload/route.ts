@@ -1,12 +1,12 @@
 import { getSessionUser } from "@/server/auth/session";
 import { withUser, describeDbError } from "@/server/data/db";
 import { loadSiteContext } from "@/server/data/access";
-import { ingestImage, MAX_UPLOAD_BYTES } from "@/server/media/ingest";
+import { ingestUpload, sniffUploadKind, MAX_UPLOAD_BYTES, MAX_DOCUMENT_BYTES } from "@/server/media/ingest";
 import { getConfig } from "@/server/config";
 
 export const dynamic = "force-dynamic";
 
-/** Authenticated multipart image upload into private storage for one site. */
+/** Authenticated multipart upload of a picture or a document (B5-1) into private storage for one site. */
 export async function POST(request: Request, { params }: { params: Promise<{ siteId: string }> }) {
   const json = (body: unknown, status: number) => Response.json(body, { status, headers: { "Cache-Control": "private, no-store" } });
   const { siteId } = await params;
@@ -25,7 +25,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ sit
     }
   }
   const length = Number(request.headers.get("content-length") ?? "0");
-  if (length > MAX_UPLOAD_BYTES + 64 * 1024) return json({ error: "The upload is larger than 10 MB." }, 413);
+  if (length > MAX_DOCUMENT_BYTES + 64 * 1024) return json({ error: `The upload is larger than ${MAX_DOCUMENT_BYTES / 1024 / 1024} MB.` }, 413);
   let form: FormData;
   try {
     form = await request.formData();
@@ -33,14 +33,16 @@ export async function POST(request: Request, { params }: { params: Promise<{ sit
     return json({ error: "The upload could not be read." }, 400);
   }
   const file = form.get("file");
-  if (!(file instanceof File)) return json({ error: "Choose an image file." }, 422);
-  if (file.size > MAX_UPLOAD_BYTES) return json({ error: "The file is larger than 10 MB." }, 413);
+  if (!(file instanceof File)) return json({ error: "Choose an image or PDF file." }, 422);
+  if (file.size > MAX_DOCUMENT_BYTES) return json({ error: `The file is larger than ${MAX_DOCUMENT_BYTES / 1024 / 1024} MB.` }, 413);
   const bytes = new Uint8Array(await file.arrayBuffer());
+  // The signature decides what the file is; a picture keeps the picture limit.
+  if (sniffUploadKind(bytes) !== "document" && file.size > MAX_UPLOAD_BYTES) return json({ error: `The image is larger than ${MAX_UPLOAD_BYTES / 1024 / 1024} MB.`, code: "too_large" }, 413);
   try {
     const result = await withUser(user.id, async (db) => {
       const ctx = await loadSiteContext(db, siteId);
       if (!ctx || !ctx.capabilities.canEdit) return { status: 404, body: { error: "Site not found." } };
-      const ingested = await ingestImage(db, {
+      const ingested = await ingestUpload(db, {
         siteId,
         organizationId: ctx.site.organizationId,
         userId: user.id,
@@ -55,7 +57,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ sit
         sourceUrl: String(form.get("sourceUrl") ?? ""),
       });
       if (!ingested.ok) return { status: 422, body: { error: ingested.error, code: ingested.code } };
-      return { status: 201, body: { asset: { id: ingested.asset.id, title: ingested.asset.title, width: ingested.asset.width, height: ingested.asset.height } } };
+      const a = ingested.asset;
+      return { status: 201, body: { asset: { id: a.id, title: a.title, width: a.width ?? 0, height: a.height ?? 0, kind: a.kind ?? "image", bytes: a.byteSize } } };
     });
     return json(result.body, result.status);
   } catch (err) {

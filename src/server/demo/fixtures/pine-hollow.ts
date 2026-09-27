@@ -335,10 +335,12 @@ export function pineHollowFixture(now: Date): FixtureSite {
       kind: "article",
       payload: {
         ...common({ title: "How Pine Hollow keeps its trailheads open", slug: "how-pine-hollow-keeps-its-trailheads-open", summary: "Nobody owns the Larkspur Loop lot, which is exactly why it stays plowed. A short history of the valley's volunteer trail deal.", lastVerifiedOn: verified(now, 5) }),
-        body: [p("The Larkspur Loop trailhead sits on a strip of county land that nobody wanted until everybody did. In 2004 the trails association agreed to plow it, the county agreed to grade it, and the Mercantile agreed to sell the maps. Twenty years later the arrangement still holds, mostly because nobody has written it down."), h2("Why it matters"), p("Trailheads close when they become a problem for one landowner. Spreading the work across three parties means no single bad winter ends access. It also means the volunteer trail days are not optional: the water bars on the upper switchbacks are the association's half of the bargain."), h2("How to help"), list("Join a trail day (see the events list)", "Buy the map at the Mercantile; proceeds fund tools", "Park inside the lot, not along Miner's Road")],
+        body: [p("The Larkspur Loop trailhead sits on a strip of county land that nobody wanted until everybody did. In 2004 the trails association agreed to plow it, the county agreed to grade it, and the Mercantile agreed to sell the maps. Twenty years later the arrangement still holds, mostly because nobody has written it down."), h2("Why it matters"), p("Trailheads close when they become a problem for one landowner. Spreading the work across three parties means no single bad winter ends access. It also means the volunteer trail days are not optional: the water bars on the upper switchbacks are the association's half of the bargain."), h2("How to help"), list("Join a trail day (see the events list)", "Buy the map at the Mercantile; proceeds fund tools", "Park inside the lot, not along Miner's Road"), p("The association's [trail day sign-up form](document:@doc-trail-day-form) can be printed and left at the Mercantile.")],
         authorName: "Pine Hollow Guide editors",
         publishedOn: dateKey(now, -6, TZ),
         updatedOn: "",
+        // A sample document listed as a download under the article (B5-1).
+        attachments: [{ assetId: "@doc-trail-day-form", label: "Trail day sign-up form (PDF)" }],
       },
       image: { key: "article-trailheads", title: "Miner's Road in autumn", alt: "Illustrated autumn hillside with warm-colored ridges and evergreens", scene: { type: "landscape", palette: "autumn", seed: 21 } },
     },
@@ -368,6 +370,43 @@ export function pineHollowFixture(now: Date): FixtureSite {
     },
   ];
 
+  // Links to other websites (B5-2): content with a picture and a word on why, shown as cards that open the other site.
+  const links: FixtureItem[] = [
+    {
+      externalId: "link-trails-association",
+      kind: "link",
+      payload: {
+        ...common({ title: "Pine Hollow Trails Association", slug: "pine-hollow-trails-association", summary: "Trail conditions, the volunteer day calendar and the map the Mercantile sells, from the people who keep the Larkspur Loop open.", lastVerifiedOn: verified(now, 3) }),
+        body: [p("The association posts trail conditions on Fridays through the season and cancels a trail day on its own site first. Membership is by donation; the sign-up form is on the trailheads article.")],
+        featuredImageAssetId: "@larkspur",
+        url: "https://pinehollowtrails.example",
+        category: "Outdoors",
+        ctaLabel: "Visit the association",
+      },
+    },
+    {
+      externalId: "link-county-roads",
+      kind: "link",
+      payload: {
+        ...common({ title: "County road conditions", slug: "county-road-conditions", summary: "Closures, chain laws and plow schedules for County Road 9 and the passes into the valley, kept by the county through the winter.", lastVerifiedOn: verified(now, 3) }),
+        featuredImageAssetId: "@meadows-dusk",
+        url: "https://roads.pine-hollow.example",
+        category: "Town services",
+        ctaLabel: "Check the roads",
+      },
+    },
+    {
+      externalId: "link-library-catalogue",
+      kind: "link",
+      payload: {
+        ...common({ title: "Library catalogue and room bookings", slug: "library-catalogue", summary: "Search the shelves of the public library, renew a loan and book the meeting room with the terrible acoustics.", lastVerifiedOn: verified(now, 12) }),
+        url: "https://library.pine-hollow.example",
+        category: "Arts & Community",
+        ctaLabel: "",
+      },
+    },
+  ];
+
   const pages: FixtureItem[] = [
     {
       externalId: "page-home",
@@ -394,6 +433,8 @@ export function pineHollowFixture(now: Date): FixtureSite {
           { id: "s-places", type: "content_collection", heading: "Selected places", kind: "place", mode: "selected", itemIds: ["@place-creekside-coffee", "@place-larkspur-loop", "@place-hollow-mercantile", "@place-public-library", "@place-ridge-house", "@place-mill-pond"] as unknown as string[], limit: 6 },
           { id: "s-band", type: "image_band", heading: "Autumn is elk season", text: "The herd moves through the lower meadows from late September. Where to look, and how not to be the person who gets too close.", imageAssetId: "@meadows-dusk" as unknown as null, tint: "dark", strength: "medium", ctaLabel: "Where to watch", ctaPath: "/articles/where-to-watch-the-elk-this-fall", appearance: { align: "center" } },
           { id: "s-feature", type: "content_collection", heading: "From the guide", kind: "article", mode: "latest", itemIds: [], limit: 3 },
+          // Cards that open other websites (B5-2), filled from the published links.
+          { id: "s-links", type: "content_collection", heading: "Useful links", kind: "link", mode: "latest", itemIds: [], limit: 3 },
           { id: "s-facts", type: "facts", heading: "Pine Hollow at a glance", variant: "grid", columns: 4, items: [
             { label: "Elevation", value: "8,240 ft" },
             { label: "Founded", value: "1881 (fictional)" },
@@ -450,6 +491,11 @@ export function pineHollowFixture(now: Date): FixtureSite {
             { assetId: "@mill-pond" as unknown as string, caption: "Mill Pond Park on a still morning" },
             { assetId: "@creekside" as unknown as string, caption: "Creekside Coffee Roasters on Creek Path" },
             { assetId: "@hall" as unknown as string, caption: "The community hall, acoustics and all" },
+          ] },
+          // Documents from the media library listed as downloads (B5-1): sample PDFs written by the fixture generator.
+          { id: "s-downloads", type: "downloads", heading: "Guide documents", intro: "Printable copies of what the guide refers to most often.", items: [
+            { assetId: "@doc-snow-route" as unknown as string, label: "Aspen Street snow route map", note: "In force from December 1 to April 1." },
+            { assetId: "@doc-trail-day-form" as unknown as string, label: "", note: "Bring the signed form to any trail day." },
           ] },
         ],
       }),
@@ -526,7 +572,12 @@ export function pineHollowFixture(now: Date): FixtureSite {
       { key: "mark-depot", title: "Old Depot Gallery cooperative mark", alt: "Old Depot Gallery cooperative (fictional)", scene: { type: "logo", lines: ["Old Depot", "GALLERY CO-OP"], fg: "#8a2b16", accent: "#3a1d14", emblem: "ring" } },
       { key: "mark-town", title: "Town of Pine Hollow mark", alt: "Town of Pine Hollow (fictional)", scene: { type: "logo", lines: ["Town of", "PINE HOLLOW"], fg: "#2b3a4a", accent: "#4f6f8a", emblem: "shield" } },
     ],
-    items: [...pages, ...places, ...events, ...articles, draft, pendingReview],
+    // Sample documents (B5-1): one-page PDFs written by the fixture generator, never real records.
+    documents: [
+      { key: "doc-trail-day-form", title: "Trail day sign-up form", spec: { title: "Trail day sign-up form", lines: ["Pine Hollow Trails Association (fictional demonstration)", "", "Name: ______________________________", "Phone: _____________________________", "Preferred trail day: ________________", "", "Bring gloves and water; tools are provided.", "Leave the signed form at the Mercantile."] } },
+      { key: "doc-snow-route", title: "Aspen Street snow route map", spec: { title: "Aspen Street snow route", lines: ["Town of Pine Hollow (fictional demonstration)", "", "Plowing: 2 a.m. to 6 a.m., December 1 to April 1.", "No overnight parking on Aspen Street between Mill Road and Creek Path.", "Visitor parking: the lot behind the Mercantile.", "Towed cars are taken to the school lot on Larkspur Road."] } },
+    ],
+    items: [...pages, ...places, ...events, ...articles, ...links, draft, pendingReview],
     secondRelease: {
       note: "Ridge House extends Friday hours for the harvest season",
       apply: (items) => items.map((it) => (it.externalId === "place-ridge-house" ? { ...it, payload: { ...it.payload, hours: { ...(it.payload.hours as Record<string, unknown>), fri: [{ open: "16:00", close: "00:30", closesNextDay: true }] }, lastVerifiedOn: dateKey(now, 0, TZ) } } : it)),

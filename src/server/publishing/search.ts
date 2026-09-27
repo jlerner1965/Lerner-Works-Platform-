@@ -1,4 +1,5 @@
 import { kindRegistry, type ContentKind } from "@/modules/registry";
+import { linkHost } from "@/modules/link";
 import { blocksToPlainText, type Block } from "@/lib/richtext";
 import type { ReleaseSnapshot } from "@/server/publishing/snapshot";
 import { formatEventDate } from "@/lib/events";
@@ -56,7 +57,7 @@ export function buildSearchIndex(snapshot: ReleaseSnapshot): IndexEntry[] {
     const locality = address?.locality ?? "";
     const services = item.kind === "store" ? ((p.serviceItemIds as string[]) ?? []).map((id) => snapshot.items[id]?.title ?? "").filter(Boolean) : [];
     const startsAt = item.kind === "event" ? String(p.startsAt) : null;
-    const meta = item.kind === "event" && startsAt ? formatEventDate(startsAt, String(p.timeZone)) : item.kind === "place" ? category : item.kind === "store" ? locality : item.kind === "article" ? `By ${String(p.authorName ?? "")}` : "";
+    const meta = item.kind === "event" && startsAt ? formatEventDate(startsAt, String(p.timeZone)) : item.kind === "place" ? category : item.kind === "store" ? locality : item.kind === "article" ? `By ${String(p.authorName ?? "")}` : item.kind === "link" ? [category, linkHost(String(p.url ?? ""))].filter(Boolean).join(" · ") : "";
     entries.push({
       path: route.path,
       title: item.title,

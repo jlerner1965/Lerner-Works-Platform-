@@ -234,21 +234,26 @@ and then accepts at `/invite/<token>`; that path is unverified in this environme
   under each section what fills it; the overview's setup checklist names the introduction and
   the About page while they are unwritten. Nothing is generated: a slot stays empty until
   written.
-- Onboarding package (Import & export → "Download the template"): a ZIP with one CSV per
-  content kind of the preset (`places.csv`, `events.csv`, `articles.csv`, or `services.csv`
-  and `stores.csv`; the CSV templates with `body`, `image` and `image_alt` columns),
-  `site.csv` (key/value rows: wordmark, tagline, description, contact details, the four brand
-  colours, typography, logo, share image, hero image, home subheading, home introduction,
-  About text; the `notes` column is ignored), `images.csv` (file, alt_text, title, license,
-  attribution, source_url, decorative) and an `images/` folder (JPEG, PNG or WebP, up to 10 MB
-  each, 100 files). Upload it on the same page: the dry run validates every sheet, image and
-  setting and writes nothing; confirming ingests the images, imports the rows in order
-  (services before stores, places before events) and applies the settings sheet (a
-  configuration revision, the contact details on the site, and the starter pages' text and
-  hero image as new revisions) in one transaction, audited as `import.onboarding_applied`. The
-  settings sheet needs an organization owner; others import the content and images. Importing
-  the same package again updates the rows and uploads the images again. Format details are in
-  the template's README and `src/server/import/onboarding.ts`.
+- Onboarding package (Import & export → "Download the template"): a ZIP with the workbook
+  `content.xlsx` (since B5: one sheet per content kind of the preset, Places, Events,
+  Articles and Links, or Services, Stores and Links, each with the CSV template's columns
+  including `body`, `image`, `image_alt` and `attachments`; a Site sheet of key/value rows:
+  wordmark, tagline, description, contact details, the four brand colours, typography, logo,
+  share image, hero image, home subheading, home introduction, About text, with a `notes`
+  column that is ignored; an Images sheet: file, alt_text, title, license, attribution,
+  source_url, decorative; a Documents sheet: file, title, license, attribution, source_url; a
+  Read me), an `images/` folder (JPEG, PNG or WebP, up to 10 MB each, 100 files) and a
+  `documents/` folder (PDF, up to 25 MB each, 50 files). The same sheets as CSV files
+  (`places.csv`, `site.csv`, `images.csv`, `documents.csv` and so on) are still read; a sheet
+  given both ways is refused. Upload the package, or the workbook on its own, on the same
+  page: the dry run validates every sheet, image, document and setting and writes nothing;
+  confirming ingests the images and documents, imports the rows in order (services before
+  stores, places before events) and applies the settings sheet (a configuration revision, the
+  contact details on the site, and the starter pages' text and hero image as new revisions) in
+  one transaction, audited as `import.onboarding_applied`. The settings sheet needs an
+  organization owner; others import the content, images and documents. Importing the same
+  package again updates the rows and uploads the files again. Format details are in the
+  template's README and `src/server/import/onboarding.ts`.
 - CSV imports cover stores, services, places, events and articles. A plain CSV import cannot
   name an image (the `image` column must be empty); the onboarding package can.
 - Imports follow the site's review policy: an import by someone who may publish on a site
@@ -283,6 +288,50 @@ and then accepts at `/invite/<token>`; that path is unverified in this environme
   set to 64 MB (`proxyClientMaxBodySize` in `next.config.ts`) so that an onboarding or site
   package of that size, and a two-file media upload, arrive whole; the routes check the sizes
   themselves (64 MB for packages, 10 MB per image, 5 MB for a CSV).
+
+## Documents, links and the workbook (site-building programme B5)
+
+- Documents: Media accepts PDF files beside the pictures (Media → Upload, or the multi-file
+  upload; 25 MB each; the file must begin with `%PDF-` and end with the PDF trailer, and its
+  declared type and extension must agree; nothing else is accepted, and there is no
+  alternative-text pass for documents). A document has a title, a license, an attribution and
+  a source like a picture, and its Media page shows the reference to paste: `[label](document:ID)`
+  in body text, or `document:ID` as the target of a button, a hero call to action, a feature
+  item or any other link slot. Every content kind has a Downloads list (a document and a
+  label each, up to 20) rendered under the item's body, and a page can carry a Downloads
+  section (list or grid, up to 24). Publication copies each referenced document to
+  `/assets/<sha256>.pdf` (served inline with `X-Content-Type-Options: nosniff`, an
+  immutable cache and a file name from the title) and refuses a release that names a picture
+  where a document is needed, a document where a picture is needed, a download with no file,
+  or a withdrawn document, exactly as for pictures. Restoring an older release re-checks its
+  documents. The site package exports documents as `media/<id>/document.pdf` and imports them
+  with every `document:` reference remapped; the onboarding package carries them in the
+  `documents/` folder with a `documents.csv` or a Documents sheet, and a row names its
+  downloads in the `attachments` column (file names separated by `;`).
+- Links to other websites: a content kind of both presets (sidebar → Links; quick add asks
+  for the title and the https address). A link has a category, a summary, a picture, body
+  text, a button label and the verification fields; it is shown as a card that opens the
+  other site (`rel="noreferrer"`, marked as opening another website) by a content collection
+  of kind Links on any page, and by the `/links` index with category filters. The index and
+  its navigation entry exist only while at least one link is published (D-021); the index copy
+  is editable in Settings like the other indexes. Each link also has a page of its own
+  (`/links/<slug>`: summary, picture, the button, body, downloads, address and verification
+  date) so that search and sharing have somewhere to land; search lists the link's category
+  and host. The Links module can be switched off per site in Settings → Modules.
+- The workbook: `src/server/import/xlsx.ts` reads a workbook without a spreadsheet dependency
+  (shared and inline strings, rich runs, dates by cell style, numbers, booleans, formulas by
+  their cached result; at most 20 MB, 128 MB unpacked, 5,000 rows and 200 columns per sheet)
+  and writes the template. `src/server/import/workbook.ts` matches sheets by name, loosely
+  ("Places", "places", "Directory"; "Stores" or "Locations"; "Site" or "Settings"; "Images",
+  "Pictures" or "Photos"; "Documents", "Files" or "PDFs"), warns about a sheet it does not
+  read, refuses a kind the preset does not have and a sheet given twice, and turns each sheet
+  into the CSV file the import reads, so the dry run, the job page and the import are the
+  same as for CSV files; the job page lists the sheets with what each was read as. Dates typed
+  as Excel dates come out as `YYYY-MM-DD` (and `YYYY-MM-DD HH:MM` for times); postal codes
+  and phone numbers keep leading zeros only when typed as text (the Read me says so). A
+  workbook uploaded on its own is wrapped as a package by the upload route (the images and
+  documents folders then being empty). `pnpm proof:package` writes the proof packages with
+  `content.xlsx`.
 
 ## Backups and restore rehearsal
 

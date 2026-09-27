@@ -7,7 +7,8 @@ import { Picture } from "@/themes/shared/picture";
 import { InquiryForm } from "@/themes/shared/inquiry-form";
 import { featuredImage, itemPath } from "@/themes/shared/collections";
 import { indexCopy, inquiriesEnabled } from "@/themes/shared/site-root";
-import { LocRule, StoreCard, StoreStatus, locFormStyles, outlineButton } from "@/themes/locations/index";
+import { LocRule, StoreCard, StoreStatus, locFormStyles, outlineButton, locationsStyle } from "@/themes/locations/index";
+import { Attachments } from "@/themes/shared/documents";
 import { formatWeeklyHours, formatInterval, upcomingExceptions } from "@/lib/hours";
 import { formatDateOnly } from "@/lib/events";
 import type { HoursException, WeeklyHours } from "@/modules/common";
@@ -94,6 +95,7 @@ export function LocationsStoreDetail({ ctx, item }: { ctx: RenderContext; item: 
             </div>
           ) : null}
           <RichText ctx={ctx} blocks={(p.body as Block[]) ?? []} className="loc-prose mt-6" />
+          <Attachments ctx={ctx} item={item} style={locationsStyle} />
         </div>
         <div>
           {img ? <Picture ctx={ctx} media={img} sizes="(min-width: 768px) 40vw, 100vw" className="aspect-[4/3] w-full rounded-(--radius) object-cover" loading="eager" fetchPriority="high" /> : null}
@@ -120,6 +122,7 @@ export function LocationsServiceDetail({ ctx, item }: { ctx: RenderContext; item
       {p.summary ? <p className="mt-3 max-w-2xl text-lg">{String(p.summary)}</p> : null}
       {img ? <Picture ctx={ctx} media={img} sizes="(min-width: 768px) 720px, 100vw" className="mt-6 aspect-[16/9] w-full max-w-3xl rounded-(--radius) object-cover" /> : null}
       <RichText ctx={ctx} blocks={(p.body as Block[]) ?? []} className="loc-prose mt-6 max-w-3xl" />
+      <Attachments ctx={ctx} item={item} style={locationsStyle} className="mt-10 max-w-3xl" />
       <section className="mt-10">
         <LocRule>Available at</LocRule>
         {stores.length === 0 ? <p className="text-(--section-muted)">No published store currently lists this service.</p> : (

@@ -72,7 +72,7 @@ function decodeURIComponentSafe(s: string): string {
   }
 }
 
-const kindByModule: Record<ModuleKey, ContentKind | null> = { places: "place", events: "event", articles: "article", stores: "store", services: "service", inquiries: null };
+const kindByModule: Record<ModuleKey, ContentKind | null> = { places: "place", events: "event", articles: "article", stores: "store", services: "service", inquiries: null, links: "link" };
 
 export function resolveRoute(snapshot: ReleaseSnapshot, path: string): ResolvedRoute {
   const route = snapshot.routes.find((r) => r.path === path);

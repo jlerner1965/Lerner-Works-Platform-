@@ -8,6 +8,7 @@ import { isExternalLink, type IndexModuleKey } from "@/modules/site-config";
 import { typographyPresets } from "@/themes/fonts";
 import { Picture } from "@/themes/shared/picture";
 import { rootVariables } from "@/themes/shared/design";
+import { documentHref } from "@/themes/shared/documents";
 
 /**
  * Root element of every public page: derived brand tokens and design scales as CSS custom
@@ -59,8 +60,18 @@ export function BrandMark({ ctx, imageClass, textClass, surface = "light" }: { c
   );
 }
 
-/** Anchor attributes for a navigation, footer or call-to-action link; external links never leak the referrer. */
-export function linkProps(ctx: RenderContext, path: string): { href: string; rel?: string } {
+/**
+ * Anchor attributes for a navigation, footer or call-to-action link; external links never leak
+ * the referrer. A document target (`document:<id>`, B5) opens the release's published copy; when
+ * the release does not carry that document the link points at the page itself, so nothing breaks
+ * (publication validation refuses such a link before it gets this far).
+ */
+export function linkProps(ctx: RenderContext, path: string): { href: string; rel?: string; type?: string } {
+  if (/^document:/i.test(path)) {
+    const media = ctx.snapshot.media[path.slice(9).toLowerCase()];
+    const url = documentHref(ctx, path.slice(9).toLowerCase());
+    return url ? { href: url, ...(media?.mime ? { type: media.mime } : {}) } : { href: href(ctx, ctx.path) };
+  }
   return isExternalLink(path) ? { href: path, rel: "noreferrer" } : { href: href(ctx, path) };
 }
 

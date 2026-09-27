@@ -106,6 +106,8 @@ export const siteConfigSchema = z.object({
     stores: z.boolean().default(false),
     services: z.boolean().default(false),
     inquiries: z.boolean().default(true),
+    /** Links to other websites as content (B5-2); on for every site, with a listing page only once a link is published. */
+    links: z.boolean().default(true),
   }),
   indexes: z
     .object({
@@ -114,6 +116,7 @@ export const siteConfigSchema = z.object({
       articles: indexCopySchema,
       stores: indexCopySchema,
       services: indexCopySchema,
+      links: indexCopySchema,
     })
     .prefault({}),
   metadata: z.object({

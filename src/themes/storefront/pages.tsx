@@ -7,7 +7,8 @@ import { Picture } from "@/themes/shared/picture";
 import { InquiryForm } from "@/themes/shared/inquiry-form";
 import { featuredImage, itemPath } from "@/themes/shared/collections";
 import { indexCopy, inquiriesEnabled } from "@/themes/shared/site-root";
-import { StoreHeading, StoreTile, StatusBadge, storeFormStyles, storeOutlineButton, storeEyebrow, StorefrontCollection } from "@/themes/storefront/index";
+import { StoreHeading, StoreTile, StatusBadge, storeFormStyles, storeOutlineButton, storeEyebrow, StorefrontCollection, storefrontStyle } from "@/themes/storefront/index";
+import { Attachments } from "@/themes/shared/documents";
 import { formatWeeklyHours, formatInterval, upcomingExceptions } from "@/lib/hours";
 import { formatDateOnly } from "@/lib/events";
 import type { HoursException, WeeklyHours } from "@/modules/common";
@@ -97,6 +98,7 @@ export function StorefrontStoreDetail({ ctx, item }: { ctx: RenderContext; item:
             </section>
           ) : null}
           <RichText ctx={ctx} blocks={(p.body as Block[]) ?? []} className="store-prose mt-8" />
+          <Attachments ctx={ctx} item={item} style={storefrontStyle} />
         </div>
         <div>
           {inquiriesEnabled(ctx) ? (
@@ -124,6 +126,7 @@ export function StorefrontServiceDetail({ ctx, item }: { ctx: RenderContext; ite
         {img ? <Picture ctx={ctx} media={img} sizes="(min-width: 768px) 40vw, 100vw" className="aspect-[4/3] w-full rounded-(--radius) object-cover" loading="eager" fetchPriority="high" /> : null}
       </div>
       <RichText ctx={ctx} blocks={(p.body as Block[]) ?? []} className="store-prose mt-8 max-w-3xl" />
+      <Attachments ctx={ctx} item={item} style={storefrontStyle} className="mt-10 max-w-3xl" />
       <section className="mt-10">
         <StoreHeading>Available at</StoreHeading>
         {stores.length === 0 ? <p className="text-(--section-muted)">No published store currently lists this service.</p> : (

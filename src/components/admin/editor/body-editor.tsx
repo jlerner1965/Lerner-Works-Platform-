@@ -20,8 +20,8 @@ export function BodyEditor({ label = "Body", blocks, onChange, error, rows = 12 
       {showHelp ? (
         <div className="mb-2 rounded border border-line bg-surface-muted p-3 text-xs leading-relaxed">
           <p>Blank lines separate paragraphs. Lines starting with <code>## </code> or <code>### </code> are headings. <code>- </code> starts a bullet list, <code>1. </code> a numbered list, <code>&gt; </code> a quote.</p>
-          <p className="mt-1">Emphasis: <code>**bold**</code> and <code>*italic*</code>. Links: <code>[label](/about)</code> for a page on this site, <code>[label](item:ID)</code> for a stable item reference, or <code>[label](https://…)</code>. Images: <code>!image ASSET-ID | caption</code>.</p>
-          <p className="mt-1">A line of <code>---</code> draws a rule. <code>!note </code> starts a callout panel. <code>!button Label | /contact</code> draws a link as a button (a site path, item reference or https:// address). HTML is not supported and is shown as plain text.</p>
+          <p className="mt-1">Emphasis: <code>**bold**</code> and <code>*italic*</code>. Links: <code>[label](/about)</code> for a page on this site, <code>[label](item:ID)</code> for a stable item reference, <code>[label](document:ID)</code> for a PDF from Media (copy the reference from the document&apos;s page in Media), or <code>[label](https://…)</code>. Images: <code>!image ASSET-ID | caption</code>.</p>
+          <p className="mt-1">A line of <code>---</code> draws a rule. <code>!note </code> starts a callout panel. <code>!button Label | /contact</code> draws a link as a button (a site path, item reference, document reference or https:// address). HTML is not supported and is shown as plain text.</p>
         </div>
       ) : null}
       <textarea

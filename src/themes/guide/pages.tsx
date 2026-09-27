@@ -7,6 +7,7 @@ import { Picture } from "@/themes/shared/picture";
 import { featuredImage, itemPath } from "@/themes/shared/collections";
 import { indexCopy } from "@/themes/shared/site-root";
 import { GuideCollection, guideStyle } from "@/themes/guide/index";
+import { Attachments } from "@/themes/shared/documents";
 import { formatEventDate, formatEventTimeRange, formatDateOnly, classifyEvent } from "@/lib/events";
 import { formatWeeklyHours } from "@/lib/hours";
 import type { WeeklyHours } from "@/modules/common";
@@ -46,6 +47,7 @@ export function GuidePlaceDetail({ ctx, item }: { ctx: RenderContext; item: Snap
         {p.summary ? <p className="mt-3 text-lg">{String(p.summary)}</p> : null}
         {img ? <Picture ctx={ctx} media={img} sizes="(min-width: 768px) 60vw, 100vw" className="mt-6 aspect-[3/2] w-full rounded-(--radius) object-cover" loading="eager" fetchPriority="high" /> : null}
         <RichText ctx={ctx} blocks={(p.body as Block[]) ?? []} className="guide-prose mt-6" />
+        <Attachments ctx={ctx} item={item} style={guideStyle} />
         {next?.label && next.path ? (
           <p className="mt-6">
             <a href={next.path.startsWith("/") ? href(ctx, next.path) : next.path} className={guideStyle.buttonPrimary} {...(next.path.startsWith("http") ? { rel: "noreferrer" } : {})}>
@@ -114,6 +116,7 @@ export function GuideEventDetail({ ctx, item }: { ctx: RenderContext; item: Snap
       {img ? <Picture ctx={ctx} media={img} sizes="(min-width: 768px) 720px, 100vw" className="mt-6 aspect-[16/9] w-full rounded-(--radius) object-cover" /> : null}
       {p.summary ? <p className="mt-6 text-lg">{String(p.summary)}</p> : null}
       <RichText ctx={ctx} blocks={(p.body as Block[]) ?? []} className="guide-prose mt-4" />
+      <Attachments ctx={ctx} item={item} style={guideStyle} />
       <p className="mt-8 text-sm"><a href={href(ctx, "/events")} className="text-(--section-accent) underline">← All events</a></p>
     </article>
   );
@@ -137,6 +140,7 @@ export function GuideArticleDetail({ ctx, item }: { ctx: RenderContext; item: Sn
         </figure>
       ) : null}
       <RichText ctx={ctx} blocks={(p.body as Block[]) ?? []} className="guide-prose mt-6" />
+      <Attachments ctx={ctx} item={item} style={guideStyle} />
       <p className="mt-8 text-sm"><a href={href(ctx, "/articles")} className="text-(--section-accent) underline">← All articles</a></p>
     </article>
   );
@@ -231,6 +235,7 @@ export function GuideSearch({ ctx }: { ctx: RenderContext }) {
           <option value="event">Events</option>
           <option value="article">Articles</option>
           <option value="page">Pages</option>
+          {Object.values(ctx.snapshot.items).some((i) => i.kind === "link") ? <option value="link">Links</option> : null}
         </select>
         <button type="submit" className="rounded-(--radius) bg-(--brand-primary) px-4 py-2 font-semibold text-(--brand-on-primary)">Search</button>
         {q ? <a href={href(ctx, "/search")} className="self-center text-sm underline">Clear</a> : null}

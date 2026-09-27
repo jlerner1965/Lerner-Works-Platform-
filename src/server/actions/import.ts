@@ -86,6 +86,7 @@ export async function confirmImportAction(_prev: ImportState, formData: FormData
         await db`update public.import_jobs set state = 'completed', completed_at = now(), result = ${db.json(applied as never)} where id = ${jobId}`;
         await db`insert into public.audit_events (organization_id, site_id, actor_id, action, entity_type, entity_id, metadata) values (${ctx.site.organizationId}, ${siteId}, ${user.id}, 'import.onboarding_applied', 'import_job', ${jobId}, ${db.json(applied as never)})`;
         const parts = [`${applied.created} created, ${applied.updated} updated, ${applied.skipped} unchanged`, `${applied.images} image${applied.images === 1 ? "" : "s"}`];
+        if (applied.documents) parts.push(`${applied.documents} document${applied.documents === 1 ? "" : "s"}`);
         if (applied.settings.length) parts.push(`${applied.settings.length} setting${applied.settings.length === 1 ? "" : "s"} (${applied.settings.join(", ")})`);
         if (applied.pages.length) parts.push(`the ${applied.pages.join(" and ")} page${applied.pages.length === 1 ? "" : "s"} given their text`);
         return `${parts.join("; ")}. ${outcome}`;

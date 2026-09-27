@@ -16,6 +16,16 @@ function CategoryField({ categories, error, defaultValue = "" }: { categories: s
   );
 }
 
+/** The other website's address, asked for when a link is created (B5-2): a link without one has nothing to open. */
+function UrlField({ error }: { error?: string }) {
+  const id = useId();
+  return (
+    <Field label="Web address" htmlFor={`${id}-url`} required error={error} hint="The full https:// address of the other website. The card and the button open it.">
+      <input id={`${id}-url`} name="url" type="url" required className={inputClass} maxLength={1000} placeholder="https://" aria-invalid={error ? true : undefined} autoComplete="off" spellCheck={false} />
+    </Field>
+  );
+}
+
 export function NewItemForm({ siteId, kinds, initialKind, categories }: { siteId: string; kinds: Array<{ kind: string; label: string; plural: string }>; initialKind: string; categories: string[] }) {
   const [state, action, pending] = useActionState<CreateItemState, FormData>(createItemAction, {});
   const [kind, setKind] = useState(initialKind);
@@ -37,6 +47,7 @@ export function NewItemForm({ siteId, kinds, initialKind, categories }: { siteId
         <input id="title" name="title" required className={inputClass} value={title} onChange={(e) => { setTitle(e.target.value); if (!slugTouched) setSlug(slugify(e.target.value)); }} aria-invalid={state.fieldErrors?.title ? true : undefined} />
       </Field>
       {kind === "place" ? <CategoryField categories={categories} error={state.fieldErrors?.category} /> : null}
+      {kind === "link" ? <UrlField error={state.fieldErrors?.url} /> : null}
       <Field label="Slug" htmlFor="slug" hint="Part of the public address. Lowercase letters, numbers and hyphens." error={state.fieldErrors?.slug}>
         <input id="slug" name="slug" className={inputClass} value={slug} onChange={(e) => { setSlugTouched(true); setSlug(e.target.value); }} aria-invalid={state.fieldErrors?.slug ? true : undefined} />
       </Field>
@@ -61,11 +72,12 @@ export function QuickAddForm({ siteId, kind, label, categories }: { siteId: stri
       {state.error ? <p role="alert" className="mb-2 rounded bg-danger-soft px-3 py-2 text-danger">{state.error}</p> : null}
       <input type="hidden" name="siteId" value={siteId} />
       <input type="hidden" name="kind" value={kind} />
-      <div className={`grid gap-3 ${kind === "place" ? "sm:grid-cols-[2fr_1fr_auto]" : "sm:grid-cols-[1fr_auto]"} sm:items-end`}>
+      <div className={`grid gap-3 ${kind === "place" || kind === "link" ? "sm:grid-cols-[2fr_1fr_auto]" : "sm:grid-cols-[1fr_auto]"} sm:items-end`}>
         <Field label="Title" htmlFor={`${id}-title`} required error={state.fieldErrors?.title ?? state.fieldErrors?.slug}>
           <input id={`${id}-title`} name="title" required className={inputClass} maxLength={200} aria-invalid={state.fieldErrors?.title ? true : undefined} />
         </Field>
         {kind === "place" ? <CategoryField categories={categories} error={state.fieldErrors?.category} /> : null}
+        {kind === "link" ? <UrlField error={state.fieldErrors?.url} /> : null}
         <div className="mb-3"><Button type="submit" disabled={pending}>{pending ? "Adding…" : `Add ${label.toLowerCase()}`}</Button></div>
       </div>
       <p className="text-xs text-ink-subtle">Opens the editor for the details. The slug comes from the title; the rest takes the site&apos;s defaults.</p>

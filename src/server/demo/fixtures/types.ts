@@ -2,6 +2,7 @@ import type { Block } from "@/lib/richtext";
 import type { PagePayloadInput } from "@/modules/page";
 import type { SiteDesign } from "@/modules/site-config";
 import type { SceneSpec } from "@/server/demo/images";
+import type { SimplePdfSpec } from "@/server/demo/documents";
 
 export interface FixtureImage {
   /** Stable key used to find an existing asset on re-runs. */
@@ -14,10 +15,21 @@ export interface FixtureImage {
   focal?: { x: number; y: number };
 }
 
+/**
+ * A sample PDF written by the fixture generator (site-building programme B5-1): referenced
+ * from items as "@key" like a picture (the same namespace, so a key must not repeat an image
+ * key or an item id), attached as a download or linked from text.
+ */
+export interface FixtureDocument {
+  key: string;
+  title: string;
+  spec: SimplePdfSpec;
+}
+
 export interface FixtureItem {
   /** Stable external id, scoped to the site and kind. */
   externalId: string;
-  kind: "page" | "place" | "event" | "article" | "store" | "service";
+  kind: "page" | "place" | "event" | "article" | "store" | "service" | "link";
   /** Payload without schemaVersion; media keys are resolved to asset ids at load time. */
   payload: Record<string, unknown>;
   image?: FixtureImage;
@@ -42,6 +54,8 @@ export interface FixtureSite {
   };
   /** Site-level images: logo, share image (item images are declared on the items). */
   images?: FixtureImage[];
+  /** Sample documents (B5-1), generated at load time and referenced by "@key". */
+  documents?: FixtureDocument[];
   items: FixtureItem[];
   /** Applied after the first release to create a second historical release. */
   secondRelease: { note: string; apply: (items: FixtureItem[]) => FixtureItem[] };

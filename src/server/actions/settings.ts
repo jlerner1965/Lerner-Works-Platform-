@@ -228,12 +228,13 @@ export async function saveModulesAction(_prev: SettingsState, formData: FormData
       stores: form.get("stores") === "on",
       services: form.get("services") === "on",
       inquiries: form.get("inquiries") === "on",
+      links: form.get("links") === "on",
     };
     return config;
   });
 }
 
-const indexModules: IndexModuleKey[] = ["places", "events", "articles", "stores", "services"];
+const indexModules: IndexModuleKey[] = ["places", "events", "articles", "stores", "services", "links"];
 
 export async function saveIndexesAction(_prev: SettingsState, formData: FormData): Promise<SettingsState> {
   return saveConfigSection(formData, "Listing pages", (config, form) => {

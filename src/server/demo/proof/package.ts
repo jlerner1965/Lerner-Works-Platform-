@@ -1,43 +1,55 @@
 import { zipSync, strToU8 } from "fflate";
 import { csvSpecs, type ImportableKind } from "@/server/import/csv-spec";
+import { kindFiles } from "@/server/import/onboarding";
+import { writeWorkbook } from "@/server/import/xlsx";
+import { kindRegistry } from "@/modules/registry";
 import { presets } from "@/modules/presets";
 import { renderScenePng } from "@/server/demo/images";
 import { LOC_ATTRIBUTION, LOC_LICENSE, type ProofSite } from "./types";
 
-/** Sheet per kind, the names the onboarding import reads. */
-const kindFiles: Record<ImportableKind, string> = { place: "places.csv", event: "events.csv", article: "articles.csv", service: "services.csv", store: "stores.csv" };
-
 const esc = (s: string): string => (/[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s);
 const csv = (rows: string[][]): Uint8Array => strToU8(rows.map((r) => r.map(esc).join(",")).join("\r\n") + "\r\n");
 
-/** The sheets of a proof site's package as files, without the pictures. */
-export function proofSheets(site: ProofSite): Record<string, Uint8Array> {
-  const files: Record<string, Uint8Array> = {};
+/** The rows of a proof site's sheets (header row first), by the package file each sheet stands for. */
+export function proofRows(site: ProofSite): Record<string, string[][]> {
+  const sheets: Record<string, string[][]> = {};
   const kinds = presets[site.preset].kinds.filter((k): k is ImportableKind => k in kindFiles);
   for (const kind of kinds) {
     const rows = site.rows[kind] ?? [];
     if (!rows.length) continue;
     const columns = csvSpecs[kind].map((c) => c.key);
     for (const row of rows) for (const key of Object.keys(row)) if (!columns.includes(key)) throw new Error(`${site.key}: ${kind} row ${row.external_id ?? "?"} uses unknown column "${key}"`);
-    files[kindFiles[kind]] = csv([columns, ...rows.map((row) => columns.map((c) => row[c] ?? ""))]);
+    sheets[kindFiles[kind]] = [columns, ...rows.map((row) => columns.map((c) => row[c] ?? ""))];
   }
-  files["site.csv"] = csv([["key", "value"], ...Object.entries(site.settings)]);
-  files["images.csv"] = csv([
+  sheets["site.csv"] = [["key", "value"], ...Object.entries(site.settings)];
+  sheets["images.csv"] = [
     ["file", "alt_text", "title", "license", "attribution", "source_url", "decorative"],
     ...site.artwork.map((a) => [a.file, a.alt, a.title, "CC0-1.0", "Drawn for this demonstration", "", "no"]),
     ...site.photos.map((p) => [p.file, p.alt, p.title, LOC_LICENSE, LOC_ATTRIBUTION, p.sourceUrl, "no"]),
-  ]);
-  return files;
+  ];
+  return sheets;
+}
+
+/** The sheets of a proof site's package as the CSV files the import reads once a workbook is converted. */
+export function proofSheets(site: ProofSite): Record<string, Uint8Array> {
+  return Object.fromEntries(Object.entries(proofRows(site)).map(([file, rows]) => [file, csv(rows)]));
+}
+
+/** The same sheets as the onboarding workbook a client fills in (B5-3): a sheet per kind with rows, then Site and Images. */
+export function proofWorkbook(site: ProofSite): Uint8Array {
+  const names: Record<string, string> = { "site.csv": "Site", "images.csv": "Images" };
+  for (const kind of Object.keys(kindFiles) as ImportableKind[]) names[kindFiles[kind]] = kindRegistry[kind].plural;
+  return writeWorkbook(Object.entries(proofRows(site)).map(([file, rows]) => ({ name: names[file]!, rows })));
 }
 
 /**
- * The onboarding package of a proof site: its sheets, its artwork (rendered by the fixture
+ * The onboarding package of a proof site: its workbook, its artwork (rendered by the fixture
  * generator) and its photographs, read by the given function (from the repository in the
  * scripts and tests). Imported through the dashboard's Import & export page like any client
  * package.
  */
 export async function buildProofPackage(site: ProofSite, readPhoto: (file: string) => Uint8Array): Promise<Uint8Array> {
-  const files = proofSheets(site);
+  const files: Record<string, Uint8Array> = { "content.xlsx": proofWorkbook(site) };
   for (const a of site.artwork) files[`images/${a.file}`] = new Uint8Array(await renderScenePng(a.scene));
   for (const p of site.photos) files[`images/${p.file}`] = readPhoto(p.file);
   return zipSync(files, { level: 6 });

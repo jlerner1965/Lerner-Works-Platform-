@@ -33,7 +33,7 @@ export default async function SettingsPage({ params }: { params: Promise<{ siteI
   const data = await withUser(user.id, async (db) => {
     const config = await getCurrentSiteConfig(db, siteId);
     const domains = await db<Array<{ id: string; normalizedHost: string; status: "pending" | "verifying" | "active" | "disabled"; isCanonical: boolean; verifiedAt: Date | null; createdAt: Date; verificationInstructions: DomainProviderStatus | null }>>`select id, normalized_host, status::text, is_canonical, verified_at, created_at, verification_instructions from public.domains where site_id = ${siteId} order by created_at`;
-    const assets = await db<Array<{ id: string; title: string | null; width: number; height: number }>>`select id, title, width, height from public.media_assets where site_id = ${siteId} and status = 'ready' order by created_at desc limit 100`;
+    const assets = await db<Array<{ id: string; title: string | null; width: number; height: number }>>`select id, title, width, height from public.media_assets where site_id = ${siteId} and status = 'ready' and kind = 'image' order by created_at desc limit 100`;
     return { config, domains, assets };
   });
   if (!data.config) notFound();
@@ -106,7 +106,7 @@ export default async function SettingsPage({ params }: { params: Promise<{ siteI
             <SettingsSection action={saveModulesAction} hidden={hidden}>
               <>
                 <p className="text-xs text-ink-subtle">Disabling a module removes its routes from the next release. Pages that still depend on it are reported as blockers; nothing is deleted. With Inquiries off, the published site rejects form submissions and store pages show no form.</p>
-                {(["places", "events", "articles", "stores", "services", "inquiries"] as const).map((m) => (
+                {(["places", "events", "articles", "stores", "services", "links", "inquiries"] as const).map((m) => (
                   <label key={m} className="flex items-center gap-2 capitalize"><input type="checkbox" name={m} defaultChecked={config.modules[m]} /> {m}</label>
                 ))}
               </>

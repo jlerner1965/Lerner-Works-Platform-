@@ -1,30 +1,49 @@
 import { describe, expect, it } from "vitest";
 import { strFromU8, unzipSync } from "fflate";
 import { buildOnboardingTemplate, siteSheetKeys } from "@/server/import/onboarding";
+import { readWorkbook } from "@/server/import/xlsx";
+import { workbookToPackageFiles, toCsv } from "@/server/import/workbook";
 import { csvSpecs, importableKinds, templateCsv } from "@/server/import/csv-spec";
 import { parseCsv, rowToPayload, autoMap } from "@/server/import/csv";
 import { kindRegistry } from "@/modules/registry";
 
 /** Site-building programme B2-2: the onboarding package template and the row conversions behind it. */
 describe("onboarding package template", () => {
-  it("holds one sheet per content kind of the preset, the settings sheet, the images sheet and a readme", () => {
+  it("holds the workbook with a sheet per content kind of the preset, the Site, Images and Documents sheets, the folders and a readme", () => {
     const guide = unzipSync(buildOnboardingTemplate("community_guide", "Cedar Bend Guide"));
-    expect(Object.keys(guide).sort()).toEqual(["README.md", "articles.csv", "events.csv", "images.csv", "images/README.txt", "places.csv", "site.csv"]);
+    expect(Object.keys(guide).sort()).toEqual(["README.md", "content.xlsx", "documents/README.txt", "images/README.txt"]);
     const retail = unzipSync(buildOnboardingTemplate("location_business", "Northfork Outfitters"));
-    expect(Object.keys(retail).sort()).toEqual(["README.md", "images.csv", "images/README.txt", "services.csv", "site.csv", "stores.csv"]);
+    expect(Object.keys(retail).sort()).toEqual(["README.md", "content.xlsx", "documents/README.txt", "images/README.txt"]);
+    expect(strFromU8(guide["README.md"]!)).toContain("attachments");
     expect(strFromU8(guide["README.md"]!)).toContain("Cedar Bend Guide");
-    expect(strFromU8(guide["places.csv"]!)).toBe(templateCsv("place"));
-    // The settings sheet names every key with its explanation; values are left for the client.
-    const sheet = parseCsv(strFromU8(guide["site.csv"]!));
-    expect(sheet.headers).toEqual(["key", "value", "notes"]);
-    expect(sheet.rows.map((r) => r.key)).toEqual(siteSheetKeys.map((k) => k.key));
-    expect(sheet.rows.every((r) => r.value === "" && (r.notes ?? "").length > 10)).toBe(true);
-    const images = parseCsv(strFromU8(guide["images.csv"]!));
-    expect(images.headers).toEqual(["file", "alt_text", "title", "license", "attribution", "source_url", "decorative"]);
+    // The workbook's sheets (B5-3) carry exactly the CSV templates' columns; the sheets become the package's files.
+    const sheets = readWorkbook(guide["content.xlsx"]!);
+    expect(sheets.map((s) => s.name)).toEqual(["Read me", "Places", "Events", "Articles", "Links", "Site", "Images", "Documents"]);
+    expect(readWorkbook(retail["content.xlsx"]!).map((s) => s.name)).toEqual(["Read me", "Stores", "Services", "Links", "Site", "Images", "Documents"]);
+    const places = sheets.find((s) => s.name === "Places")!;
+    expect(places.rows[0]).toEqual(csvSpecs.place.map((c) => c.key));
+    // The reader trims trailing empty cells; the example row is padded back to the header's width by the conversion.
+    const examples = csvSpecs.place.map((c) => c.example);
+    expect(places.rows[1]).toEqual(examples.slice(0, examples.findLastIndex((e) => e !== "") + 1));
+    expect(strFromU8(toCsv([places.rows[0]!, examples]))).toBe(templateCsv("place"));
+    // The Site sheet names every key with its explanation; values are left for the client.
+    const site = sheets.find((s) => s.name === "Site")!;
+    expect(site.rows[0]).toEqual(["key", "value", "notes"]);
+    expect(site.rows.slice(1).map((r) => r[0])).toEqual(siteSheetKeys.map((k) => k.key));
+    expect(site.rows.slice(1).every((r) => (r[1] ?? "") === "" && (r[2] ?? "").length > 10)).toBe(true);
+    expect(sheets.find((s) => s.name === "Images")!.rows[0]).toEqual(["file", "alt_text", "title", "license", "attribution", "source_url", "decorative"]);
+    expect(sheets.find((s) => s.name === "Documents")!.rows[0]).toEqual(["file", "title", "license", "attribution", "source_url"]);
+    // The workbook converts to exactly the package files the import reads.
+    const converted = workbookToPackageFiles(guide["content.xlsx"]!, "community_guide");
+    expect(converted.errors).toEqual([]);
+    expect(converted.warnings).toEqual([]);
+    expect(Object.keys(converted.files).sort()).toEqual(["articles.csv", "documents.csv", "events.csv", "images.csv", "links.csv", "places.csv", "site.csv"]);
+    expect(parseCsv(strFromU8(converted.files["places.csv"]!)).headers).toEqual(csvSpecs.place.map((c) => c.key));
+    expect(strFromU8(converted.files["places.csv"]!)).toBe(templateCsv("place"));
   });
 
   it("gives every importable kind body and image columns, and covers articles and services", () => {
-    expect([...importableKinds].sort()).toEqual(["article", "event", "place", "service", "store"]);
+    expect([...importableKinds].sort()).toEqual(["article", "event", "link", "place", "service", "store"]);
     for (const kind of importableKinds) {
       const keys = csvSpecs[kind].map((c) => c.key);
       expect(keys, kind).toContain("body");

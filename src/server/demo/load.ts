@@ -3,13 +3,14 @@ import { withUser, type Db } from "@/server/data/db";
 import { loadSiteContext, type SiteRow } from "@/server/data/access";
 import { createContentItem, saveRevision, getItem, validatePayload, type RevisionRow } from "@/server/data/content";
 import { getCurrentSiteConfig, saveSiteConfig } from "@/server/data/sites";
-import { ingestImage } from "@/server/media/ingest";
+import { ingestImage, ingestDocument } from "@/server/media/ingest";
 import { renderScenePng } from "@/server/demo/images";
+import { renderSimplePdf } from "@/server/demo/documents";
 import { buildCandidate } from "@/server/publishing/candidates";
 import { activateCandidate } from "@/server/publishing/activate";
 import { pineHollowFixture, pineHollowHero } from "@/server/demo/fixtures/pine-hollow";
 import { rangeAthleticsFixture } from "@/server/demo/fixtures/range-athletics";
-import type { FixtureItem, FixtureSite, FixtureImage } from "@/server/demo/fixtures/types";
+import type { FixtureItem, FixtureSite, FixtureImage, FixtureDocument } from "@/server/demo/fixtures/types";
 import type { ContentKind } from "@/modules/registry";
 
 export interface LoadDemoResult {
@@ -18,6 +19,8 @@ export interface LoadDemoResult {
   updated: number;
   unchanged: number;
   images: number;
+  /** Sample documents ingested on this load (B5-1). */
+  documents: number;
   releases: string[];
   log: string[];
 }
@@ -53,11 +56,45 @@ async function ensureImage(db: Db, site: SiteRow, userId: string, siteKey: strin
   return result.asset.id;
 }
 
-/** Replaces "@external-id" references and "@imagekey" asset references with real ids. */
+/** A sample PDF (B5-1), written by the generator and stored through the same ingestion as an upload. */
+async function ensureDocument(db: Db, site: SiteRow, userId: string, siteKey: string, document: FixtureDocument): Promise<string> {
+  const marker = `fixture://${siteKey}/${document.key}`;
+  const existing = await db<{ id: string }[]>`select id from public.media_assets where site_id = ${site.id} and source_url = ${marker} and status = 'ready' limit 1`;
+  if (existing[0]) return existing[0].id;
+  const result = await ingestDocument(db, {
+    siteId: site.id,
+    organizationId: site.organizationId,
+    userId,
+    bytes: renderSimplePdf(document.spec),
+    filename: `${document.key}.pdf`,
+    declaredMime: "application/pdf",
+    title: document.title,
+    attributionText: "Sample document written for the Lerner Works demonstration",
+    license: FIXTURE_LICENSE,
+    sourceUrl: marker,
+  });
+  if (!result.ok) throw new Error(`fixture document ${document.key}: ${result.error}`);
+  return result.asset.id;
+}
+
+/**
+ * Replaces "@external-id" references and "@imagekey" / "@documentkey" asset references with
+ * real ids, whole ("@key") or inside a link target written in text ("item:@key",
+ * "document:@key" in a body paragraph or a button, B5-1).
+ */
 function resolveRefs(value: unknown, itemIds: Map<string, string>, assetIds: Map<string, string>): unknown {
-  if (typeof value === "string" && value.startsWith("@")) {
-    const key = value.slice(1);
-    return itemIds.get(key) ?? assetIds.get(key) ?? value;
+  if (typeof value === "string") {
+    if (value.startsWith("@")) {
+      const key = value.slice(1);
+      return itemIds.get(key) ?? assetIds.get(key) ?? value;
+    }
+    if (value.includes(":@")) {
+      return value.replace(/(item|document):@([A-Za-z0-9_-]+)/g, (whole, scheme: string, key: string) => {
+        const id = itemIds.get(key) ?? assetIds.get(key);
+        return id ? `${scheme}:${id}` : whole;
+      });
+    }
+    return value;
   }
   if (Array.isArray(value)) return value.map((v) => resolveRefs(v, itemIds, assetIds));
   if (value && typeof value === "object") {
@@ -128,7 +165,7 @@ async function publish(userId: string, site: SiteRow, reason: string, log: strin
  */
 export async function loadDemoContent(userId: string, siteId: string, opts: { now?: Date } = {}): Promise<LoadDemoResult> {
   const now = opts.now ?? new Date();
-  const result: LoadDemoResult = { siteId, created: 0, updated: 0, unchanged: 0, images: 0, releases: [], log: [] };
+  const result: LoadDemoResult = { siteId, created: 0, updated: 0, unchanged: 0, images: 0, documents: 0, releases: [], log: [] };
   const ctx = await withUser(userId, (db) => loadSiteContext(db, siteId));
   if (!ctx) throw new Error("site not found");
   if (ctx.site.mode !== "demo") throw new Error("demonstration content can only be loaded into a site in demo mode");
@@ -149,6 +186,12 @@ export async function loadDemoContent(userId: string, siteId: string, opts: { no
       if (!before[0]) result.images++;
       // Focal points are part of the fixture: set through the same column an editor's save uses.
       await db`update public.media_assets set focal_x = ${img.focal?.x ?? null}, focal_y = ${img.focal?.y ?? null} where id = ${assetId} and site_id = ${site.id}`;
+    }
+    // Sample documents (B5-1) share the "@" namespace with the pictures.
+    for (const doc of fixture.documents ?? []) {
+      const before = await db<{ id: string }[]>`select id from public.media_assets where site_id = ${site.id} and source_url = ${`fixture://${fixture.key}/${doc.key}`}`;
+      assetIds.set(doc.key, await ensureDocument(db, site, userId, fixture.key, doc));
+      if (!before[0]) result.documents++;
     }
   });
 
@@ -172,7 +215,8 @@ export async function loadDemoContent(userId: string, siteId: string, opts: { no
         itemIds.set(item.externalId, adoptable[0].id);
         continue;
       }
-      const bare = resolveRefs({ ...item.payload, featuredImageAssetId: null }, new Map(), new Map()) as Record<string, unknown>;
+      // Attachments (each a required document id) are left out of the placeholder and restored when the item is applied.
+      const bare = resolveRefs({ ...item.payload, featuredImageAssetId: null, attachments: [] }, new Map(), new Map()) as Record<string, unknown>;
       const stripped = stripUnresolved(bare);
       const created = await createContentItem(db, { siteId: site.id, organizationId: site.organizationId, kind: item.kind, payload: { schemaVersion: 1, ...stripped }, authorId: userId, externalId: item.externalId, changeNote: "Loaded demonstration content" });
       itemIds.set(item.externalId, created.item.id);

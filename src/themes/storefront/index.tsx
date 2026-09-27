@@ -16,6 +16,8 @@ import { SectionFrame, PageContainer } from "@/themes/shared/frame";
 import { siteDesign, columnsFor, isColouredBand } from "@/themes/shared/design";
 import { FaqSection, QuotesSection, CtaBannerSection, GallerySection, FactsSection, VideoSection, MapLinkSection, columnsClass, type SectionStyle } from "@/themes/shared/sections";
 import { TeamSection, LogoStripSection, ImageTextSection, ImageBandSection, HeroCollage, heroExtras } from "@/themes/shared/rich-sections";
+import { DownloadsSection, Attachments } from "@/themes/shared/documents";
+import { LinkCards, LinkIndex, OutsideLinkDetail } from "@/themes/shared/links";
 import { StorefrontStoreDetail, StorefrontServiceDetail, StorefrontIndex, StorefrontSearch } from "@/themes/storefront/pages";
 import type { Block } from "@/lib/richtext";
 
@@ -230,7 +232,7 @@ export function StorefrontLayout({ ctx, hero, children }: { ctx: RenderContext; 
   );
 }
 
-const narrowByDefault = new Set<PageSection["type"]>(["rich_text", "inquiry_form", "faq", "video", "map_link"]);
+const narrowByDefault = new Set<PageSection["type"]>(["rich_text", "inquiry_form", "faq", "video", "map_link", "downloads"]);
 
 /** Whether the page opens with a full-width image hero that becomes the bleed hero under the header. */
 function openingHero(ctx: RenderContext, page: PagePayload): Extract<PageSection, { type: "image_hero" }> | null {
@@ -394,7 +396,7 @@ function StorefrontSection({ ctx, section, first }: { ctx: RenderContext; sectio
       return (
         <>
           {section.heading ? <StoreHeading>{section.heading}</StoreHeading> : null}
-          <StorefrontCollection ctx={ctx} items={items} variant={section.variant} columns={columnsFor("storefront", "content_collection", section.columns)} />
+          {section.kind === "link" ? <LinkCards ctx={ctx} items={items} style={storefrontStyle} columns={columnsFor("storefront", "content_collection", section.columns)} variant={section.variant} /> : <StorefrontCollection ctx={ctx} items={items} variant={section.variant} columns={columnsFor("storefront", "content_collection", section.columns)} />}
         </>
       );
     }
@@ -446,6 +448,8 @@ function StorefrontSection({ ctx, section, first }: { ctx: RenderContext; sectio
       return <LogoStripSection ctx={ctx} section={section} style={storefrontStyle} />;
     case "image_text":
       return <ImageTextSection ctx={ctx} section={section} style={storefrontStyle} />;
+    case "downloads":
+      return <DownloadsSection ctx={ctx} section={section} style={storefrontStyle} />;
     case "image_band":
       // Rendered by StorefrontSections outside the section frame.
       return null;
@@ -526,6 +530,7 @@ function GenericDetail({ ctx, item }: { ctx: RenderContext; item: SnapshotItem }
       <Display className="text-4xl">{item.title}</Display>
       {p.summary ? <p className="mt-3 text-lg font-semibold">{String(p.summary)}</p> : null}
       <RichText ctx={ctx} blocks={(p.body as Block[]) ?? []} className="store-prose mt-6" />
+      <Attachments ctx={ctx} item={item} style={storefrontStyle} />
     </article>
   );
 }
@@ -549,14 +554,14 @@ export const storefrontTheme: Theme = {
         return (
           <StorefrontLayout ctx={ctx}>
             <PageContainer>
-              {route.kind === "store" ? <StorefrontStoreDetail ctx={ctx} item={route.item} /> : route.kind === "service" ? <StorefrontServiceDetail ctx={ctx} item={route.item} /> : <GenericDetail ctx={ctx} item={route.item} />}
+              {route.kind === "link" ? <OutsideLinkDetail ctx={ctx} item={route.item} style={storefrontStyle} /> : route.kind === "store" ? <StorefrontStoreDetail ctx={ctx} item={route.item} /> : route.kind === "service" ? <StorefrontServiceDetail ctx={ctx} item={route.item} /> : <GenericDetail ctx={ctx} item={route.item} />}
             </PageContainer>
           </StorefrontLayout>
         );
       case "index":
         return (
           <StorefrontLayout ctx={ctx}>
-            <PageContainer><StorefrontIndex ctx={ctx} kind={route.kind} /></PageContainer>
+            <PageContainer>{route.kind === "link" ? <LinkIndex ctx={ctx} style={storefrontStyle} /> : <StorefrontIndex ctx={ctx} kind={route.kind} />}</PageContainer>
           </StorefrontLayout>
         );
       case "search":

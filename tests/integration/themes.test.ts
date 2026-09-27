@@ -84,7 +84,7 @@ describe("switching a site's theme and back (DES-10)", () => {
     const afterSwitch = await publish(owner, siteA, "switch to magazine");
     const live = (await resolveDemoRelease("pine-hollow"))!;
     expect(live.snapshot.config.design.theme).toBe("magazine");
-    expect(live.snapshot.schemaVersion).toBe(5);
+    expect(live.snapshot.schemaVersion).toBe(6);
     expect(await renderHome(live.snapshot, "pine-hollow")).toContain("magazine-theme");
     expect(await renderHome(beforeSnapshot, "pine-hollow")).toContain("guide-theme");
 

@@ -25,17 +25,20 @@ export default async function ImportExportPage({ params, searchParams }: { param
       <PageHeader eyebrow={ctx.site.name} title="Import and export" description={`Every import begins with a dry run that changes nothing. Imported records are ${ctx.site.reviewRequired || !ctx.capabilities.canPublish ? "drafts until reviewed and published" : "approved as they are imported and go out with the next publish"}. The site package is portability, not disaster recovery.`} />
       {sp.error ? <div className="mb-4"><Alert tone="danger" role="alert">{sp.error}</Alert></div> : null}
       {sp.done ? <div className="mb-4"><Alert tone="success">Import applied: {sp.done}</Alert></div> : null}
-      <Card title="Onboarding package: fill in the sheets, add the pictures, import once">
+      <Card title="Onboarding workbook: fill in the sheets, add the pictures, import once">
         <div className="grid gap-4 md:grid-cols-[1fr_auto] md:items-start">
           <div className="text-sm text-ink-muted">
-            <p>The fastest way from an empty site to a first release. The template holds one spreadsheet per content kind of this site ({kinds.map((k) => kindRegistry[k].plural.toLowerCase()).join(", ")}), a settings sheet for the brand, contact details and the text of the home and About pages, and an images folder with a sheet for alternative text and rights. Zip it again and upload it here: the dry run lists every row, image and setting before anything is written.</p>
-            <p className="mt-2">{ctx.capabilities.isOwner ? "As an owner you can import the settings sheet as well as the content." : "The settings sheet needs an organization owner; your import brings the content and images."}</p>
+            <p>The fastest way from an empty site to a first release. One Excel workbook holds a sheet per content kind of this site ({kinds.map((k) => kindRegistry[k].plural.toLowerCase()).join(", ")}), a Site sheet for the brand, contact details and the text of the home and About pages, an Images sheet for alternative text and rights, and a Documents sheet for PDF files listed as downloads. Upload the workbook on its own, or zip it with an images folder and a documents folder: the dry run lists every row, image, document and setting before anything is written. CSV sheets with the same names are accepted too.</p>
+            <p className="mt-2">{ctx.capabilities.isOwner ? "As an owner you can import the Site sheet as well as the content." : "The Site sheet needs an organization owner; your import brings the content, images and documents."}</p>
           </div>
-          <LinkButton href={`/app/sites/${siteId}/import/onboarding-template`}>Download the template</LinkButton>
+          <div className="flex flex-col gap-2">
+            <LinkButton href={`/app/sites/${siteId}/import/workbook-template`}>Download the workbook (.xlsx)</LinkButton>
+            <LinkButton href={`/app/sites/${siteId}/import/onboarding-template`} variant="secondary">Download the package (.zip with folders)</LinkButton>
+          </div>
         </div>
         <form method="post" action={`${base}/upload`} encType="multipart/form-data" className="mt-4 flex flex-wrap items-end gap-3 border-t border-line pt-3 text-sm">
           <input type="hidden" name="type" value="onboarding" />
-          <label className="block">Filled-in package (ZIP, up to 64 MB)<input type="file" name="file" accept=".zip,application/zip" required className="mt-1 block w-full" /></label>
+          <label className="block">Filled-in workbook (.xlsx) or package (.zip, up to 64 MB)<input type="file" name="file" accept=".zip,application/zip,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" required className="mt-1 block w-full" /></label>
           <Button type="submit">Upload and run dry run</Button>
         </form>
       </Card>

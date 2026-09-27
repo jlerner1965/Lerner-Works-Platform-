@@ -11,9 +11,13 @@ import { commonFields, addressSchema } from "@/modules/common";
  */
 const sectionBase = { id: z.string().min(1).max(64) };
 const internalPath = z.union([z.literal(""), z.string().regex(/^\/[^\s]*$/, "Use a site-relative path such as /contact.")]).default("");
-/** Site-relative path or full https:// address (external links are rendered without a referrer). */
+/**
+ * Site-relative path, full https:// address (external links are rendered without a referrer),
+ * or a document in the media library (`document:<asset id>`, site-building programme B5).
+ */
+export const linkTargetPattern = /^(\/[^\s]*|https:\/\/[^\s]+|document:[0-9a-f-]{36})$/i;
 const linkTarget = z
-  .union([z.literal(""), z.string().trim().max(300).regex(/^(\/[^\s]*|https:\/\/[^\s]+)$/, "Use a site-relative path such as /contact or a full https:// address.")])
+  .union([z.literal(""), z.string().trim().max(300).regex(linkTargetPattern, "Use a site-relative path such as /contact, a full https:// address, or a document reference such as document:<id>.")])
   .default("");
 /** Grid columns of a section; unset means the theme's own column count for that section type (`columnsFor`). */
 const columns = z.union([z.literal(2), z.literal(3), z.literal(4)]);
@@ -59,6 +63,7 @@ export const sectionVariants = {
   logo_strip: ["default", "row", "grid", "mono"],
   image_text: ["default", "alternating", "image_left", "image_right"],
   image_band: ["default", "compact", "tall"],
+  downloads: ["default", "list", "grid"],
 } as const;
 
 const variantOf = <T extends keyof typeof sectionVariants>(type: T) => z.enum(sectionVariants[type]).default("default");
@@ -124,7 +129,7 @@ export const sectionSchema = z.discriminatedUnion("type", [
     variant: variantOf("content_collection"),
     appearance: appearanceSchema,
     heading: z.string().trim().max(160).default(""),
-    kind: z.enum(["place", "event", "article", "service"]),
+    kind: z.enum(["place", "event", "article", "service", "link"]),
     mode: z.enum(["selected", "latest", "upcoming"]).default("latest"),
     itemIds: z.array(z.uuid()).max(24).default([]),
     limit: z.number().int().min(1).max(24).default(6),
@@ -351,6 +356,31 @@ export const sectionSchema = z.discriminatedUnion("type", [
     secondaryLabel: z.string().trim().max(60).default(""),
     secondaryPath: linkTarget,
   }),
+  /**
+   * Downloads (B5-1): documents from the media library listed with a label, a note, their type
+   * and size, each a link to the published copy. Served from the release like pictures.
+   */
+  z.object({
+    ...sectionBase,
+    type: z.literal("downloads"),
+    variant: variantOf("downloads"),
+    appearance: appearanceSchema,
+    heading: z.string().trim().max(160).default(""),
+    intro: z.string().trim().max(600).default(""),
+    columns: columns.optional(),
+    items: z
+      .array(
+        z.object({
+          assetId: z.uuid(),
+          /** Link text; empty means the document's own title. */
+          label: z.string().trim().max(120).default(""),
+          /** A line under the link: what the document is, when it was issued. */
+          note: z.string().trim().max(300).default(""),
+        }),
+      )
+      .max(24)
+      .default([]),
+  }),
 ]);
 
 export type PageSection = z.infer<typeof sectionSchema>;
@@ -378,6 +408,7 @@ export const sectionTypeLabels: Record<SectionType, string> = {
   logo_strip: "Logo strip",
   image_text: "Image and text rows",
   image_band: "Photo band",
+  downloads: "Downloads (documents)",
 };
 
 /** Owner-facing names for variants; "default" reads as "Site default". */
@@ -458,6 +489,7 @@ export function emptySection(type: SectionType, id: string): PageSection {
     logo_strip: {},
     image_text: {},
     image_band: { appearance: { align: "center" } },
+    downloads: { heading: "Downloads" },
   };
   return sectionSchema.parse({ id, type, ...seeds[type] });
 }

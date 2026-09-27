@@ -8,6 +8,7 @@ import { Picture } from "@/themes/shared/picture";
 import { featuredImage, itemPath } from "@/themes/shared/collections";
 import { indexCopy } from "@/themes/shared/site-root";
 import { AlmanacCollection, almEyebrow, almH1, almanacStyle } from "@/themes/almanac/index";
+import { Attachments } from "@/themes/shared/documents";
 import { formatEventDate, formatEventTimeRange, formatDateOnly, classifyEvent } from "@/lib/events";
 import { formatWeeklyHours } from "@/lib/hours";
 import type { WeeklyHours } from "@/modules/common";
@@ -66,6 +67,7 @@ export function AlmanacPlaceDetail({ ctx, item }: { ctx: RenderContext; item: Sn
         <div>
           {img ? <Picture ctx={ctx} media={img} sizes="(min-width: 768px) 60vw, 100vw" className="aspect-[3/2] w-full rounded-(--radius) object-cover" loading="eager" fetchPriority="high" /> : null}
           <RichText ctx={ctx} blocks={(p.body as Block[]) ?? []} className={`alm-prose ${img ? "mt-6" : ""}`} />
+          <Attachments ctx={ctx} item={item} style={almanacStyle} />
           {next?.label && next.path ? (
             <p className="mt-6">
               <a href={next.path.startsWith("/") ? href(ctx, next.path) : next.path} className={almanacStyle.buttonPrimary} {...(next.path.startsWith("http") ? { rel: "noreferrer" } : {})}>
@@ -136,6 +138,7 @@ export function AlmanacEventDetail({ ctx, item }: { ctx: RenderContext; item: Sn
         {img ? <Picture ctx={ctx} media={img} sizes="(min-width: 768px) 720px, 100vw" className="mt-6 aspect-[16/9] w-full rounded-(--radius) object-cover" /> : null}
         {p.summary ? <p className="mt-6 text-lg">{String(p.summary)}</p> : null}
         <RichText ctx={ctx} blocks={(p.body as Block[]) ?? []} className="alm-prose mt-4" />
+        <Attachments ctx={ctx} item={item} style={almanacStyle} />
         <p className="mt-8"><a href={href(ctx, "/events")} className={backLink}>All events</a></p>
       </div>
     </article>
@@ -160,6 +163,7 @@ export function AlmanacArticleDetail({ ctx, item }: { ctx: RenderContext; item: 
         </figure>
       ) : null}
       <RichText ctx={ctx} blocks={(p.body as Block[]) ?? []} className="alm-prose mt-6" />
+      <Attachments ctx={ctx} item={item} style={almanacStyle} />
       <p className="mt-8"><a href={href(ctx, "/articles")} className={backLink}>All articles</a></p>
     </article>
   );
@@ -259,6 +263,7 @@ export function AlmanacSearch({ ctx }: { ctx: RenderContext }) {
           <option value="event">Events</option>
           <option value="article">Articles</option>
           <option value="page">Pages</option>
+          {Object.values(ctx.snapshot.items).some((i) => i.kind === "link") ? <option value="link">Links</option> : null}
         </select>
         <button type="submit" className={almanacStyle.buttonPrimary}>Search</button>
         {q ? <a href={href(ctx, "/search")} className="self-center text-sm underline">Clear</a> : null}

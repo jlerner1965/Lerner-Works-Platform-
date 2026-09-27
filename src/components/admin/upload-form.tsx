@@ -1,23 +1,38 @@
 "use client";
 
 import { useActionState, useEffect, useId, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { updateAltTextBatchAction, type AltTextBatchState } from "@/server/actions/media";
 import { Alert, Button, inputClass } from "@/components/admin/ui";
+import { formatBytes } from "@/server/media/content-types";
 
 const MAX_FILES = 50;
-const MAX_BYTES = 10 * 1024 * 1024;
+const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
+const MAX_DOCUMENT_BYTES = 25 * 1024 * 1024;
+
+interface UploadedAsset {
+  id: string;
+  title: string;
+  width: number;
+  height: number;
+  /** Absent in responses from before B5; a picture then. */
+  kind?: "image" | "document";
+  bytes?: number;
+}
 
 interface Upload {
   key: string;
   file: File;
   status: "queued" | "uploading" | "done" | "failed";
   progress: number;
-  asset?: { id: string; title: string; width: number; height: number };
+  asset?: UploadedAsset;
   error?: string;
 }
 
-function uploadOne(siteId: string, file: File, shared: FormData, onProgress: (p: number) => void): Promise<{ ok: true; asset: NonNullable<Upload["asset"]> } | { ok: false; error: string }> {
+const isPdf = (file: File) => file.type === "application/pdf" || /\.pdf$/i.test(file.name);
+
+function uploadOne(siteId: string, file: File, shared: FormData, onProgress: (p: number) => void): Promise<{ ok: true; asset: UploadedAsset } | { ok: false; error: string }> {
   return new Promise((resolve) => {
     const data = new FormData();
     for (const [k, v] of shared.entries()) data.set(k, v);
@@ -28,7 +43,7 @@ function uploadOne(siteId: string, file: File, shared: FormData, onProgress: (p:
       if (ev.lengthComputable) onProgress(Math.round((ev.loaded / ev.total) * 100));
     };
     xhr.onload = () => {
-      let body: { error?: string; asset?: NonNullable<Upload["asset"]> } = {};
+      let body: { error?: string; asset?: UploadedAsset } = {};
       try {
         body = JSON.parse(xhr.responseText);
       } catch {}
@@ -43,7 +58,8 @@ function uploadOne(siteId: string, file: File, shared: FormData, onProgress: (p:
 /**
  * Multi-file upload with per-file progress and one shared rights statement, followed by the
  * alternative-text pass: every uploaded image gets its alternative text (or the decorative
- * mark) on one screen before it is used (site-building programme B2-3, SB-05).
+ * mark) on one screen before it is used (site-building programme B2-3, SB-05). Documents
+ * (PDF, B5-1) upload the same way; they need no alternative text and are listed when done.
  */
 export function UploadForm({ siteId }: { siteId: string }) {
   const router = useRouter();
@@ -64,16 +80,16 @@ export function UploadForm({ siteId }: { siteId: string }) {
     const files = data.getAll("file").filter((f): f is File => f instanceof File && f.size > 0);
     data.delete("file");
     if (files.length === 0) {
-      setError("Choose one or more image files first.");
+      setError("Choose one or more image or PDF files first.");
       return;
     }
     if (files.length > MAX_FILES) {
       setError(`Choose at most ${MAX_FILES} files at a time.`);
       return;
     }
-    const tooBig = files.find((f) => f.size > MAX_BYTES);
+    const tooBig = files.find((f) => f.size > (isPdf(f) ? MAX_DOCUMENT_BYTES : MAX_IMAGE_BYTES));
     if (tooBig) {
-      setError(`"${tooBig.name}" is larger than 10 MB.`);
+      setError(`"${tooBig.name}" is larger than ${isPdf(tooBig) ? "25 MB (the limit for a PDF)" : "10 MB (the limit for a picture)"}.`);
       return;
     }
     const batch: Upload[] = files.map((file, i) => ({ key: `${Date.now()}-${i}`, file, status: "queued", progress: 0 }));
@@ -97,6 +113,8 @@ export function UploadForm({ siteId }: { siteId: string }) {
   }
 
   const done = uploads.filter((u) => u.status === "done" && u.asset);
+  const doneImages = done.filter((u) => u.asset!.kind !== "document");
+  const doneDocuments = done.filter((u) => u.asset!.kind === "document");
   const failed = uploads.filter((u) => u.status === "failed");
   const active = uploads.filter((u) => u.status === "queued" || u.status === "uploading");
 
@@ -106,9 +124,9 @@ export function UploadForm({ siteId }: { siteId: string }) {
         {error ? <Alert tone="danger" role="alert">{error}</Alert> : null}
         {notice ? <Alert tone="success">{notice}</Alert> : null}
         <div>
-          <label htmlFor={`${id}-file`} className="mb-1 block font-medium">Image files</label>
-          <input id={`${id}-file`} name="file" type="file" accept="image/jpeg,image/png,image/webp" multiple required className="block w-full text-sm" />
-          <p id={`${id}-note`} className="mt-1 text-xs text-ink-subtle">JPEG, PNG or WebP, up to 10 MB each and {MAX_FILES} files at a time. SVG, HTML and archives are rejected. Originals stay private; published derivatives are public. Titles come from the file names; alternative text is asked for next.</p>
+          <label htmlFor={`${id}-file`} className="mb-1 block font-medium">Image files and PDF documents</label>
+          <input id={`${id}-file`} name="file" type="file" accept="image/jpeg,image/png,image/webp,application/pdf,.pdf" multiple required className="block w-full text-sm" />
+          <p id={`${id}-note`} className="mt-1 text-xs text-ink-subtle">JPEG, PNG or WebP pictures up to 10 MB each, PDF documents up to 25 MB each, {MAX_FILES} files at a time. SVG, HTML, archives and other formats are rejected. Originals stay private; published copies are public. Titles come from the file names; pictures are asked for alternative text next.</p>
         </div>
         <div className="grid gap-3 sm:grid-cols-3">
           <div>
@@ -136,7 +154,22 @@ export function UploadForm({ siteId }: { siteId: string }) {
           ))}
         </ul>
       ) : null}
-      {done.length && !running ? <AltTextPass siteId={siteId} uploads={done} onSaved={(message) => { setNotice(message); setUploads((list) => list.filter((u) => u.status !== "done")); router.refresh(); }} /> : null}
+      {doneDocuments.length && !running ? (
+        <div className="rounded border border-line bg-surface-muted p-3 text-sm" role="status">
+          <h3 className="font-semibold">{doneDocuments.length} document{doneDocuments.length === 1 ? "" : "s"} uploaded</h3>
+          <p className="mb-2 text-xs text-ink-subtle">A document needs no alternative text: its link text names it. Publication needs a recorded license, as for pictures. Open one to see the reference to paste into text.</p>
+          <ul className="space-y-1">
+            {doneDocuments.map((u) => (
+              <li key={u.asset!.id}>
+                <Link href={`/app/sites/${siteId}/media/${u.asset!.id}`} className="text-action underline">{u.asset!.title}</Link>
+                <span className="text-xs text-ink-subtle"> · PDF{u.asset!.bytes ? `, ${formatBytes(u.asset!.bytes)}` : ""}</span>
+              </li>
+            ))}
+          </ul>
+          {doneImages.length === 0 ? <Button type="button" variant="secondary" className="mt-3" onClick={() => setUploads((list) => list.filter((u) => u.status !== "done"))}>Done</Button> : null}
+        </div>
+      ) : null}
+      {doneImages.length && !running ? <AltTextPass siteId={siteId} uploads={doneImages} onSaved={(message) => { setNotice(message); setUploads((list) => list.filter((u) => u.status !== "done")); router.refresh(); }} /> : null}
     </div>
   );
 }

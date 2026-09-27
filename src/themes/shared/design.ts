@@ -25,15 +25,15 @@ const sectionGap: Record<ThemeKey, Record<SiteDesign["density"], string>> = {
 const bandPad: Record<SiteDesign["density"], string> = { compact: "2rem", regular: "3rem", spacious: "4.5rem" };
 const container: Record<SiteDesign["container"], string> = { narrow: "56rem", regular: "72rem", wide: "88rem" };
 
-export type ColumnSection = "feature_list" | "content_collection" | "category_list" | "location_collection" | "gallery" | "facts" | "team" | "logo_strip";
+export type ColumnSection = "feature_list" | "content_collection" | "category_list" | "location_collection" | "gallery" | "facts" | "team" | "logo_strip" | "downloads";
 /** Column counts a theme uses when a section leaves `columns` unset: each composition's original grids. */
 const defaultColumns: Record<ThemeKey, Record<ColumnSection, 2 | 3 | 4>> = {
-  guide: { feature_list: 4, content_collection: 3, category_list: 4, location_collection: 3, gallery: 3, facts: 3, team: 3, logo_strip: 4 },
-  locations: { feature_list: 4, content_collection: 4, category_list: 4, location_collection: 3, gallery: 3, facts: 3, team: 4, logo_strip: 4 },
-  magazine: { feature_list: 3, content_collection: 3, category_list: 3, location_collection: 3, gallery: 3, facts: 4, team: 3, logo_strip: 4 },
-  storefront: { feature_list: 4, content_collection: 3, category_list: 4, location_collection: 3, gallery: 4, facts: 4, team: 3, logo_strip: 4 },
-  almanac: { feature_list: 3, content_collection: 2, category_list: 3, location_collection: 2, gallery: 3, facts: 4, team: 3, logo_strip: 3 },
-  practice: { feature_list: 3, content_collection: 2, category_list: 3, location_collection: 2, gallery: 3, facts: 3, team: 3, logo_strip: 4 },
+  guide: { feature_list: 4, content_collection: 3, category_list: 4, location_collection: 3, gallery: 3, facts: 3, team: 3, logo_strip: 4, downloads: 2 },
+  locations: { feature_list: 4, content_collection: 4, category_list: 4, location_collection: 3, gallery: 3, facts: 3, team: 4, logo_strip: 4, downloads: 3 },
+  magazine: { feature_list: 3, content_collection: 3, category_list: 3, location_collection: 3, gallery: 3, facts: 4, team: 3, logo_strip: 4, downloads: 2 },
+  storefront: { feature_list: 4, content_collection: 3, category_list: 4, location_collection: 3, gallery: 4, facts: 4, team: 3, logo_strip: 4, downloads: 3 },
+  almanac: { feature_list: 3, content_collection: 2, category_list: 3, location_collection: 2, gallery: 3, facts: 4, team: 3, logo_strip: 3, downloads: 2 },
+  practice: { feature_list: 3, content_collection: 2, category_list: 3, location_collection: 2, gallery: 3, facts: 3, team: 3, logo_strip: 4, downloads: 2 },
 };
 
 export function columnsFor(theme: ThemeKey, type: ColumnSection, columns: 2 | 3 | 4 | undefined): 2 | 3 | 4 {

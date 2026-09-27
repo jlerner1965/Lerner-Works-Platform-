@@ -91,9 +91,11 @@ export async function createItemAction(_prev: CreateItemState, formData: FormDat
   const title = String(formData.get("title") ?? "").trim();
   const slugInput = String(formData.get("slug") ?? "").trim();
   const category = String(formData.get("category") ?? "").trim().slice(0, 60);
+  const url = String(formData.get("url") ?? "").trim().slice(0, 1000);
   if (!uuid.safeParse(siteId).success || !isContentKind(kind)) return { error: "Invalid request." };
   if (!title) return { fieldErrors: { title: "Enter a title." } };
   if (kind === "place" && formData.has("category") && !category) return { fieldErrors: { category: "Enter the category visitors will find it under." } };
+  if (kind === "link" && !/^https:\/\/[^\s/]+\S*$/i.test(url)) return { fieldErrors: { url: "Enter the full https:// address of the other website." } };
   const slug = slugInput ? slugify(slugInput) : slugify(title);
   if (!slug) return { fieldErrors: { slug: "Enter a slug using letters, numbers and hyphens." } };
   let newId: string | null = null;
@@ -104,7 +106,7 @@ export async function createItemAction(_prev: CreateItemState, formData: FormDat
       if (!presets[ctx.site.preset].kinds.includes(kind as ContentKind)) return { error: `${kindRegistry[kind as ContentKind].plural} are not part of this site's preset.` };
       const collision = await findSlugCollision(db, siteId, kind as ContentKind, slug, null);
       if (collision) return { fieldErrors: { slug: `The slug "${slug}" is already used by "${collision.title}".` } };
-      const payload = defaultPayload(kind as ContentKind, title, slug, { timeZone: ctx.site.timeZone, siteName: ctx.site.name, category });
+      const payload = defaultPayload(kind as ContentKind, title, slug, { timeZone: ctx.site.timeZone, siteName: ctx.site.name, category, url });
       const { item, revision } = await createContentItem(db, { siteId, organizationId: ctx.site.organizationId, kind: kind as ContentKind, payload, authorId: user.id });
       if (approvesOnSave(ctx.site, ctx.capabilities)) await approveOnSave(db, { item, revisionId: revision.id, actorId: user.id });
       newId = item.id;
@@ -121,9 +123,9 @@ export async function createItemAction(_prev: CreateItemState, formData: FormDat
 /**
  * A new item's payload from the site's defaults: the site's time zone for events and stores,
  * the site's name as an article's organizational attribution (changed in the editor when a
- * person wrote it), the category given at creation for a place.
+ * person wrote it), the category given at creation for a place, the address for a link.
  */
-function defaultPayload(kind: ContentKind, title: string, slug: string, site: { timeZone: string; siteName: string; category?: string }): Record<string, unknown> {
+function defaultPayload(kind: ContentKind, title: string, slug: string, site: { timeZone: string; siteName: string; category?: string; url?: string }): Record<string, unknown> {
   const base = { schemaVersion: 1, title, slug, summary: "", body: [], featuredImageAssetId: null, metaTitle: "", metaDescription: "", indexable: true, sourceUrl: "", lastVerifiedOn: "", attribution: "" };
   const now = new Date();
   const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 7, 18, 0));
@@ -141,6 +143,8 @@ function defaultPayload(kind: ContentKind, title: string, slug: string, site: { 
       return { ...base, address: { line1: "", line2: "", locality: "", region: "", postalCode: "", approved: false }, phone: "", timeZone: site.timeZone, weeklyHours: null, exceptions: [], serviceItemIds: [], status: "open", statusNote: "" };
     case "service":
       return { ...base, inquiryPrompt: "" };
+    case "link":
+      return { ...base, url: site.url ?? "", category: site.category ?? "", ctaLabel: "" };
   }
 }
 
