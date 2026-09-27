@@ -94,7 +94,8 @@ test("a fresh site reaches its first release from the onboarding package, with n
   const template = await page.request.get(`/app/sites/${siteId}/import/onboarding-template`);
   expect(template.status()).toBe(200);
   const entries = unzipSync(new Uint8Array(await template.body()));
-  expect(Object.keys(entries).sort()).toEqual(["README.md", "articles.csv", "events.csv", "images.csv", "images/README.txt", "places.csv", "site.csv"]);
+  // Since B5-3 the template carries the sheets as one workbook; the CSV files this spec uploads are still read.
+  expect(Object.keys(entries).sort()).toEqual(["README.md", "content.xlsx", "documents/README.txt", "images/README.txt"]);
   mark("template downloaded");
 
   // Upload the filled-in package: the dry run lists everything and writes nothing.

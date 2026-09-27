@@ -140,6 +140,29 @@ fail the bar.
   #12, merged by the owner on 2026-09-26 (no migration; the live checks on production are
   still to be run).
 
+### B5 · Documents, links and the workbook
+
+- The owner's review of B4 asked for three things a client site needs and the platform did
+  not have: documents (an article's PDF) beside the pictures, a page that is a link to
+  another website, and the onboarding package as an Excel workbook instead of CSV files.
+- Status: built and verified in the repository on 2026-09-27 (decision D-024). Documents in
+  Media: PDFs uploaded like pictures (signature and trailer checked, 25 MB, no other type),
+  referred to from text, buttons and section links as `document:<id>`, listed as downloads
+  under any item or in a page's Downloads section, carried by the release and served from
+  content-hash names inline with `nosniff`; withdrawing one blocks the release that needs it,
+  as with a picture; the site package and the onboarding package carry them. Links as content:
+  a kind of both presets with an https address, a category, a picture, a summary and a button
+  label, shown as cards that open the other site (no referrer) from a collection on any page
+  and from the `/links` index, which appears with its navigation entry once a link is
+  published; a page of its own for search and sharing. The workbook: the template downloads
+  as `content.xlsx` (a sheet per kind, Site, Images, Documents, a Read me), uploaded on its
+  own or inside the package beside the images and documents folders; sheets matched by name;
+  Excel's dates, numbers, booleans and formula results read as text; CSV files still accepted;
+  the proof packages carry the workbook. SB-10, SB-11 and SB-12 PASS; migrations
+  `20260927000100_media_documents.sql` and `20260927000200_content_kind_link.sql`; snapshot
+  schema version 6 with the ten earlier frozen releases rendering unchanged. On the branch;
+  the migrations go to production before the merge.
+
 ## 4 Acceptance rows
 
 | ID | Scenario | Expected |
@@ -153,6 +176,9 @@ fail the bar.
 | SB-07 | Publish a page carrying every B3 section, then view it under each composition of the preset | The release carries every picture the sections refer to; every composition renders the page from the frozen release with no script for the lightbox or the band and no frame before the visitor asks for the map; the editor offers the sections and treatments and says what each slot still needs |
 | SB-08 | Build a realistic client site end to end through the dashboard from the package a client fills in, with real photography | Counted per task and timed; published at the first attempt with no blocker; every section with content; captured under every composition of the preset |
 | SB-09 | The bar (D-020) | The owner's own timed build on production with the packages, and their judgement: they would choose the platform over building by hand, and the result is launch-ready rather than templated |
+| SB-10 | Documents beside pictures | A PDF uploads like a picture, is linked from text and a button, listed as a download under an article and in a page section, served from the published release with the right type and name, and refused when it is not a PDF, too large, truncated or withdrawn |
+| SB-11 | A page that is a link to another website | A link is added from the list with its address, published, and shown as a card that opens the other site from a collection and from the index, with a page of its own found by search; the index and its navigation entry appear only once a link is published |
+| SB-12 | The onboarding package as a workbook | The template downloads as one Excel file; a filled workbook uploaded on its own or inside the package goes through the same dry run and import as the CSV sheets, with Excel's dates and numbers read as the sheets expect, and a sheet given both ways refused |
 
 ## 5 Open points for the owner
 

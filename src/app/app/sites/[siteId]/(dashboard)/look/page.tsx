@@ -26,7 +26,7 @@ export default async function LookPage({ params }: { params: Promise<{ siteId: s
   if (!ctx || !ctx.capabilities.canManageSettings) notFound();
   const data = await withUser(user.id, async (db) => {
     const config = await getCurrentSiteConfig(db, siteId);
-    const assets = await db<Array<{ id: string; title: string | null; width: number; height: number }>>`select id, title, width, height from public.media_assets where site_id = ${siteId} and status = 'ready' order by created_at desc limit 100`;
+    const assets = await db<Array<{ id: string; title: string | null; width: number; height: number }>>`select id, title, width, height from public.media_assets where site_id = ${siteId} and status = 'ready' and kind = 'image' order by created_at desc limit 100`;
     return { config, assets };
   });
   if (!data.config) notFound();

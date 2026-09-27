@@ -4,6 +4,7 @@ import { getCandidate, type CandidateRow } from "@/server/publishing/candidates"
 import { validateManifest, type ValidationResult } from "@/server/publishing/validate";
 import { toSnapshotMedia, type BuiltManifest, type MediaAssetRow } from "@/server/publishing/manifest";
 import { SUPPORTED_SNAPSHOT_SCHEMA_VERSIONS, type ReleaseSnapshot } from "@/server/publishing/snapshot";
+import { publicAssetContentType } from "@/server/media/content-types";
 
 export type ActivationResult =
   | { outcome: "activated" | "already_activated"; releaseId: string }
@@ -24,22 +25,25 @@ async function revalidate(db: Db, cand: CandidateRow, now: Date): Promise<Valida
     if (!row || row.status !== "ready") missingMedia.push({ assetId: id, itemId: null, field: "media" });
     else media[id] = toSnapshotMedia(row);
   }
-  return validateManifest({ manifest: { ...cand.manifest, media: ids.length ? media : cand.manifest.media }, notes: [], mediaRows, missingMedia }, { now });
+  return validateManifest({ manifest: { ...cand.manifest, media: ids.length ? media : cand.manifest.media }, notes: [], mediaRows, missingMedia, mediaKindMismatches: [] }, { now });
 }
 
 /**
- * Copies every referenced derivative into public content-hash storage. Runs outside any
- * database transaction; failures leave the candidate unactivated and retryable.
+ * Copies every referenced derivative (image variants and document files, B5) into public
+ * content-hash storage under its own content type. Runs outside any database transaction;
+ * failures leave the candidate unactivated and retryable.
  */
 export async function preparePublicationAssets(cand: CandidateRow): Promise<{ ok: true } | { ok: false; message: string }> {
   const storage = getStorage();
   for (const media of Object.values(cand.manifest.media)) {
     for (const variant of Object.values(media.variants)) {
       if (!variant) continue;
+      const contentType = publicAssetContentType(variant.path);
+      if (!contentType) return { ok: false, message: `Derivative ${variant.path} has a name the public store does not serve.` };
       if (await storage.existsPublic(variant.path)) continue;
       const data = await storage.getPrivate(variant.key);
-      if (!data) return { ok: false, message: `Derivative ${variant.key} is missing from private storage; re-upload the image.` };
-      await storage.putPublic(variant.path, data, "image/webp");
+      if (!data) return { ok: false, message: `Derivative ${variant.key} is missing from private storage; re-upload the ${media.kind === "document" ? "document" : "image"}.` };
+      await storage.putPublic(variant.path, data, contentType);
     }
   }
   return { ok: true };

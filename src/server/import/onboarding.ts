@@ -4,36 +4,42 @@ import type { SiteRow } from "@/server/data/access";
 import { presets, type PresetKey } from "@/modules/presets";
 import { kindRegistry } from "@/modules/registry";
 import { siteConfigSchema, typographyPresetKeys, type SiteConfig } from "@/modules/site-config";
-import { csvSpecs, templateCsv, type ImportableKind } from "@/server/import/csv-spec";
+import { csvSpecs, type ImportableKind } from "@/server/import/csv-spec";
 import { parseCsv, autoMap, dryRun, applyImport, type DryRunResult, type DryRunRow } from "@/server/import/csv";
-import { ingestImage, sniffImageType, MAX_UPLOAD_BYTES } from "@/server/media/ingest";
+import { ingestImage, ingestDocument, sniffImageType, sniffDocumentType, MAX_UPLOAD_BYTES, MAX_DOCUMENT_BYTES } from "@/server/media/ingest";
 import { getCurrentSiteConfig, saveSiteConfig } from "@/server/data/sites";
 import { getItem, saveRevision, approveOnSave, validatePayload } from "@/server/data/content";
 import { parseStructuredText } from "@/lib/richtext";
 import { failingPairings } from "@/lib/brand-tokens";
 import { formatRatio } from "@/lib/contrast";
 import { capabilitiesFor } from "@/themes/capabilities";
+import { workbookToPackageFiles, buildWorkbookTemplate, kindSheetFiles } from "@/server/import/workbook";
 
 /**
  * The onboarding package (site-building programme B2-2): a ZIP a client or the agency fills
  * in once to take a fresh site to its first release. One spreadsheet per content kind of the
  * preset (the CSV templates of the import page, with a featured-image column), a settings
  * sheet (`site.csv`, key/value rows for the brand, contact details and the starter pages'
- * text) and an `images/` folder listed in `images.csv` with alternative text and rights.
+ * text), an `images/` folder listed in `images.csv` with alternative text and rights, and
+ * since B5 a `documents/` folder of PDF files listed in `documents.csv` with their rights,
+ * which rows attach as downloads through their `attachments` column.
  * It is imported through the same dry-run-then-confirm step as a CSV file: the dry run
- * validates every sheet, image and setting and writes nothing; confirming applies all of it
- * in one transaction, approved on save when the importer may publish and the site does not
- * require review.
+ * validates every sheet, image, document and setting and writes nothing; confirming applies
+ * all of it in one transaction, approved on save when the importer may publish and the site
+ * does not require review.
  */
 export const MAX_ONBOARDING_BYTES = 64 * 1024 * 1024;
 const MAX_UNCOMPRESSED = 256 * 1024 * 1024;
 const MAX_IMAGES = 100;
-const MAX_FILES = 250;
+const MAX_DOCUMENTS = 50;
+const MAX_FILES = 300;
 
-const kindFiles: Record<ImportableKind, string> = { place: "places.csv", event: "events.csv", article: "articles.csv", service: "services.csv", store: "stores.csv" };
-/** Import order per preset: services before the stores that refer to them; places before events. */
-const kindOrder: Record<PresetKey, ImportableKind[]> = { community_guide: ["place", "event", "article"], location_business: ["service", "store"] };
+/** Sheet per content kind, the names the onboarding import reads (a workbook's sheets become these files, B5-3). */
+export const kindFiles: Record<ImportableKind, string> = kindSheetFiles;
+/** Import order per preset: services before the stores that refer to them; places before events; links (B5-2) last. */
+export const kindOrder: Record<PresetKey, ImportableKind[]> = { community_guide: ["place", "event", "article", "link"], location_business: ["service", "store", "link"] };
 const IMAGE_NAME = /^[A-Za-z0-9][A-Za-z0-9._-]{0,120}\.(jpe?g|png|webp)$/i;
+const DOCUMENT_NAME = /^[A-Za-z0-9][A-Za-z0-9._-]{0,120}\.pdf$/i;
 const HEX = /^#[0-9a-fA-F]{6}$/;
 
 export interface SiteSheetKey {
@@ -63,26 +69,46 @@ export const siteSheetKeys: SiteSheetKey[] = [
 ];
 
 const imagesSheetColumns = ["file", "alt_text", "title", "license", "attribution", "source_url", "decorative"] as const;
+const documentsSheetColumns = ["file", "title", "license", "attribution", "source_url"] as const;
 
-/** The downloadable template for a preset: sheets with headers and one example row, the settings sheet with every key explained, an images folder. */
+/** The onboarding workbook for a preset (B5-3): the same sheets as the package's CSV files, in one Excel file. */
+export function buildOnboardingWorkbook(preset: PresetKey, siteName: string): Uint8Array {
+  return buildWorkbookTemplate(preset, siteName, siteSheetKeys, imagesSheetColumns, documentsSheetColumns);
+}
+
+/**
+ * The downloadable template for a preset: the workbook (`content.xlsx`: a sheet per content
+ * kind with headers and one example row, the Site sheet with every key explained, the Images
+ * and Documents sheets), an images folder and a documents folder. CSV sheets with the same
+ * names are accepted in place of the workbook.
+ */
 export function buildOnboardingTemplate(preset: PresetKey, siteName: string): Uint8Array {
   const def = presets[preset];
-  const esc = (s: string) => (/[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s);
   const files: Record<string, Uint8Array> = {};
   const kinds = kindOrder[preset];
   const readme = `# Onboarding package for ${siteName} (${def.label})
 
-Fill in these sheets, drop the pictures into images/, zip the folder again and upload it on
-the site's Import & export page. The upload runs a dry run first: every row, image and setting
-is checked and nothing is written until you confirm. Rows with errors are listed and skipped.
+Fill in the workbook (content.xlsx), drop the pictures into images/ and any PDF documents into
+documents/, zip the folder again and upload it on the site's Import & export page. The upload
+runs a dry run first: every row, image, document and setting is checked and nothing is written
+until you confirm. Rows with errors are listed and skipped. The workbook may also be uploaded
+on its own, without the folders, when there are no pictures or documents to bring.
 
-## Sheets
-${kinds.map((k) => `- ${kindFiles[k]} — one row per ${kindRegistry[k].label.toLowerCase()}. The first row names the columns; the second is an example to replace. Required: ${csvSpecs[k].filter((c) => c.required).map((c) => c.key).join(", ")}.`).join("\n")}
-- site.csv — the brand, contact details and the starter pages' text as key/value rows. Leave a value empty to keep the site's current setting. The notes column explains each key and is ignored.
-- images.csv — one row per file in images/: alternative text (what the picture shows, for people who cannot see it), title, license or rights statement, attribution, source. Publication needs alternative text (or "decorative" = yes) and a license for every image.
+## The workbook (content.xlsx)
+${kinds.map((k) => `- ${kindRegistry[k].plural} — one row per ${kindRegistry[k].label.toLowerCase()}. The first row names the columns; the second is an example to replace. Required: ${csvSpecs[k].filter((c) => c.required).map((c) => c.key).join(", ")}.`).join("\n")}
+- Site — the brand, contact details and the starter pages' text as key/value rows. Leave a value empty to keep the site's current setting. The notes column explains each key and is ignored.
+- Images — one row per file in images/: alternative text (what the picture shows, for people who cannot see it), title, license or rights statement, attribution, source. Publication needs alternative text (or "decorative" = yes) and a license for every image.
+- Documents — one row per file in documents/: title (the link text), license or rights statement, attribution, source. Publication needs a license for every document.
+- Sheets are matched by name (Places, Events, Articles, Services, Stores, Links, Site, Images, Documents); the Read me sheet is ignored.
+
+## CSV instead of the workbook
+The same sheets may be CSV files named ${kinds.map((k) => kindFiles[k]).join(", ")}, site.csv, images.csv and documents.csv. A package carries either the workbook or the CSV files, not both.
 
 ## Images
 JPEG, PNG or WebP, up to 10 MB each, up to ${MAX_IMAGES} files, named with letters, numbers, dots, hyphens or underscores. A row's "image" column names the file that becomes its featured image. Originals stay private; published derivatives are public.
+
+## Documents
+PDF files, up to 25 MB each, up to ${MAX_DOCUMENTS} files, named the same way. A row's "attachments" column lists the files (separated by ";") shown as downloads under its text, with their type and size. Documents are published as uploaded, so check them for anything confidential before adding them.
 
 ## Text
 The "body" columns and the home_intro / about_text settings hold plain text: paragraphs separated by a blank line, "## " at the start of a line for a heading, "- " for a list item, **bold** and *italic* inline. No HTML.
@@ -91,10 +117,9 @@ The "body" columns and the home_intro / about_text settings hold plain text: par
 Dates are YYYY-MM-DD. Event times are YYYY-MM-DD HH:MM in the site's time zone (${def.defaultTimeZone} unless a time_zone column says otherwise).
 `;
   files["README.md"] = strToU8(readme);
-  files["site.csv"] = strToU8(["key,value,notes", ...siteSheetKeys.map((k) => [k.key, "", `${k.description} Example: ${k.example}`].map(esc).join(","))].join("\r\n") + "\r\n");
-  for (const k of kinds) files[kindFiles[k]] = strToU8(templateCsv(k));
-  files["images.csv"] = strToU8([imagesSheetColumns.join(","), ["storefront.jpg", "The bakery's front window at dawn, bread stacked on the counter", "Bakery storefront", "Owned by the client", "", "", "no"].map(esc).join(",")].join("\r\n") + "\r\n");
-  files["images/README.txt"] = strToU8("Put the image files here and list each one in images.csv (file, alternative text, title, license, attribution, source URL, decorative).\r\n");
+  files["content.xlsx"] = buildOnboardingWorkbook(preset, siteName);
+  files["images/README.txt"] = strToU8("Put the image files here and list each one on the Images sheet of content.xlsx (file, alternative text, title, license, attribution, source URL, decorative).\r\n");
+  files["documents/README.txt"] = strToU8("Put PDF files here and list each one on the Documents sheet of content.xlsx (file, title, license, attribution, source URL). Name them in a row's attachments column to list them as downloads.\r\n");
   return zipSync(files, { level: 6 });
 }
 
@@ -104,6 +129,16 @@ export interface OnboardingImage {
   title: string;
   alt: string;
   decorative: boolean;
+  license: string;
+  attribution: string;
+  sourceUrl: string;
+}
+
+/** A PDF in the package's documents folder with its rights (B5). */
+export interface OnboardingDocument {
+  file: string;
+  bytes: number;
+  title: string;
   license: string;
   attribution: string;
   sourceUrl: string;
@@ -123,23 +158,26 @@ export interface OnboardingDryRun {
   warnings: string[];
   kinds: OnboardingKindResult[];
   images: OnboardingImage[];
+  documents: OnboardingDocument[];
   settings: { values: Record<string, string>; problems: string[] };
-  summary: { items: number; images: number; settings: number; rowErrors: number };
-  /** Full per-kind results (payloads) and image bytes; not stored, recomputed from the package when confirming. */
+  summary: { items: number; images: number; documents: number; settings: number; rowErrors: number };
+  /** The workbook the package carried (B5-3), with what each sheet became. */
+  workbook?: { file: string; sheets: Array<{ name: string; file: string | null; rows: number }> };
+  /** Full per-kind results (payloads) and file bytes; not stored, recomputed from the package when confirming. */
   results: Partial<Record<ImportableKind, DryRunResult>>;
   files: Record<string, Uint8Array>;
 }
 
 export function onboardingJobSummary(dry: OnboardingDryRun): Omit<OnboardingDryRun, "results" | "files"> {
-  const { errors, warnings, kinds, images, settings, summary } = dry;
-  return { errors, warnings, kinds, images, settings, summary };
+  const { errors, warnings, kinds, images, documents, settings, summary, workbook } = dry;
+  return { errors, warnings, kinds, images, documents, settings, summary, ...(workbook ? { workbook } : {}) };
 }
 
 const truthy = (v: string) => /^(yes|true|1|y)$/i.test(v.trim());
 
 /** Validates a package without writing anything: files, sheets, images and settings. */
 export async function dryRunOnboarding(db: Db, site: SiteRow, bytes: Uint8Array, opts: { canApplySettings: boolean }): Promise<OnboardingDryRun> {
-  const out: OnboardingDryRun = { errors: [], warnings: [], kinds: [], images: [], settings: { values: {}, problems: [] }, summary: { items: 0, images: 0, settings: 0, rowErrors: 0 }, results: {}, files: {} };
+  const out: OnboardingDryRun = { errors: [], warnings: [], kinds: [], images: [], documents: [], settings: { values: {}, problems: [] }, summary: { items: 0, images: 0, documents: 0, settings: 0, rowErrors: 0 }, results: {}, files: {} };
   if (bytes.byteLength > MAX_ONBOARDING_BYTES) {
     out.errors.push("The package is larger than 64 MB.");
     return out;
@@ -164,9 +202,29 @@ export async function dryRunOnboarding(db: Db, site: SiteRow, bytes: Uint8Array,
   const prefix = raw.length && roots.size === 1 && !raw.some(([p]) => !p.includes("/")) ? `${[...roots][0]}/` : "";
   const files = new Map(raw.map(([p, data]) => [p.startsWith(prefix) ? p.slice(prefix.length) : p, data]));
   if (files.size > MAX_FILES) out.errors.push(`The package has ${files.size} files; the limit is ${MAX_FILES}.`);
+  // A workbook at the root (B5-3) becomes the package's sheets; a sheet present both ways is refused rather than guessed.
+  const workbooks = [...files.keys()].filter((p) => /\.xlsx$/i.test(p) && !p.includes("/"));
+  if (workbooks.length > 1) {
+    out.errors.push(`The package has ${workbooks.length} workbooks (${workbooks.join(", ")}); keep one.`);
+    return out;
+  }
+  const workbookName = workbooks[0];
+  if (workbookName) {
+    const converted = workbookToPackageFiles(files.get(workbookName)!, site.preset);
+    out.errors.push(...converted.errors.map((e) => `${workbookName}: ${e}`));
+    out.warnings.push(...converted.warnings.map((w) => `${workbookName}: ${w}`));
+    for (const [name, data] of Object.entries(converted.files)) {
+      if (files.has(name)) out.errors.push(`${workbookName} and ${name} both carry the same sheet; keep one of them.`);
+      else files.set(name, data);
+    }
+    files.delete(workbookName);
+    out.workbook = { file: workbookName, sheets: converted.sheets };
+    if (out.errors.length) return out;
+  }
   const kinds = kindOrder[site.preset];
-  const known = new Set(["README.md", "site.csv", "images.csv", "images/README.txt", ...kinds.map((k) => kindFiles[k])]);
+  const known = new Set(["README.md", "site.csv", "images.csv", "images/README.txt", "documents.csv", "documents/README.txt", ...kinds.map((k) => kindFiles[k])]);
   const imageFiles = new Map<string, Uint8Array>();
+  const documentFiles = new Map<string, Uint8Array>();
   for (const [p, data] of files) {
     if (known.has(p)) continue;
     if (p.startsWith("images/")) {
@@ -175,9 +233,16 @@ export async function dryRunOnboarding(db: Db, site: SiteRow, bytes: Uint8Array,
       else imageFiles.set(name, data);
       continue;
     }
+    if (p.startsWith("documents/")) {
+      const name = p.slice(10);
+      if (!DOCUMENT_NAME.test(name)) out.errors.push(`documents/${name}: use a file name with letters, numbers, dots, hyphens or underscores and a .pdf ending.`);
+      else documentFiles.set(name, data);
+      continue;
+    }
     out.errors.push(`Unexpected file in package: ${p}${Object.values(kindFiles).includes(p) ? ` (not a content kind of the ${presets[site.preset].label} preset)` : ""}`);
   }
   if (imageFiles.size > MAX_IMAGES) out.errors.push(`The package has ${imageFiles.size} images; the limit is ${MAX_IMAGES}.`);
+  if (documentFiles.size > MAX_DOCUMENTS) out.errors.push(`The package has ${documentFiles.size} documents; the limit is ${MAX_DOCUMENTS}.`);
   if (out.errors.length) return out;
 
   // Images: real type by signature, size, and the metadata sheet.
@@ -205,7 +270,35 @@ export async function dryRunOnboarding(db: Db, site: SiteRow, bytes: Uint8Array,
     out.files[file] = data;
   }
 
-  // Content sheets, in import order, with the package's own images and services available to rows.
+  // Documents (B5): real type by signature, size, and the metadata sheet. Files are kept apart from the images by folder.
+  const documentMeta = new Map<string, Record<string, string>>();
+  const documentsSheet = files.get("documents.csv");
+  if (documentsSheet) {
+    try {
+      const parsed = parseCsv(strFromU8(documentsSheet));
+      for (const row of parsed.rows) {
+        const file = (row.file ?? "").trim();
+        if (!file) continue;
+        if (!documentFiles.has(file)) out.warnings.push(`documents.csv lists "${file}", which is not in the documents folder; the row is ignored.`);
+        else documentMeta.set(file, row);
+      }
+    } catch (err) {
+      out.errors.push(`documents.csv could not be read: ${(err as Error).message}`);
+    }
+  }
+  for (const [file, data] of [...documentFiles].sort(([a], [b]) => a.localeCompare(b))) {
+    if (data.byteLength > MAX_DOCUMENT_BYTES) out.errors.push(`documents/${file} is larger than 25 MB.`);
+    if (!sniffDocumentType(data)) out.errors.push(`documents/${file} is not a PDF file.`);
+    const m = documentMeta.get(file) ?? {};
+    out.documents.push({ file, bytes: data.byteLength, title: (m.title ?? "").trim().slice(0, 200) || file.replace(/\.pdf$/i, ""), license: (m.license ?? "").trim().slice(0, 200), attribution: (m.attribution ?? "").trim().slice(0, 500), sourceUrl: (m.source_url ?? "").trim().slice(0, 1000) });
+    out.files[`documents/${file}`] = data;
+  }
+  for (const doc of out.documents) {
+    if (!doc.license) out.warnings.push(`documents/${doc.file} has no license or rights statement; add it in documents.csv (license) or in Media after the import. Publication needs it.`);
+  }
+  out.summary.documents = out.documents.length;
+
+  // Content sheets, in import order, with the package's own images, documents and services available to rows.
   const pendingServices = new Set<string>();
   for (const kind of kinds) {
     const file = kindFiles[kind];
@@ -219,7 +312,7 @@ export async function dryRunOnboarding(db: Db, site: SiteRow, bytes: Uint8Array,
       continue;
     }
     const mapping = autoMap(kind, parsed.headers);
-    const result = await dryRun(db, site, kind, parsed, mapping, { imageFiles: new Set(imageFiles.keys()), pendingServices: kind === "store" ? pendingServices : undefined });
+    const result = await dryRun(db, site, kind, parsed, mapping, { imageFiles: new Set(imageFiles.keys()), documentFiles: new Set(documentFiles.keys()), pendingServices: kind === "store" ? pendingServices : undefined });
     if (kind === "service") for (const row of result.rows) if (row.action === "create" || row.action === "update") pendingServices.add(String(result.valid[row.externalId]?.slug ?? ""));
     out.results[kind] = result;
     out.kinds.push({ kind, file, headers: parsed.headers, counts: result.counts, rows: result.rows });
@@ -282,7 +375,7 @@ export async function dryRunOnboarding(db: Db, site: SiteRow, bytes: Uint8Array,
     out.summary.settings = Object.keys(v).length;
     if (out.summary.settings && !opts.canApplySettings) out.warnings.push("The settings sheet (brand, contact details, page text) needs an organization owner; a publisher's or editor's import brings the content and images only.");
   }
-  if (out.summary.items === 0 && out.summary.images === 0 && out.summary.settings === 0 && out.errors.length === 0) out.warnings.push("The package has nothing to import: no rows, images or settings.");
+  if (out.summary.items === 0 && out.summary.images === 0 && out.summary.documents === 0 && out.summary.settings === 0 && out.errors.length === 0) out.warnings.push("The package has nothing to import: no rows, images, documents or settings.");
   return out;
 }
 
@@ -291,6 +384,8 @@ export interface OnboardingApplied {
   updated: number;
   skipped: number;
   images: number;
+  /** Documents ingested from the package's documents folder (B5). */
+  documents: number;
   /** Setting keys applied from the sheet. */
   settings: string[];
   /** Starter pages given text or a picture from the sheet. */
@@ -298,7 +393,7 @@ export interface OnboardingApplied {
   approved: boolean;
 }
 
-/** Applies a validated package in the caller's transaction: images, then content in import order, then the settings sheet. */
+/** Applies a validated package in the caller's transaction: images and documents, then content in import order, then the settings sheet. */
 export async function applyOnboarding(db: Db, site: SiteRow, userId: string, dry: OnboardingDryRun, opts: { approve: boolean; applySettings: boolean }): Promise<OnboardingApplied> {
   if (dry.errors.length) throw new Error("package has validation errors");
   const assets = new Map<string, string>();
@@ -309,6 +404,14 @@ export async function applyOnboarding(db: Db, site: SiteRow, userId: string, dry
     if (!result.ok) throw new Error(`images/${img.file}: ${result.error}`);
     assets.set(img.file, result.asset.id);
   }
+  const documentAssets = new Map<string, string>();
+  for (const doc of dry.documents ?? []) {
+    const data = dry.files[`documents/${doc.file}`];
+    if (!data) throw new Error(`document ${doc.file} is missing from the package`);
+    const result = await ingestDocument(db, { siteId: site.id, organizationId: site.organizationId, userId, bytes: data, filename: doc.file, declaredMime: "", title: doc.title, attributionText: doc.attribution, license: doc.license, sourceUrl: doc.sourceUrl });
+    if (!result.ok) throw new Error(`documents/${doc.file}: ${result.error}`);
+    documentAssets.set(doc.file, result.asset.id);
+  }
   const totals = { created: 0, updated: 0, skipped: 0 };
   let serviceIds = new Map<string, string>();
   for (const kind of kindOrder[site.preset]) {
@@ -317,7 +420,7 @@ export async function applyOnboarding(db: Db, site: SiteRow, userId: string, dry
     if (kind === "store") {
       serviceIds = new Map((await db<{ id: string; slug: string }[]>`select i.id, r.slug from public.content_items i join public.content_revisions r on r.id = i.current_revision_id where i.site_id = ${site.id} and i.kind = 'service' and i.archived_at is null`).map((s) => [s.slug, s.id]));
     }
-    const applied = await applyImport(db, site, kind, userId, result, { approve: opts.approve, imageAssets: assets, serviceIds });
+    const applied = await applyImport(db, site, kind, userId, result, { approve: opts.approve, imageAssets: assets, documentAssets, serviceIds });
     totals.created += applied.created;
     totals.updated += applied.updated;
     totals.skipped += applied.skipped;
@@ -412,5 +515,5 @@ export async function applyOnboarding(db: Db, site: SiteRow, userId: string, dry
       settings.push(...pageKeys.filter((k) => (k === "about_text" ? pages.includes("about") : pages.includes("home"))));
     }
   }
-  return { ...totals, images: assets.size, settings, pages, approved: opts.approve };
+  return { ...totals, images: assets.size, documents: documentAssets.size, settings, pages, approved: opts.approve };
 }

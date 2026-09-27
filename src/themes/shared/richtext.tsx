@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { parseEmphasis, parseInline, type Block } from "@/lib/richtext";
 import { href, type RenderContext } from "@/themes/shared/types";
 import { Picture } from "@/themes/shared/picture";
+import { documentHref } from "@/themes/shared/documents";
 
 /** Renders restricted body blocks. Text is escaped by React; links are resolved against the snapshot. */
 export function RichText({ ctx, blocks, className = "" }: { ctx: RenderContext; blocks: Block[]; className?: string }) {
@@ -98,6 +99,8 @@ export function resolveLinkTarget(ctx: RenderContext, target: string): string | 
     const route = ctx.snapshot.routes.find((r) => r.itemId === target.slice(5));
     return route ? href(ctx, route.path) : null;
   }
+  // A document in the release (B5): the link opens its published copy. A document the release does not carry leaves the label as plain text.
+  if (/^document:/i.test(target)) return documentHref(ctx, target.slice(9).toLowerCase());
   if (target.startsWith("/")) return href(ctx, target);
   if (/^https:\/\//i.test(target)) return target;
   return null;

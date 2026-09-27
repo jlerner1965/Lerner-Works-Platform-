@@ -1,0 +1,1964 @@
+{
+ "config": {
+  "branding": {
+   "colors": {
+    "accent": "#bf4a0d",
+    "background": "#ffffff",
+    "primary": "#12213a",
+    "text": "#111827"
+   },
+   "logoAssetId": "09e35677-2e44-454c-9018-17782fc078e5",
+   "logoDarkAssetId": null,
+   "tagline": "Three Colorado stores (fictional demonstration)",
+   "typography": "utility-sans",
+   "wordmark": "Range Athletics"
+  },
+  "design": {
+   "cards": "default",
+   "container": "regular",
+   "density": "regular",
+   "header": "default",
+   "hero": "default",
+   "overrides": {
+    "border": "",
+    "borderStrong": "",
+    "focus": "",
+    "muted": "",
+    "surface": "",
+    "surfaceStrong": ""
+   },
+   "radius": "small",
+   "theme": "default"
+  },
+  "footer": {
+   "links": [
+    {
+     "label": "Locations",
+     "path": "/locations"
+    },
+    {
+     "label": "Contact",
+     "path": "/contact"
+    }
+   ],
+   "showContactDetails": true,
+   "text": "Range Athletics is a fictional retailer built to demonstrate a multi-location business website. No products, prices or inventory are offered.",
+   "variant": "columns"
+  },
+  "indexes": {
+   "articles": {
+    "intro": "",
+    "title": ""
+   },
+   "events": {
+    "intro": "",
+    "title": ""
+   },
+   "links": {
+    "intro": "",
+    "title": ""
+   },
+   "places": {
+    "intro": "",
+    "title": ""
+   },
+   "services": {
+    "intro": "",
+    "title": ""
+   },
+   "stores": {
+    "intro": "",
+    "title": ""
+   }
+  },
+  "metadata": {
+   "defaultDescription": "Range Athletics (fictional): three Colorado stores with current hours, shoe fitting, ski tuning, team outfitting and bike service.",
+   "defaultTitle": "Range Athletics",
+   "faviconAssetId": null,
+   "language": "en",
+   "shareImageAssetId": null,
+   "titleSuffix": "Range Athletics"
+  },
+  "modules": {
+   "articles": false,
+   "events": false,
+   "inquiries": true,
+   "links": true,
+   "places": false,
+   "services": true,
+   "stores": true
+  },
+  "navigation": {
+   "cta": {
+    "label": "",
+    "path": ""
+   },
+   "items": [
+    {
+     "label": "Locations",
+     "path": "/locations"
+    },
+    {
+     "label": "Services",
+     "path": "/services"
+    },
+    {
+     "label": "About",
+     "path": "/about"
+    },
+    {
+     "label": "Contact",
+     "path": "/contact"
+    }
+   ],
+   "showSearch": true
+  },
+  "schemaVersion": 1
+ },
+ "configRevisionId": "11e8ab98-d94a-4e84-914a-346ee28ba20d",
+ "items": {
+  "17b8e654-af75-470d-b277-3c64452710a4": {
+   "id": "17b8e654-af75-470d-b277-3c64452710a4",
+   "kind": "service",
+   "payload": {
+    "attachments": [
+     {
+      "assetId": "ebc06577-c86e-459b-bae3-8b83f8fb21aa",
+      "label": ""
+     }
+    ],
+    "attribution": "",
+    "body": [
+     {
+      "text": "Bring the socks you actually run or hike in, and the insoles if you use them. Staff watch you walk and jog, measure both feet, and pull three or four options before you try anything on. There is no charge for the fitting and no obligation to buy.",
+      "type": "paragraph"
+     },
+     {
+      "items": [
+       "Book ahead on weekends",
+       "Wide and narrow sizes stocked in Longmont",
+       "Trail and road shoes, hiking boots"
+      ],
+      "style": "bullet",
+      "type": "list"
+     }
+    ],
+    "featuredImageAssetId": "d609def5-a403-46c9-a717-5750803d0ccb",
+    "indexable": true,
+    "inquiryPrompt": "Want a fitting at a specific store or time? Ask and we will confirm availability.",
+    "lastVerifiedOn": "",
+    "metaDescription": "",
+    "metaTitle": "",
+    "schemaVersion": 1,
+    "slug": "shoe-fitting",
+    "sourceUrl": "",
+    "summary": "A 20-minute fitting on the in-store treadmill with staff who look at how you land, not just what size you wear.",
+    "title": "Run and hike shoe fitting"
+   },
+   "revisionId": "b9a75761-8a51-444b-983c-f0645b2e91d1",
+   "revisionVersion": 2,
+   "slug": "shoe-fitting",
+   "title": "Run and hike shoe fitting"
+  },
+  "2d9d4103-1de5-4d5a-b88b-ccb7572671e8": {
+   "id": "2d9d4103-1de5-4d5a-b88b-ccb7572671e8",
+   "kind": "service",
+   "payload": {
+    "attachments": [],
+    "attribution": "",
+    "body": [
+     {
+      "text": "Tuning runs November through April at the Longmont and Boulder stores. Drop-off is at the service counter; you will get a text when the gear is ready. Binding adjustments and safety checks need the boots and a signed release form.",
+      "type": "paragraph"
+     },
+     {
+      "items": [
+       "Standard tune: base grind, edges, hot wax",
+       "Rush service when the bench is free",
+       "Skis, snowboards, splitboards"
+      ],
+      "style": "bullet",
+      "type": "list"
+     }
+    ],
+    "featuredImageAssetId": "6793358c-4906-4a5a-b2ed-1b85d192aa91",
+    "indexable": true,
+    "inquiryPrompt": "Not sure whether your bases need a grind or just a wax? Send a photo and we will tell you.",
+    "lastVerifiedOn": "",
+    "metaDescription": "",
+    "metaTitle": "",
+    "schemaVersion": 1,
+    "slug": "ski-and-snowboard-tuning",
+    "sourceUrl": "",
+    "summary": "Base grind, edge work and hot wax, usually back within two days. Binding checks by appointment.",
+    "title": "Ski and snowboard tuning"
+   },
+   "revisionId": "ef8d5962-a4a5-459f-b990-86700ac25f76",
+   "revisionVersion": 2,
+   "slug": "ski-and-snowboard-tuning",
+   "title": "Ski and snowboard tuning"
+  },
+  "3f7ed5c6-0527-402e-8008-79aad5d46aa9": {
+   "id": "3f7ed5c6-0527-402e-8008-79aad5d46aa9",
+   "kind": "page",
+   "payload": {
+    "attachments": [],
+    "attribution": "",
+    "body": [],
+    "featuredImageAssetId": null,
+    "indexable": true,
+    "lastVerifiedOn": "",
+    "metaDescription": "",
+    "metaTitle": "",
+    "schemaVersion": 1,
+    "sections": [
+     {
+      "appearance": {
+       "align": "start",
+       "background": "default",
+       "width": "default"
+      },
+      "heading": "Contact us",
+      "id": "s-callout",
+      "showContactDetails": true,
+      "text": "Company questions go to the address below. Store questions are best sent through the form with the store selected.",
+      "type": "contact_callout",
+      "variant": "default"
+     },
+     {
+      "appearance": {
+       "align": "start",
+       "background": "default",
+       "width": "default"
+      },
+      "heading": "Send an inquiry",
+      "id": "s-form",
+      "intro": "Tell us what you need and which store you would visit. You will get a receipt reference right away.",
+      "locationSelect": true,
+      "type": "inquiry_form",
+      "variant": "default"
+     },
+     {
+      "appearance": {
+       "align": "start",
+       "background": "default",
+       "width": "default"
+      },
+      "heading": "Before you ask",
+      "id": "s-faq",
+      "items": [
+       {
+        "answer": [
+         {
+          "text": "Not from this site: there is no live inventory here. Send the store a question with the model and size and the floor staff will check the shelf and answer.",
+          "type": "paragraph"
+         }
+        ],
+        "question": "Can you tell me whether a size is in stock?"
+       },
+       {
+        "answer": [
+         {
+          "text": "Same day if you drop off before noon at Boulder or Longmont, otherwise next day. Race tunes and base repairs are quoted in the store.",
+          "type": "paragraph"
+         }
+        ],
+        "question": "How long does a ski tune take?"
+       },
+       {
+        "answer": [
+         {
+          "text": "No. Everything is collected in a store; that is how the fitting and tuning services stay honest.",
+          "type": "paragraph"
+         }
+        ],
+        "question": "Do you ship?"
+       }
+      ],
+      "type": "faq",
+      "variant": "default"
+     },
+     {
+      "address": {
+       "approved": false,
+       "line1": "4100 Foothills Way",
+       "line2": "Suite 200",
+       "locality": "Longmont",
+       "postalCode": "80501",
+       "region": "CO"
+      },
+      "appearance": {
+       "align": "start",
+       "background": "default",
+       "width": "default"
+      },
+      "embed": true,
+      "heading": "Head office",
+      "id": "s-office",
+      "label": "Get directions",
+      "latitude": 40.1672,
+      "longitude": -105.1019,
+      "provider": "google",
+      "text": "Range Athletics Inc. is run from the Longmont store's upper floor. Deliveries and team orders go here.",
+      "type": "map_link",
+      "variant": "card"
+     }
+    ],
+    "slug": "contact",
+    "sourceUrl": "",
+    "summary": "Ask a store about a service, a fitting or an order. Choose the store so the right people answer.",
+    "title": "Contact"
+   },
+   "revisionId": "11a95545-e8ca-46eb-bc47-f2df23732b86",
+   "revisionVersion": 2,
+   "slug": "contact",
+   "title": "Contact"
+  },
+  "51017293-98b0-4401-ae42-f3903d2ea56e": {
+   "id": "51017293-98b0-4401-ae42-f3903d2ea56e",
+   "kind": "page",
+   "payload": {
+    "attachments": [],
+    "attribution": "",
+    "body": [],
+    "featuredImageAssetId": null,
+    "indexable": true,
+    "lastVerifiedOn": "",
+    "metaDescription": "Range Athletics (fictional): three Colorado stores, current hours, shoe fitting, ski tuning, team outfitting and bike service.",
+    "metaTitle": "",
+    "schemaVersion": 1,
+    "sections": [
+     {
+      "appearance": {
+       "align": "start",
+       "background": "default",
+       "width": "default"
+      },
+      "ctaLabel": "Find a store",
+      "ctaPath": "/locations",
+      "extraImageAssetIds": [],
+      "heading": "Gear for the Front Range, from people who use it",
+      "id": "s-hero",
+      "imageAssetId": "528959e1-a582-4b1e-99ba-74858d2a7a09",
+      "overlay": "medium",
+      "subheading": "Three stores, real hours, and services you can ask about before you drive over. No online checkout: come in, or send a store a question.",
+      "type": "image_hero",
+      "variant": "full"
+     },
+     {
+      "appearance": {
+       "align": "start",
+       "background": "default",
+       "width": "default"
+      },
+      "heading": "Find a store",
+      "id": "s-stores",
+      "itemIds": [],
+      "mode": "all",
+      "type": "location_collection",
+      "variant": "default"
+     },
+     {
+      "appearance": {
+       "align": "start",
+       "background": "default",
+       "width": "default"
+      },
+      "heading": "",
+      "id": "s-facts",
+      "items": [
+       {
+        "label": "Stores",
+        "value": "3 on the Front Range"
+       },
+       {
+        "label": "Services",
+        "value": "4, each with the stores that offer it"
+       },
+       {
+        "label": "Founded",
+        "value": "1998 (fictional)"
+       }
+      ],
+      "type": "facts",
+      "variant": "inline"
+     },
+     {
+      "appearance": {
+       "align": "start",
+       "background": "default",
+       "width": "default"
+      },
+      "heading": "Why people drive to us",
+      "id": "s-why",
+      "items": [
+       {
+        "assetId": "b2be4d27-0c3c-42c1-81c6-fa6d87005257",
+        "body": [
+         {
+          "text": "Twenty minutes on the treadmill, both feet measured, three or four options pulled before you try anything on. No charge, no obligation, and the socks you actually run in.",
+          "type": "paragraph"
+         }
+        ],
+        "ctaLabel": "Book a fitting",
+        "ctaPath": "/services/shoe-fitting",
+        "heading": "A shoe wall with people who watch you run"
+       },
+       {
+        "assetId": "adf69185-f6da-44d6-bb92-faf34ba7dd4c",
+        "body": [
+         {
+          "text": "Flats and quick adjustments while you wait, full tune-ups by appointment, and Friday nights that run late for the group rides that end downtown.",
+          "type": "paragraph"
+         }
+        ],
+        "ctaLabel": "Bike service",
+        "ctaPath": "/services/bike-service",
+        "heading": "A bike counter open whenever the store is"
+       }
+      ],
+      "type": "image_text",
+      "variant": "default"
+     },
+     {
+      "appearance": {
+       "align": "start",
+       "background": "default",
+       "width": "default"
+      },
+      "columns": 4,
+      "heading": "Services",
+      "id": "s-services",
+      "itemIds": [],
+      "kind": "service",
+      "limit": 4,
+      "mode": "latest",
+      "type": "content_collection",
+      "variant": "cards"
+     },
+     {
+      "appearance": {
+       "align": "center",
+       "background": "default",
+       "width": "default"
+      },
+      "ctaLabel": "Book a tune",
+      "ctaPath": "/services/ski-and-snowboard-tuning",
+      "heading": "Winter tuning is open",
+      "id": "s-band",
+      "imageAssetId": "528959e1-a582-4b1e-99ba-74858d2a7a09",
+      "secondaryLabel": "Find a store",
+      "secondaryPath": "/locations",
+      "strength": "strong",
+      "text": "Base grind, edge work and hot wax at Longmont and Boulder, usually back within two days.",
+      "tint": "primary",
+      "type": "image_band",
+      "variant": "default"
+     },
+     {
+      "appearance": {
+       "align": "start",
+       "background": "default",
+       "width": "default"
+      },
+      "heading": "Featured store",
+      "id": "s-featured",
+      "itemIds": [
+       "cb828543-62c4-405a-80c1-f41accf0259a"
+      ],
+      "mode": "selected",
+      "type": "location_collection",
+      "variant": "default"
+     },
+     {
+      "appearance": {
+       "align": "start",
+       "background": "tint",
+       "width": "default"
+      },
+      "heading": "What customers say",
+      "id": "s-voices",
+      "items": [
+       {
+        "assetId": "3b887a92-9084-4a04-aba7-b7b0dcf5b2e4",
+        "attribution": "Sam Delgado",
+        "role": "Runs the Boulder creek path (fictional)",
+        "text": "They watched me run before they sold me anything. The shoes fit, and my knees stopped complaining."
+       },
+       {
+        "assetId": "74b89a48-ac8b-427e-b31d-9650a8a5311f",
+        "attribution": "Ruth Kimani",
+        "role": "Team coordinator, north county (fictional)",
+        "text": "The site said Fort Collins was closed for the floor. It was. That is worth more than a slogan."
+       }
+      ],
+      "type": "quotes",
+      "variant": "grid"
+     },
+     {
+      "appearance": {
+       "align": "start",
+       "background": "default",
+       "width": "default"
+      },
+      "heading": "At the counter",
+      "id": "s-people",
+      "intro": "The people who answer the store inquiries. All three are fictional.",
+      "items": [
+       {
+        "assetId": "77d7e24e-8953-4304-b448-ef43800e1d22",
+        "name": "Priya Natarajan",
+        "path": "/locations/longmont",
+        "role": "Store manager, Longmont",
+        "text": "Runs the shoe wall and the fitting bookings."
+       },
+       {
+        "assetId": "d334a06c-86fc-40db-ab50-be6b7f8f52b7",
+        "name": "Cole Whitfield",
+        "path": "",
+        "role": "Head mechanic",
+        "text": "Suspension bench in Longmont, tuning in season."
+       },
+       {
+        "assetId": "e7e6202a-1c5d-4e5e-96d7-fc242bf6ca41",
+        "name": "Lena Ortiz",
+        "path": "/services/team-outfitting",
+        "role": "Team outfitting",
+        "text": "One coordinator, one invoice, size runs delivered for fittings."
+       }
+      ],
+      "type": "team",
+      "variant": "default"
+     },
+     {
+      "appearance": {
+       "align": "start",
+       "background": "default",
+       "width": "default"
+      },
+      "heading": "Brands we fit",
+      "id": "s-brands",
+      "items": [
+       {
+        "assetId": "e76090a5-991d-498a-8fcd-b05478c455da",
+        "label": "",
+        "path": ""
+       },
+       {
+        "assetId": "f6664415-9da3-473b-aaeb-7562ccb7adf9",
+        "label": "",
+        "path": ""
+       },
+       {
+        "assetId": "d7570f88-279f-4168-9bab-63996584a91e",
+        "label": "",
+        "path": ""
+       },
+       {
+        "assetId": "72bcf48c-ffab-4c71-b984-3e1d82eec7d7",
+        "label": "",
+        "path": ""
+       }
+      ],
+      "type": "logo_strip",
+      "variant": "mono"
+     },
+     {
+      "appearance": {
+       "align": "start",
+       "background": "default",
+       "width": "default"
+      },
+      "columns": 2,
+      "heading": "Clubs and resources",
+      "id": "s-links",
+      "itemIds": [],
+      "kind": "link",
+      "limit": 2,
+      "mode": "latest",
+      "type": "content_collection",
+      "variant": "cards"
+     },
+     {
+      "appearance": {
+       "align": "center",
+       "background": "accent",
+       "width": "default"
+      },
+      "ctaLabel": "Contact us",
+      "ctaPath": "/contact",
+      "heading": "Questions? Ask a store",
+      "id": "s-contact",
+      "secondaryLabel": "",
+      "secondaryPath": "",
+      "text": "Each store answers its own inquiries. Choose the store on the contact page and you will hear back from the people who work there.",
+      "type": "cta_banner",
+      "variant": "default"
+     }
+    ],
+    "slug": "home",
+    "sourceUrl": "",
+    "summary": "Range Athletics is a fictional Front Range sporting-goods retailer with three stores, honest hours and services you can ask about before you drive.",
+    "title": "Home"
+   },
+   "revisionId": "37040801-e339-4683-9330-ce2fc735404e",
+   "revisionVersion": 2,
+   "slug": "home",
+   "title": "Home"
+  },
+  "51f2edd2-de3a-4127-9c8f-30dc67b0539c": {
+   "id": "51f2edd2-de3a-4127-9c8f-30dc67b0539c",
+   "kind": "service",
+   "payload": {
+    "attachments": [],
+    "attribution": "",
+    "body": [
+     {
+      "text": "Bring a roster and a rough budget; we come back with samples, a size run for fittings, and a delivery date. Orders go through one coordinator so nobody chases twelve parents for sizes.",
+      "type": "paragraph"
+     },
+     {
+      "items": [
+       "Numbering and names done locally",
+       "Size runs delivered for fittings",
+       "Youth through adult sizing"
+      ],
+      "style": "bullet",
+      "type": "list"
+     }
+    ],
+    "featuredImageAssetId": "d820fc41-d8af-48ce-aa08-33ca38669501",
+    "indexable": true,
+    "inquiryPrompt": "Coaching a team this season? Tell us the sport, roster size and season start.",
+    "lastVerifiedOn": "",
+    "metaDescription": "",
+    "metaTitle": "",
+    "schemaVersion": 1,
+    "slug": "team-outfitting",
+    "sourceUrl": "",
+    "summary": "Uniforms, warm-ups and equipment for school and club teams, ordered together with one contact and one invoice.",
+    "title": "Team outfitting"
+   },
+   "revisionId": "c10b24aa-7a07-49e1-b0ef-5087ed92ccc7",
+   "revisionVersion": 2,
+   "slug": "team-outfitting",
+   "title": "Team outfitting"
+  },
+  "58fc9af6-4dfc-438d-a7c6-95249b9a1763": {
+   "id": "58fc9af6-4dfc-438d-a7c6-95249b9a1763",
+   "kind": "page",
+   "payload": {
+    "attachments": [],
+    "attribution": "",
+    "body": [],
+    "featuredImageAssetId": null,
+    "indexable": true,
+    "lastVerifiedOn": "",
+    "metaDescription": "",
+    "metaTitle": "",
+    "schemaVersion": 1,
+    "sections": [
+     {
+      "appearance": {
+       "align": "start",
+       "background": "default",
+       "width": "default"
+      },
+      "ctaLabel": "",
+      "ctaPath": "",
+      "extraImageAssetIds": [],
+      "heading": "Honest hours. Real people.",
+      "id": "s-about-hero",
+      "imageAssetId": "b2be4d27-0c3c-42c1-81c6-fa6d87005257",
+      "overlay": "medium",
+      "subheading": "What Range Athletics is, and what this demonstration site is and is not.",
+      "type": "image_hero",
+      "variant": "statement"
+     },
+     {
+      "appearance": {
+       "align": "start",
+       "background": "default",
+       "width": "default"
+      },
+      "body": [
+       {
+        "text": "Range Athletics is a fictional retailer created to demonstrate a multi-location business website. The stores, addresses, phone numbers and people on this site do not exist; the hours and services are realistic examples, not claims about any real business.",
+        "type": "paragraph"
+       },
+       {
+        "level": 2,
+        "text": "What a real store site would do",
+        "type": "heading"
+       },
+       {
+        "items": [
+         "Publish hours per store with date exceptions, and say so when hours are unknown",
+         "List which services each store actually offers",
+         "Route questions to the store that can answer them"
+        ],
+        "style": "bullet",
+        "type": "list"
+       },
+       {
+        "type": "divider"
+       },
+       {
+        "level": 2,
+        "text": "What it deliberately does not do",
+        "type": "heading"
+       },
+       {
+        "text": "There is no inventory, no prices and no availability promise on this site. Those claims need a live connection to the stores' systems; without one, the honest choice is to let you ask.",
+        "type": "paragraph"
+       },
+       {
+        "text": "Want to know whether a size is on the shelf? Send the store a question with the model and size and the floor staff will check.",
+        "type": "callout"
+       },
+       {
+        "label": "Ask a store",
+        "target": "/contact",
+        "type": "button"
+       }
+      ],
+      "heading": "About Range Athletics",
+      "id": "s-about",
+      "type": "rich_text",
+      "variant": "default"
+     },
+     {
+      "appearance": {
+       "align": "start",
+       "background": "default",
+       "width": "default"
+      },
+      "aspect": "landscape",
+      "columns": 3,
+      "heading": "Three stores",
+      "id": "s-stores-gallery",
+      "items": [
+       {
+        "assetId": "b2be4d27-0c3c-42c1-81c6-fa6d87005257",
+        "caption": "Longmont: the flagship on Foothills Way"
+       },
+       {
+        "assetId": "adf69185-f6da-44d6-bb92-faf34ba7dd4c",
+        "caption": "Boulder: downtown on Walnut Street"
+       },
+       {
+        "assetId": "f5ff9cf8-b1bf-47ce-9fcf-94a8bfc9455c",
+        "caption": "Fort Collins: closed while the floor is replaced"
+       }
+      ],
+      "lightbox": true,
+      "type": "gallery",
+      "variant": "grid"
+     },
+     {
+      "appearance": {
+       "align": "start",
+       "background": "default",
+       "width": "default"
+      },
+      "heading": "Forms and guides",
+      "id": "s-downloads",
+      "intro": "",
+      "items": [
+       {
+        "assetId": "ebc06577-c86e-459b-bae3-8b83f8fb21aa",
+        "label": "",
+        "note": "What to bring to a shoe fitting."
+       },
+       {
+        "assetId": "0af2596b-28b5-4d55-b765-4e5f109c1e32",
+        "label": "Team order form",
+        "note": "For coaches ordering for a squad."
+       }
+      ],
+      "type": "downloads",
+      "variant": "grid"
+     }
+    ],
+    "slug": "about",
+    "sourceUrl": "",
+    "summary": "What Range Athletics is, and what this demonstration site is and is not.",
+    "title": "About"
+   },
+   "revisionId": "cd584136-de9c-4300-85d5-c23c4e32a15c",
+   "revisionVersion": 2,
+   "slug": "about",
+   "title": "About"
+  },
+  "9e20754f-24a3-4b97-bff0-17d0b479e987": {
+   "id": "9e20754f-24a3-4b97-bff0-17d0b479e987",
+   "kind": "link",
+   "payload": {
+    "attachments": [],
+    "attribution": "",
+    "body": [],
+    "category": "Safety",
+    "ctaLabel": "Find an evening",
+    "featuredImageAssetId": null,
+    "indexable": true,
+    "lastVerifiedOn": "2026-09-22",
+    "metaDescription": "",
+    "metaTitle": "",
+    "schemaVersion": 1,
+    "slug": "backcountry-snow-safety",
+    "sourceUrl": "",
+    "summary": "The avalanche awareness evenings the tuning bench sends every new backcountry customer to, run by a fictional non-profit. Free; register on their site.",
+    "title": "Backcountry snow safety evenings",
+    "url": "https://snowsafety.example/evenings"
+   },
+   "revisionId": "8af833c9-130c-46eb-8c5b-079ae765874e",
+   "revisionVersion": 1,
+   "slug": "backcountry-snow-safety",
+   "title": "Backcountry snow safety evenings"
+  },
+  "b0233b84-eaba-4aaa-bd80-161f5f55234f": {
+   "id": "b0233b84-eaba-4aaa-bd80-161f5f55234f",
+   "kind": "store",
+   "payload": {
+    "address": {
+     "approved": false,
+     "line1": "1450 Walnut Street",
+     "line2": "",
+     "locality": "Boulder",
+     "postalCode": "80302",
+     "region": "CO"
+    },
+    "attachments": [],
+    "attribution": "",
+    "body": [
+     {
+      "text": "Boulder is the store for people who ride or run straight from the door. The bike counter is open whenever the store is, and Friday evenings run late into the night for group rides that end downtown.",
+      "type": "paragraph"
+     },
+     {
+      "level": 2,
+      "text": "Parking and access",
+      "type": "heading"
+     },
+     {
+      "text": "Street parking is limited; the garage on Walnut is two blocks away. The entrance has a short ramp.",
+      "type": "paragraph"
+     }
+    ],
+    "exceptions": [
+     {
+      "closed": true,
+      "date": "2026-11-26",
+      "intervals": [],
+      "label": "Thanksgiving"
+     }
+    ],
+    "featuredImageAssetId": "adf69185-f6da-44d6-bb92-faf34ba7dd4c",
+    "indexable": true,
+    "lastVerifiedOn": "2026-09-16",
+    "metaDescription": "",
+    "metaTitle": "",
+    "phone": "(720) 555-0192",
+    "schemaVersion": 1,
+    "serviceItemIds": [
+     "17b8e654-af75-470d-b277-3c64452710a4",
+     "2d9d4103-1de5-4d5a-b88b-ccb7572671e8",
+     "c25687f2-b953-475e-b824-47817682487c"
+    ],
+    "slug": "boulder",
+    "sourceUrl": "",
+    "status": "open",
+    "statusNote": "",
+    "summary": "Downtown store near the creek path with a smaller shoe wall, a busy bike counter and Friday late hours for the trail crowd.",
+    "timeZone": "America/Denver",
+    "title": "Range Athletics Boulder",
+    "weeklyHours": {
+     "fri": [
+      {
+       "close": "01:00",
+       "closesNextDay": true,
+       "open": "10:00"
+      }
+     ],
+     "mon": [
+      {
+       "close": "19:00",
+       "closesNextDay": false,
+       "open": "10:00"
+      }
+     ],
+     "sat": [
+      {
+       "close": "19:00",
+       "closesNextDay": false,
+       "open": "09:00"
+      }
+     ],
+     "sun": [],
+     "thu": [
+      {
+       "close": "19:00",
+       "closesNextDay": false,
+       "open": "10:00"
+      }
+     ],
+     "tue": [
+      {
+       "close": "19:00",
+       "closesNextDay": false,
+       "open": "10:00"
+      }
+     ],
+     "wed": [
+      {
+       "close": "13:00",
+       "closesNextDay": false,
+       "open": "10:00"
+      },
+      {
+       "close": "19:00",
+       "closesNextDay": false,
+       "open": "14:00"
+      }
+     ]
+    }
+   },
+   "revisionId": "b466ff35-6238-42bd-bf06-0845c647bdca",
+   "revisionVersion": 2,
+   "slug": "boulder",
+   "title": "Range Athletics Boulder"
+  },
+  "b17ad445-6cfa-422f-9941-e218411e1795": {
+   "id": "b17ad445-6cfa-422f-9941-e218411e1795",
+   "kind": "store",
+   "payload": {
+    "address": {
+     "approved": false,
+     "line1": "2200 College Avenue",
+     "line2": "",
+     "locality": "Fort Collins",
+     "postalCode": "80525",
+     "region": "CO"
+    },
+    "attachments": [],
+    "attribution": "",
+    "body": [
+     {
+      "text": "The Fort Collins store is closed while the sales floor is replaced. Team orders continue through the coordinator by phone and email, and shoe fittings are being handled in Longmont in the meantime.",
+      "type": "paragraph"
+     }
+    ],
+    "exceptions": [],
+    "featuredImageAssetId": "f5ff9cf8-b1bf-47ce-9fcf-94a8bfc9455c",
+    "indexable": true,
+    "lastVerifiedOn": "2026-09-25",
+    "metaDescription": "",
+    "metaTitle": "",
+    "phone": "(970) 555-0193",
+    "schemaVersion": 1,
+    "serviceItemIds": [
+     "51f2edd2-de3a-4127-9c8f-30dc67b0539c",
+     "17b8e654-af75-470d-b277-3c64452710a4"
+    ],
+    "slug": "fort-collins",
+    "sourceUrl": "",
+    "status": "temporarily_closed",
+    "statusNote": "Closed for floor replacement; team orders continue by phone",
+    "summary": "North store with the team-outfitting showroom. Temporarily closed for a floor replacement; reopening date to be announced.",
+    "timeZone": "America/Denver",
+    "title": "Range Athletics Fort Collins",
+    "weeklyHours": {
+     "fri": [
+      {
+       "close": "19:00",
+       "closesNextDay": false,
+       "open": "10:00"
+      }
+     ],
+     "mon": [
+      {
+       "close": "19:00",
+       "closesNextDay": false,
+       "open": "10:00"
+      }
+     ],
+     "sat": [
+      {
+       "close": "18:00",
+       "closesNextDay": false,
+       "open": "09:00"
+      }
+     ],
+     "sun": [
+      {
+       "close": "17:00",
+       "closesNextDay": false,
+       "open": "11:00"
+      }
+     ],
+     "thu": [
+      {
+       "close": "19:00",
+       "closesNextDay": false,
+       "open": "10:00"
+      }
+     ],
+     "tue": [
+      {
+       "close": "19:00",
+       "closesNextDay": false,
+       "open": "10:00"
+      }
+     ],
+     "wed": [
+      {
+       "close": "19:00",
+       "closesNextDay": false,
+       "open": "10:00"
+      }
+     ]
+    }
+   },
+   "revisionId": "168c4984-d730-4b47-b383-27d1f529fff7",
+   "revisionVersion": 2,
+   "slug": "fort-collins",
+   "title": "Range Athletics Fort Collins"
+  },
+  "c25687f2-b953-475e-b824-47817682487c": {
+   "id": "c25687f2-b953-475e-b824-47817682487c",
+   "kind": "service",
+   "payload": {
+    "attachments": [],
+    "attribution": "",
+    "body": [
+     {
+      "text": "Walk in for flats and quick adjustments; book for full tune-ups and suspension work. The Longmont shop has the suspension bench; Boulder handles most everything else.",
+      "type": "paragraph"
+     },
+     {
+      "items": [
+       "Flats and quick fixes while you wait",
+       "Full tune-ups by appointment",
+       "Suspension service in Longmont"
+      ],
+      "style": "bullet",
+      "type": "list"
+     }
+    ],
+    "featuredImageAssetId": "1c9cf574-31b3-4d71-9412-48ebaa9169ac",
+    "indexable": true,
+    "inquiryPrompt": "Describe the noise or the problem and a mechanic will reply with what to expect.",
+    "lastVerifiedOn": "",
+    "metaDescription": "",
+    "metaTitle": "",
+    "schemaVersion": 1,
+    "slug": "bike-service",
+    "sourceUrl": "",
+    "summary": "Tune-ups, brake bleeds, wheel builds and flats while you wait, from mechanics who ride the same trails.",
+    "title": "Bike service"
+   },
+   "revisionId": "3e592f8f-9c56-488c-ab28-914bd5c5b939",
+   "revisionVersion": 2,
+   "slug": "bike-service",
+   "title": "Bike service"
+  },
+  "cb828543-62c4-405a-80c1-f41accf0259a": {
+   "id": "cb828543-62c4-405a-80c1-f41accf0259a",
+   "kind": "store",
+   "payload": {
+    "address": {
+     "approved": false,
+     "line1": "4100 Foothills Way",
+     "line2": "Suite 100",
+     "locality": "Longmont",
+     "postalCode": "80501",
+     "region": "CO"
+    },
+    "attachments": [],
+    "attribution": "",
+    "body": [
+     {
+      "text": "The Longmont store is the original and the largest. The shoe wall runs the length of the back, the service counter handles bikes year-round and skis in season, and the team-outfitting office is upstairs.",
+      "type": "paragraph"
+     },
+     {
+      "level": 2,
+      "text": "Parking and access",
+      "type": "heading"
+     },
+     {
+      "text": "Free lot in front; the accessible entrance is the main door. Bike racks are beside the service bay.",
+      "type": "paragraph"
+     }
+    ],
+    "exceptions": [
+     {
+      "closed": true,
+      "date": "2026-11-26",
+      "intervals": [],
+      "label": "Thanksgiving"
+     },
+     {
+      "closed": false,
+      "date": "2026-11-27",
+      "intervals": [
+       {
+        "close": "22:00",
+        "closesNextDay": false,
+        "open": "06:00"
+       }
+      ],
+      "label": "Black Friday"
+     },
+     {
+      "closed": false,
+      "date": "2026-10-05",
+      "intervals": [
+       {
+        "close": "20:00",
+        "closesNextDay": false,
+        "open": "13:00"
+       }
+      ],
+      "label": "Inventory count"
+     }
+    ],
+    "featuredImageAssetId": "b2be4d27-0c3c-42c1-81c6-fa6d87005257",
+    "indexable": true,
+    "lastVerifiedOn": "2026-09-26",
+    "metaDescription": "",
+    "metaTitle": "",
+    "phone": "(720) 555-0191",
+    "schemaVersion": 1,
+    "serviceItemIds": [
+     "17b8e654-af75-470d-b277-3c64452710a4",
+     "2d9d4103-1de5-4d5a-b88b-ccb7572671e8",
+     "51f2edd2-de3a-4127-9c8f-30dc67b0539c",
+     "c25687f2-b953-475e-b824-47817682487c"
+    ],
+    "slug": "longmont",
+    "sourceUrl": "",
+    "status": "open",
+    "statusNote": "",
+    "summary": "Flagship store with the full shoe wall, the suspension bench and the winter tuning shop. Easy parking off Foothills Way.",
+    "timeZone": "America/Denver",
+    "title": "Range Athletics Longmont",
+    "weeklyHours": {
+     "fri": [
+      {
+       "close": "21:00",
+       "closesNextDay": false,
+       "open": "09:00"
+      }
+     ],
+     "mon": [
+      {
+       "close": "20:00",
+       "closesNextDay": false,
+       "open": "09:00"
+      }
+     ],
+     "sat": [
+      {
+       "close": "21:00",
+       "closesNextDay": false,
+       "open": "08:00"
+      }
+     ],
+     "sun": [
+      {
+       "close": "18:00",
+       "closesNextDay": false,
+       "open": "10:00"
+      }
+     ],
+     "thu": [
+      {
+       "close": "20:00",
+       "closesNextDay": false,
+       "open": "09:00"
+      }
+     ],
+     "tue": [
+      {
+       "close": "20:00",
+       "closesNextDay": false,
+       "open": "09:00"
+      }
+     ],
+     "wed": [
+      {
+       "close": "20:00",
+       "closesNextDay": false,
+       "open": "09:00"
+      }
+     ]
+    }
+   },
+   "revisionId": "ae75da05-3ac1-4bd7-92a4-1746fb3b3d40",
+   "revisionVersion": 3,
+   "slug": "longmont",
+   "title": "Range Athletics Longmont"
+  },
+  "e31a8b27-e258-4a85-83d7-462bd0dd5d87": {
+   "id": "e31a8b27-e258-4a85-83d7-462bd0dd5d87",
+   "kind": "link",
+   "payload": {
+    "attachments": [],
+    "attribution": "",
+    "body": [],
+    "category": "Clubs",
+    "ctaLabel": "See the run calendar",
+    "featuredImageAssetId": "528959e1-a582-4b1e-99ba-74858d2a7a09",
+    "indexable": true,
+    "lastVerifiedOn": "2026-09-22",
+    "metaDescription": "",
+    "metaTitle": "",
+    "schemaVersion": 1,
+    "slug": "front-range-trail-runners",
+    "sourceUrl": "",
+    "summary": "The club whose Saturday runs leave from the Boulder store's lot: calendar, pace groups and the shoe-demo mornings we host together.",
+    "title": "Front Range Trail Runners",
+    "url": "https://frontrangetrailrunners.example"
+   },
+   "revisionId": "d63482b3-29d0-45c7-a14a-6ebdf573aead",
+   "revisionVersion": 2,
+   "slug": "front-range-trail-runners",
+   "title": "Front Range Trail Runners"
+  }
+ },
+ "media": {
+  "09e35677-2e44-454c-9018-17782fc078e5": {
+   "alt": "Range Athletics",
+   "attribution": "Original artwork created for the Lerner Works demonstration",
+   "decorative": false,
+   "hash": "0f531885f9fdb8e2cd670f84fa5bce26308c6099fecd158b91f5b5ac0f5f4624",
+   "height": 320,
+   "id": "09e35677-2e44-454c-9018-17782fc078e5",
+   "license": "CC0-1.0 — original vector artwork generated for this demonstration",
+   "title": "Range Athletics logo",
+   "variants": {
+    "w480": {
+     "bytes": 10562,
+     "hash": "9cef563b93945bc1057a5956193592649c8be7734c58b45f04c90bfa404c8b78",
+     "height": 160,
+     "key": "cdad5abe-86c2-4a56-afda-24751abf835e/e7556342-6b74-456b-9b93-914dbbfbddee/09e35677-2e44-454c-9018-17782fc078e5/w480.webp",
+     "path": "9cef563b93945bc1057a5956193592649c8be7734c58b45f04c90bfa404c8b78-w480.webp",
+     "width": 480
+    },
+    "w960": {
+     "bytes": 10258,
+     "hash": "29701dd5127d94a3fc4772ca7b057d2dacb46f360b5c0185ccff375724118afa",
+     "height": 320,
+     "key": "cdad5abe-86c2-4a56-afda-24751abf835e/e7556342-6b74-456b-9b93-914dbbfbddee/09e35677-2e44-454c-9018-17782fc078e5/w960.webp",
+     "path": "29701dd5127d94a3fc4772ca7b057d2dacb46f360b5c0185ccff375724118afa-w960.webp",
+     "width": 960
+    }
+   },
+   "width": 960
+  },
+  "0af2596b-28b5-4d55-b765-4e5f109c1e32": {
+   "alt": "",
+   "attribution": "Sample document written for the Lerner Works demonstration",
+   "decorative": false,
+   "hash": "41defcfebfe2a390398eb5d7b7548556fd54a633f8d2efc38c10927b6c727b34",
+   "height": 0,
+   "id": "0af2596b-28b5-4d55-b765-4e5f109c1e32",
+   "kind": "document",
+   "license": "CC0-1.0 — original vector artwork generated for this demonstration",
+   "mime": "application/pdf",
+   "title": "Team order form",
+   "variants": {
+    "file": {
+     "bytes": 1026,
+     "hash": "41defcfebfe2a390398eb5d7b7548556fd54a633f8d2efc38c10927b6c727b34",
+     "height": 0,
+     "key": "cdad5abe-86c2-4a56-afda-24751abf835e/e7556342-6b74-456b-9b93-914dbbfbddee/0af2596b-28b5-4d55-b765-4e5f109c1e32/original.pdf",
+     "path": "41defcfebfe2a390398eb5d7b7548556fd54a633f8d2efc38c10927b6c727b34.pdf",
+     "width": 0
+    }
+   },
+   "width": 0
+  },
+  "1c9cf574-31b3-4d71-9412-48ebaa9169ac": {
+   "alt": "Flat illustration of a wrench",
+   "attribution": "Original artwork created for the Lerner Works demonstration",
+   "decorative": false,
+   "hash": "39b963474f834921b5f848276f0b60c89a81cf7c4ad285f0cfc6689d30b562c1",
+   "height": 900,
+   "id": "1c9cf574-31b3-4d71-9412-48ebaa9169ac",
+   "license": "CC0-1.0 — original vector artwork generated for this demonstration",
+   "title": "Bike service",
+   "variants": {
+    "w1600": {
+     "bytes": 7470,
+     "hash": "7b94516987d58422c7bfebe0a4c6fdfab90d63bcd6335d8bac17a5ac9aaa643c",
+     "height": 900,
+     "key": "cdad5abe-86c2-4a56-afda-24751abf835e/e7556342-6b74-456b-9b93-914dbbfbddee/1c9cf574-31b3-4d71-9412-48ebaa9169ac/w1600.webp",
+     "path": "7b94516987d58422c7bfebe0a4c6fdfab90d63bcd6335d8bac17a5ac9aaa643c-w1600.webp",
+     "width": 1200
+    },
+    "w480": {
+     "bytes": 2408,
+     "hash": "a96af43c34ad49b5bb97d81e44d2794804a9b4c99ab747daa535f5f5817dd72a",
+     "height": 360,
+     "key": "cdad5abe-86c2-4a56-afda-24751abf835e/e7556342-6b74-456b-9b93-914dbbfbddee/1c9cf574-31b3-4d71-9412-48ebaa9169ac/w480.webp",
+     "path": "a96af43c34ad49b5bb97d81e44d2794804a9b4c99ab747daa535f5f5817dd72a-w480.webp",
+     "width": 480
+    },
+    "w960": {
+     "bytes": 5434,
+     "hash": "a83cf1ac684144cde34a78c0786c3ebb1acfa2726388b1a77d9c448c8a73e7c2",
+     "height": 720,
+     "key": "cdad5abe-86c2-4a56-afda-24751abf835e/e7556342-6b74-456b-9b93-914dbbfbddee/1c9cf574-31b3-4d71-9412-48ebaa9169ac/w960.webp",
+     "path": "a83cf1ac684144cde34a78c0786c3ebb1acfa2726388b1a77d9c448c8a73e7c2-w960.webp",
+     "width": 960
+    }
+   },
+   "width": 1200
+  },
+  "3b887a92-9084-4a04-aba7-b7b0dcf5b2e4": {
+   "alt": "Stylised portrait of Sam Delgado, a fictional customer",
+   "attribution": "Original artwork created for the Lerner Works demonstration",
+   "decorative": false,
+   "hash": "2d3c19538ad3253bbcef904b80a8fd47b50e780ec918ad5e832bdf628a3d738c",
+   "height": 800,
+   "id": "3b887a92-9084-4a04-aba7-b7b0dcf5b2e4",
+   "license": "CC0-1.0 — original vector artwork generated for this demonstration",
+   "title": "Sam Delgado",
+   "variants": {
+    "w480": {
+     "bytes": 6748,
+     "hash": "017bf8e6c3ae924747029bd1d9d2a1e463ce7b12383e5cff1e6460d9501bf37a",
+     "height": 480,
+     "key": "cdad5abe-86c2-4a56-afda-24751abf835e/e7556342-6b74-456b-9b93-914dbbfbddee/3b887a92-9084-4a04-aba7-b7b0dcf5b2e4/w480.webp",
+     "path": "017bf8e6c3ae924747029bd1d9d2a1e463ce7b12383e5cff1e6460d9501bf37a-w480.webp",
+     "width": 480
+    },
+    "w960": {
+     "bytes": 11354,
+     "hash": "983f3bb2d7edab5ad38b5d0b209d8d4bed08d570646eee72d000b941ac26e180",
+     "height": 800,
+     "key": "cdad5abe-86c2-4a56-afda-24751abf835e/e7556342-6b74-456b-9b93-914dbbfbddee/3b887a92-9084-4a04-aba7-b7b0dcf5b2e4/w960.webp",
+     "path": "983f3bb2d7edab5ad38b5d0b209d8d4bed08d570646eee72d000b941ac26e180-w960.webp",
+     "width": 800
+    }
+   },
+   "width": 800
+  },
+  "528959e1-a582-4b1e-99ba-74858d2a7a09": {
+   "alt": "Illustrated foothills under a dusk sky, with a ridge line and a valley road",
+   "attribution": "Original artwork created for the Lerner Works demonstration",
+   "decorative": false,
+   "focal": {
+    "x": 0.5,
+    "y": 0.38
+   },
+   "hash": "aa197a67d4e55a90cad1b1126798e1ed1574c2309f1ada9af4a33afc05c302d3",
+   "height": 900,
+   "id": "528959e1-a582-4b1e-99ba-74858d2a7a09",
+   "license": "CC0-1.0 — original vector artwork generated for this demonstration",
+   "title": "Front Range foothills at dusk",
+   "variants": {
+    "w1600": {
+     "bytes": 12580,
+     "hash": "0427e80325b2743ecb6f267436d31e8a82aab7651cae4115c3c2ee33044d4240",
+     "height": 900,
+     "key": "cdad5abe-86c2-4a56-afda-24751abf835e/e7556342-6b74-456b-9b93-914dbbfbddee/528959e1-a582-4b1e-99ba-74858d2a7a09/w1600.webp",
+     "path": "0427e80325b2743ecb6f267436d31e8a82aab7651cae4115c3c2ee33044d4240-w1600.webp",
+     "width": 1600
+    },
+    "w480": {
+     "bytes": 2866,
+     "hash": "e7cbbb176411e9c9eb46d6f5e525d47569f2f914d17768a59aee5c4c663739c2",
+     "height": 270,
+     "key": "cdad5abe-86c2-4a56-afda-24751abf835e/e7556342-6b74-456b-9b93-914dbbfbddee/528959e1-a582-4b1e-99ba-74858d2a7a09/w480.webp",
+     "path": "e7cbbb176411e9c9eb46d6f5e525d47569f2f914d17768a59aee5c4c663739c2-w480.webp",
+     "width": 480
+    },
+    "w960": {
+     "bytes": 6506,
+     "hash": "f9d2d4441a307308aac96f895c13f79c0bf33f21d732cbaf8acf3296fa851698",
+     "height": 540,
+     "key": "cdad5abe-86c2-4a56-afda-24751abf835e/e7556342-6b74-456b-9b93-914dbbfbddee/528959e1-a582-4b1e-99ba-74858d2a7a09/w960.webp",
+     "path": "f9d2d4441a307308aac96f895c13f79c0bf33f21d732cbaf8acf3296fa851698-w960.webp",
+     "width": 960
+    }
+   },
+   "width": 1600
+  },
+  "6793358c-4906-4a5a-b2ed-1b85d192aa91": {
+   "alt": "Flat illustration of two skis crossed with poles",
+   "attribution": "Original artwork created for the Lerner Works demonstration",
+   "decorative": false,
+   "hash": "1e2a74ec3d057630b7607b0fa832319be77c334fab6106ac7e9ccc109efaeeea",
+   "height": 900,
+   "id": "6793358c-4906-4a5a-b2ed-1b85d192aa91",
+   "license": "CC0-1.0 — original vector artwork generated for this demonstration",
+   "title": "Ski tuning",
+   "variants": {
+    "w1600": {
+     "bytes": 16452,
+     "hash": "7a5ef6f7a9809d766797615a0a25c704dd902d4d0cf80812b23f642586c71ea0",
+     "height": 900,
+     "key": "cdad5abe-86c2-4a56-afda-24751abf835e/e7556342-6b74-456b-9b93-914dbbfbddee/6793358c-4906-4a5a-b2ed-1b85d192aa91/w1600.webp",
+     "path": "7a5ef6f7a9809d766797615a0a25c704dd902d4d0cf80812b23f642586c71ea0-w1600.webp",
+     "width": 1200
+    },
+    "w480": {
+     "bytes": 6190,
+     "hash": "b6e754cff3d1f1ec33f2d8feae0996f1434db4a43d27b0bf9d01abcd877fda46",
+     "height": 360,
+     "key": "cdad5abe-86c2-4a56-afda-24751abf835e/e7556342-6b74-456b-9b93-914dbbfbddee/6793358c-4906-4a5a-b2ed-1b85d192aa91/w480.webp",
+     "path": "b6e754cff3d1f1ec33f2d8feae0996f1434db4a43d27b0bf9d01abcd877fda46-w480.webp",
+     "width": 480
+    },
+    "w960": {
+     "bytes": 13184,
+     "hash": "4f9a3e2f618ff22078178a6787c577c00b10a3aa5c3ba4e04e91ed7db69a3948",
+     "height": 720,
+     "key": "cdad5abe-86c2-4a56-afda-24751abf835e/e7556342-6b74-456b-9b93-914dbbfbddee/6793358c-4906-4a5a-b2ed-1b85d192aa91/w960.webp",
+     "path": "4f9a3e2f618ff22078178a6787c577c00b10a3aa5c3ba4e04e91ed7db69a3948-w960.webp",
+     "width": 960
+    }
+   },
+   "width": 1200
+  },
+  "72bcf48c-ffab-4c71-b984-3e1d82eec7d7": {
+   "alt": "Boulder Cycle Works (fictional brand)",
+   "attribution": "Original artwork created for the Lerner Works demonstration",
+   "decorative": false,
+   "hash": "318125429434d33237eb5a930214582bec955ef8a113667127e85054a7582f76",
+   "height": 320,
+   "id": "72bcf48c-ffab-4c71-b984-3e1d82eec7d7",
+   "license": "CC0-1.0 — original vector artwork generated for this demonstration",
+   "title": "Boulder Cycle Works mark",
+   "variants": {
+    "w480": {
+     "bytes": 17496,
+     "hash": "431049afb16ff9021e18bb0eb11429f3bf4425e318eb75d9d03b92f1c15b3ce9",
+     "height": 160,
+     "key": "cdad5abe-86c2-4a56-afda-24751abf835e/e7556342-6b74-456b-9b93-914dbbfbddee/72bcf48c-ffab-4c71-b984-3e1d82eec7d7/w480.webp",
+     "path": "431049afb16ff9021e18bb0eb11429f3bf4425e318eb75d9d03b92f1c15b3ce9-w480.webp",
+     "width": 480
+    },
+    "w960": {
+     "bytes": 17970,
+     "hash": "26801d0592c4405c4bfb3b999b435392223b59c47b8f04fe16837cce544a4bff",
+     "height": 320,
+     "key": "cdad5abe-86c2-4a56-afda-24751abf835e/e7556342-6b74-456b-9b93-914dbbfbddee/72bcf48c-ffab-4c71-b984-3e1d82eec7d7/w960.webp",
+     "path": "26801d0592c4405c4bfb3b999b435392223b59c47b8f04fe16837cce544a4bff-w960.webp",
+     "width": 960
+    }
+   },
+   "width": 960
+  },
+  "74b89a48-ac8b-427e-b31d-9650a8a5311f": {
+   "alt": "Stylised portrait of Ruth Kimani, a fictional customer",
+   "attribution": "Original artwork created for the Lerner Works demonstration",
+   "decorative": false,
+   "hash": "90eb31e0ffe1cde282af2e76338c76da5c49469d7c2531ea74e1c23fc52aa945",
+   "height": 800,
+   "id": "74b89a48-ac8b-427e-b31d-9650a8a5311f",
+   "license": "CC0-1.0 — original vector artwork generated for this demonstration",
+   "title": "Ruth Kimani",
+   "variants": {
+    "w480": {
+     "bytes": 7592,
+     "hash": "5a2ee1d81e36f82609a8ff5b2c8f83ef68ecd1e628e0d47ce4b240659562d6e4",
+     "height": 480,
+     "key": "cdad5abe-86c2-4a56-afda-24751abf835e/e7556342-6b74-456b-9b93-914dbbfbddee/74b89a48-ac8b-427e-b31d-9650a8a5311f/w480.webp",
+     "path": "5a2ee1d81e36f82609a8ff5b2c8f83ef68ecd1e628e0d47ce4b240659562d6e4-w480.webp",
+     "width": 480
+    },
+    "w960": {
+     "bytes": 12344,
+     "hash": "4fc95b9b62e8e2a402e809ed7cdb8c88cc72d4368dcac8a0cc0c829654cff27b",
+     "height": 800,
+     "key": "cdad5abe-86c2-4a56-afda-24751abf835e/e7556342-6b74-456b-9b93-914dbbfbddee/74b89a48-ac8b-427e-b31d-9650a8a5311f/w960.webp",
+     "path": "4fc95b9b62e8e2a402e809ed7cdb8c88cc72d4368dcac8a0cc0c829654cff27b-w960.webp",
+     "width": 800
+    }
+   },
+   "width": 800
+  },
+  "77d7e24e-8953-4304-b448-ef43800e1d22": {
+   "alt": "Stylised portrait of Priya Natarajan, the fictional Longmont store manager",
+   "attribution": "Original artwork created for the Lerner Works demonstration",
+   "decorative": false,
+   "hash": "d5512c0c9a4d5832cab7f8fc32dc589e904bfe632ab43c587de4187114252582",
+   "height": 800,
+   "id": "77d7e24e-8953-4304-b448-ef43800e1d22",
+   "license": "CC0-1.0 — original vector artwork generated for this demonstration",
+   "title": "Priya Natarajan",
+   "variants": {
+    "w480": {
+     "bytes": 6984,
+     "hash": "cc3ec09023fdf51659d60d948f736d7dcbced23be2117db2ca0d43e12c69efcf",
+     "height": 480,
+     "key": "cdad5abe-86c2-4a56-afda-24751abf835e/e7556342-6b74-456b-9b93-914dbbfbddee/77d7e24e-8953-4304-b448-ef43800e1d22/w480.webp",
+     "path": "cc3ec09023fdf51659d60d948f736d7dcbced23be2117db2ca0d43e12c69efcf-w480.webp",
+     "width": 480
+    },
+    "w960": {
+     "bytes": 11756,
+     "hash": "9d2aa32d31381119f0cd359a751e2ce8ac3b94b9ebdd8470bcadd5a2d0b9a577",
+     "height": 800,
+     "key": "cdad5abe-86c2-4a56-afda-24751abf835e/e7556342-6b74-456b-9b93-914dbbfbddee/77d7e24e-8953-4304-b448-ef43800e1d22/w960.webp",
+     "path": "9d2aa32d31381119f0cd359a751e2ce8ac3b94b9ebdd8470bcadd5a2d0b9a577-w960.webp",
+     "width": 800
+    }
+   },
+   "width": 800
+  },
+  "adf69185-f6da-44d6-bb92-faf34ba7dd4c": {
+   "alt": "Illustrated downtown storefront with a navy awning and a bicycle drawn beside the sign",
+   "attribution": "Original artwork created for the Lerner Works demonstration",
+   "decorative": false,
+   "hash": "fe3276f59b7b521d129f9179f8b873dd01e7a00036c901643c951b0c1d2887c8",
+   "height": 1067,
+   "id": "adf69185-f6da-44d6-bb92-faf34ba7dd4c",
+   "license": "CC0-1.0 — original vector artwork generated for this demonstration",
+   "title": "Range Athletics Boulder storefront",
+   "variants": {
+    "w1600": {
+     "bytes": 18470,
+     "hash": "034c90da9d935df8ccd03d73c1049b1b33bfec6b8a316621f9e1dd4523034905",
+     "height": 1067,
+     "key": "cdad5abe-86c2-4a56-afda-24751abf835e/e7556342-6b74-456b-9b93-914dbbfbddee/adf69185-f6da-44d6-bb92-faf34ba7dd4c/w1600.webp",
+     "path": "034c90da9d935df8ccd03d73c1049b1b33bfec6b8a316621f9e1dd4523034905-w1600.webp",
+     "width": 1600
+    },
+    "w480": {
+     "bytes": 6818,
+     "hash": "af0207c9a1ffff20f8ac56df2d9df1f045be326d743a334ae5cc1fe1b1af103f",
+     "height": 320,
+     "key": "cdad5abe-86c2-4a56-afda-24751abf835e/e7556342-6b74-456b-9b93-914dbbfbddee/adf69185-f6da-44d6-bb92-faf34ba7dd4c/w480.webp",
+     "path": "af0207c9a1ffff20f8ac56df2d9df1f045be326d743a334ae5cc1fe1b1af103f-w480.webp",
+     "width": 480
+    },
+    "w960": {
+     "bytes": 12076,
+     "hash": "7bd1688f8fb3f3f2b482ea4dffa0a71db44314f02a3d1d19feb28f933b443a41",
+     "height": 640,
+     "key": "cdad5abe-86c2-4a56-afda-24751abf835e/e7556342-6b74-456b-9b93-914dbbfbddee/adf69185-f6da-44d6-bb92-faf34ba7dd4c/w960.webp",
+     "path": "7bd1688f8fb3f3f2b482ea4dffa0a71db44314f02a3d1d19feb28f933b443a41-w960.webp",
+     "width": 960
+    }
+   },
+   "width": 1600
+  },
+  "b2be4d27-0c3c-42c1-81c6-fa6d87005257": {
+   "alt": "Illustrated storefront with a navy facade and orange awning reading Range Athletics",
+   "attribution": "Original artwork created for the Lerner Works demonstration",
+   "decorative": false,
+   "hash": "75d32fde470f5338937504f63806507f785657be825087fdb8196c26a6252c7c",
+   "height": 1067,
+   "id": "b2be4d27-0c3c-42c1-81c6-fa6d87005257",
+   "license": "CC0-1.0 — original vector artwork generated for this demonstration",
+   "title": "Range Athletics Longmont storefront",
+   "variants": {
+    "w1600": {
+     "bytes": 14894,
+     "hash": "87eeeb92508487bc52f0af8517227066338fc9b2113c513162b5f74f4cbdee20",
+     "height": 1067,
+     "key": "cdad5abe-86c2-4a56-afda-24751abf835e/e7556342-6b74-456b-9b93-914dbbfbddee/b2be4d27-0c3c-42c1-81c6-fa6d87005257/w1600.webp",
+     "path": "87eeeb92508487bc52f0af8517227066338fc9b2113c513162b5f74f4cbdee20-w1600.webp",
+     "width": 1600
+    },
+    "w480": {
+     "bytes": 5798,
+     "hash": "f9cb01bdb6cef5d27c2451c5a8ac40813b7f3c5e4d6c59bd2cc7fe6465527c9e",
+     "height": 320,
+     "key": "cdad5abe-86c2-4a56-afda-24751abf835e/e7556342-6b74-456b-9b93-914dbbfbddee/b2be4d27-0c3c-42c1-81c6-fa6d87005257/w480.webp",
+     "path": "f9cb01bdb6cef5d27c2451c5a8ac40813b7f3c5e4d6c59bd2cc7fe6465527c9e-w480.webp",
+     "width": 480
+    },
+    "w960": {
+     "bytes": 9256,
+     "hash": "47418dafa3229abbd2bc04b03e3b27f00312b61cfcf8e60b3ad756f0c3ca8810",
+     "height": 640,
+     "key": "cdad5abe-86c2-4a56-afda-24751abf835e/e7556342-6b74-456b-9b93-914dbbfbddee/b2be4d27-0c3c-42c1-81c6-fa6d87005257/w960.webp",
+     "path": "47418dafa3229abbd2bc04b03e3b27f00312b61cfcf8e60b3ad756f0c3ca8810-w960.webp",
+     "width": 960
+    }
+   },
+   "width": 1600
+  },
+  "d334a06c-86fc-40db-ab50-be6b7f8f52b7": {
+   "alt": "Stylised portrait of Cole Whitfield, the fictional head mechanic",
+   "attribution": "Original artwork created for the Lerner Works demonstration",
+   "decorative": false,
+   "hash": "1845f5994a8d34cb856153ac211ea9e7de15dcaf581e1bcaab329d0b999ae9b5",
+   "height": 800,
+   "id": "d334a06c-86fc-40db-ab50-be6b7f8f52b7",
+   "license": "CC0-1.0 — original vector artwork generated for this demonstration",
+   "title": "Cole Whitfield",
+   "variants": {
+    "w480": {
+     "bytes": 7366,
+     "hash": "44b9afdba7af3c59a15dfa49de26905211588a2efd06605f96763dd6e5e31df7",
+     "height": 480,
+     "key": "cdad5abe-86c2-4a56-afda-24751abf835e/e7556342-6b74-456b-9b93-914dbbfbddee/d334a06c-86fc-40db-ab50-be6b7f8f52b7/w480.webp",
+     "path": "44b9afdba7af3c59a15dfa49de26905211588a2efd06605f96763dd6e5e31df7-w480.webp",
+     "width": 480
+    },
+    "w960": {
+     "bytes": 12378,
+     "hash": "3960ed70bc2e125bcf97583994abde9175151c00a82a59d56a6ac5ae217ce0c5",
+     "height": 800,
+     "key": "cdad5abe-86c2-4a56-afda-24751abf835e/e7556342-6b74-456b-9b93-914dbbfbddee/d334a06c-86fc-40db-ab50-be6b7f8f52b7/w960.webp",
+     "path": "3960ed70bc2e125bcf97583994abde9175151c00a82a59d56a6ac5ae217ce0c5-w960.webp",
+     "width": 800
+    }
+   },
+   "width": 800
+  },
+  "d609def5-a403-46c9-a717-5750803d0ccb": {
+   "alt": "Flat illustration of a running shoe in navy with an orange sole stripe",
+   "attribution": "Original artwork created for the Lerner Works demonstration",
+   "decorative": false,
+   "hash": "c21641bb68aa23665df18adf110bc2f1d03e505aef3544d045aba067afa866ed",
+   "height": 900,
+   "id": "d609def5-a403-46c9-a717-5750803d0ccb",
+   "license": "CC0-1.0 — original vector artwork generated for this demonstration",
+   "title": "Shoe fitting",
+   "variants": {
+    "w1600": {
+     "bytes": 5026,
+     "hash": "5d39a2804c32c116110a38109b97a814175f48222631f22dd592f5fc868ef548",
+     "height": 900,
+     "key": "cdad5abe-86c2-4a56-afda-24751abf835e/e7556342-6b74-456b-9b93-914dbbfbddee/d609def5-a403-46c9-a717-5750803d0ccb/w1600.webp",
+     "path": "5d39a2804c32c116110a38109b97a814175f48222631f22dd592f5fc868ef548-w1600.webp",
+     "width": 1200
+    },
+    "w480": {
+     "bytes": 1702,
+     "hash": "4042eb1b988b44c9b0478a06811acf35038c51b4397be478c7218b47785e869c",
+     "height": 360,
+     "key": "cdad5abe-86c2-4a56-afda-24751abf835e/e7556342-6b74-456b-9b93-914dbbfbddee/d609def5-a403-46c9-a717-5750803d0ccb/w480.webp",
+     "path": "4042eb1b988b44c9b0478a06811acf35038c51b4397be478c7218b47785e869c-w480.webp",
+     "width": 480
+    },
+    "w960": {
+     "bytes": 3990,
+     "hash": "b0ab0ff49345d706323d6dbf20b96c58257e8040dab9c8931c5cde8061a8e167",
+     "height": 720,
+     "key": "cdad5abe-86c2-4a56-afda-24751abf835e/e7556342-6b74-456b-9b93-914dbbfbddee/d609def5-a403-46c9-a717-5750803d0ccb/w960.webp",
+     "path": "b0ab0ff49345d706323d6dbf20b96c58257e8040dab9c8931c5cde8061a8e167-w960.webp",
+     "width": 960
+    }
+   },
+   "width": 1200
+  },
+  "d7570f88-279f-4168-9bab-63996584a91e": {
+   "alt": "Summit Company (fictional brand)",
+   "attribution": "Original artwork created for the Lerner Works demonstration",
+   "decorative": false,
+   "hash": "6200bc7e132b0a95fbf147f8e36c5feff260bf53d4ed0bca00b0b8f1f6bb4a70",
+   "height": 320,
+   "id": "d7570f88-279f-4168-9bab-63996584a91e",
+   "license": "CC0-1.0 — original vector artwork generated for this demonstration",
+   "title": "Summit Company mark",
+   "variants": {
+    "w480": {
+     "bytes": 13338,
+     "hash": "a430310f489e92e1b099094976b041a23c09d7fe1173f4c7824249f5989164e1",
+     "height": 160,
+     "key": "cdad5abe-86c2-4a56-afda-24751abf835e/e7556342-6b74-456b-9b93-914dbbfbddee/d7570f88-279f-4168-9bab-63996584a91e/w480.webp",
+     "path": "a430310f489e92e1b099094976b041a23c09d7fe1173f4c7824249f5989164e1-w480.webp",
+     "width": 480
+    },
+    "w960": {
+     "bytes": 13100,
+     "hash": "edd65bc45be355bc8df29bb666a7826d57234e748da3c7183bdc67277d620d09",
+     "height": 320,
+     "key": "cdad5abe-86c2-4a56-afda-24751abf835e/e7556342-6b74-456b-9b93-914dbbfbddee/d7570f88-279f-4168-9bab-63996584a91e/w960.webp",
+     "path": "edd65bc45be355bc8df29bb666a7826d57234e748da3c7183bdc67277d620d09-w960.webp",
+     "width": 960
+    }
+   },
+   "width": 960
+  },
+  "d820fc41-d8af-48ce-aa08-33ca38669501": {
+   "alt": "Flat illustration of a jersey with the number 7",
+   "attribution": "Original artwork created for the Lerner Works demonstration",
+   "decorative": false,
+   "hash": "46b2fc9d81f56203b8dea0538ff2eddf9d553960dc17d4ab62db00195d428465",
+   "height": 900,
+   "id": "d820fc41-d8af-48ce-aa08-33ca38669501",
+   "license": "CC0-1.0 — original vector artwork generated for this demonstration",
+   "title": "Team outfitting",
+   "variants": {
+    "w1600": {
+     "bytes": 6592,
+     "hash": "b0af6a2a4155c2fbaf2ca643451dc5f92f8085d6ac20bbc60b3fb642eb8a6252",
+     "height": 900,
+     "key": "cdad5abe-86c2-4a56-afda-24751abf835e/e7556342-6b74-456b-9b93-914dbbfbddee/d820fc41-d8af-48ce-aa08-33ca38669501/w1600.webp",
+     "path": "b0af6a2a4155c2fbaf2ca643451dc5f92f8085d6ac20bbc60b3fb642eb8a6252-w1600.webp",
+     "width": 1200
+    },
+    "w480": {
+     "bytes": 2288,
+     "hash": "a89a461a5ac5d33445274e26b17e31fdc0b11e78db23f9bd8058f3a323c2fcb1",
+     "height": 360,
+     "key": "cdad5abe-86c2-4a56-afda-24751abf835e/e7556342-6b74-456b-9b93-914dbbfbddee/d820fc41-d8af-48ce-aa08-33ca38669501/w480.webp",
+     "path": "a89a461a5ac5d33445274e26b17e31fdc0b11e78db23f9bd8058f3a323c2fcb1-w480.webp",
+     "width": 480
+    },
+    "w960": {
+     "bytes": 5142,
+     "hash": "fb534f488ceed3ab7fd72d845777c02716540e478238d634be78efa756aab79e",
+     "height": 720,
+     "key": "cdad5abe-86c2-4a56-afda-24751abf835e/e7556342-6b74-456b-9b93-914dbbfbddee/d820fc41-d8af-48ce-aa08-33ca38669501/w960.webp",
+     "path": "fb534f488ceed3ab7fd72d845777c02716540e478238d634be78efa756aab79e-w960.webp",
+     "width": 960
+    }
+   },
+   "width": 1200
+  },
+  "e76090a5-991d-498a-8fcd-b05478c455da": {
+   "alt": "Ridgeline Footwear (fictional brand)",
+   "attribution": "Original artwork created for the Lerner Works demonstration",
+   "decorative": false,
+   "hash": "ee16f296c24680b3df400ca4afb52f9a4189b6564f27c105aeb6aebae8575ef4",
+   "height": 320,
+   "id": "e76090a5-991d-498a-8fcd-b05478c455da",
+   "license": "CC0-1.0 — original vector artwork generated for this demonstration",
+   "title": "Ridgeline Footwear mark",
+   "variants": {
+    "w480": {
+     "bytes": 12840,
+     "hash": "d93feed7cd8ca51d63f6c8c8bf6969f87c1001e69de05d913056af695740b845",
+     "height": 160,
+     "key": "cdad5abe-86c2-4a56-afda-24751abf835e/e7556342-6b74-456b-9b93-914dbbfbddee/e76090a5-991d-498a-8fcd-b05478c455da/w480.webp",
+     "path": "d93feed7cd8ca51d63f6c8c8bf6969f87c1001e69de05d913056af695740b845-w480.webp",
+     "width": 480
+    },
+    "w960": {
+     "bytes": 12864,
+     "hash": "832c6f8427ce981637fc1bc1ae0c76025dd4947a1268165f84897e6a7d727515",
+     "height": 320,
+     "key": "cdad5abe-86c2-4a56-afda-24751abf835e/e7556342-6b74-456b-9b93-914dbbfbddee/e76090a5-991d-498a-8fcd-b05478c455da/w960.webp",
+     "path": "832c6f8427ce981637fc1bc1ae0c76025dd4947a1268165f84897e6a7d727515-w960.webp",
+     "width": 960
+    }
+   },
+   "width": 960
+  },
+  "e7e6202a-1c5d-4e5e-96d7-fc242bf6ca41": {
+   "alt": "Stylised portrait of Lena Ortiz, the fictional team outfitting coordinator",
+   "attribution": "Original artwork created for the Lerner Works demonstration",
+   "decorative": false,
+   "hash": "4b0114cf9cebe20e436ebf29f4ab4502ff1ec57e41ea7303930bd4c89bbba9f9",
+   "height": 800,
+   "id": "e7e6202a-1c5d-4e5e-96d7-fc242bf6ca41",
+   "license": "CC0-1.0 — original vector artwork generated for this demonstration",
+   "title": "Lena Ortiz",
+   "variants": {
+    "w480": {
+     "bytes": 6292,
+     "hash": "1962eba2e369d59479e155b4cf08c3bea7467de521b1c9da4bdc218a74d9bc3a",
+     "height": 480,
+     "key": "cdad5abe-86c2-4a56-afda-24751abf835e/e7556342-6b74-456b-9b93-914dbbfbddee/e7e6202a-1c5d-4e5e-96d7-fc242bf6ca41/w480.webp",
+     "path": "1962eba2e369d59479e155b4cf08c3bea7467de521b1c9da4bdc218a74d9bc3a-w480.webp",
+     "width": 480
+    },
+    "w960": {
+     "bytes": 10320,
+     "hash": "3392a848295d8b584d7fc776dfc82106f8750b82e26960c2805dda526a817df1",
+     "height": 800,
+     "key": "cdad5abe-86c2-4a56-afda-24751abf835e/e7556342-6b74-456b-9b93-914dbbfbddee/e7e6202a-1c5d-4e5e-96d7-fc242bf6ca41/w960.webp",
+     "path": "3392a848295d8b584d7fc776dfc82106f8750b82e26960c2805dda526a817df1-w960.webp",
+     "width": 800
+    }
+   },
+   "width": 800
+  },
+  "ebc06577-c86e-459b-bae3-8b83f8fb21aa": {
+   "alt": "",
+   "attribution": "Sample document written for the Lerner Works demonstration",
+   "decorative": false,
+   "hash": "337c8bd6d9a55e4ea4a7c2326dabfda1eec7c158bb31344f99652e71586fae1e",
+   "height": 0,
+   "id": "ebc06577-c86e-459b-bae3-8b83f8fb21aa",
+   "kind": "document",
+   "license": "CC0-1.0 — original vector artwork generated for this demonstration",
+   "mime": "application/pdf",
+   "title": "Shoe fitting: what to bring",
+   "variants": {
+    "file": {
+     "bytes": 1033,
+     "hash": "337c8bd6d9a55e4ea4a7c2326dabfda1eec7c158bb31344f99652e71586fae1e",
+     "height": 0,
+     "key": "cdad5abe-86c2-4a56-afda-24751abf835e/e7556342-6b74-456b-9b93-914dbbfbddee/ebc06577-c86e-459b-bae3-8b83f8fb21aa/original.pdf",
+     "path": "337c8bd6d9a55e4ea4a7c2326dabfda1eec7c158bb31344f99652e71586fae1e.pdf",
+     "width": 0
+    }
+   },
+   "width": 0
+  },
+  "f5ff9cf8-b1bf-47ce-9fcf-94a8bfc9455c": {
+   "alt": "Illustrated storefront with a grey facade and an orange awning",
+   "attribution": "Original artwork created for the Lerner Works demonstration",
+   "decorative": false,
+   "hash": "d9b964df5c3e09a1ce5a05e53904e0f4d0cdc13732075f99fd0bf01e2d9853c4",
+   "height": 1067,
+   "id": "f5ff9cf8-b1bf-47ce-9fcf-94a8bfc9455c",
+   "license": "CC0-1.0 — original vector artwork generated for this demonstration",
+   "title": "Range Athletics Fort Collins storefront",
+   "variants": {
+    "w1600": {
+     "bytes": 14784,
+     "hash": "0f48938034451104bef858f8482d3a6684ab5ff226ed49bfd8b32a6c5e2994f1",
+     "height": 1067,
+     "key": "cdad5abe-86c2-4a56-afda-24751abf835e/e7556342-6b74-456b-9b93-914dbbfbddee/f5ff9cf8-b1bf-47ce-9fcf-94a8bfc9455c/w1600.webp",
+     "path": "0f48938034451104bef858f8482d3a6684ab5ff226ed49bfd8b32a6c5e2994f1-w1600.webp",
+     "width": 1600
+    },
+    "w480": {
+     "bytes": 5884,
+     "hash": "dd15d193d961e94c2abe440c33fbf541509c2e80226a895677662d26501a8562",
+     "height": 320,
+     "key": "cdad5abe-86c2-4a56-afda-24751abf835e/e7556342-6b74-456b-9b93-914dbbfbddee/f5ff9cf8-b1bf-47ce-9fcf-94a8bfc9455c/w480.webp",
+     "path": "dd15d193d961e94c2abe440c33fbf541509c2e80226a895677662d26501a8562-w480.webp",
+     "width": 480
+    },
+    "w960": {
+     "bytes": 9308,
+     "hash": "998659da33d830b6b7c34bcb35ae52f06c2808b382cc649ba8a5990c6db149b1",
+     "height": 640,
+     "key": "cdad5abe-86c2-4a56-afda-24751abf835e/e7556342-6b74-456b-9b93-914dbbfbddee/f5ff9cf8-b1bf-47ce-9fcf-94a8bfc9455c/w960.webp",
+     "path": "998659da33d830b6b7c34bcb35ae52f06c2808b382cc649ba8a5990c6db149b1-w960.webp",
+     "width": 960
+    }
+   },
+   "width": 1600
+  },
+  "f6664415-9da3-473b-aaeb-7562ccb7adf9": {
+   "alt": "North Fork Skis (fictional brand)",
+   "attribution": "Original artwork created for the Lerner Works demonstration",
+   "decorative": false,
+   "hash": "db0372babad177c4ea00cf268c18982a5f9126463538bfa819b2b819a371fa27",
+   "height": 320,
+   "id": "f6664415-9da3-473b-aaeb-7562ccb7adf9",
+   "license": "CC0-1.0 — original vector artwork generated for this demonstration",
+   "title": "North Fork Skis mark",
+   "variants": {
+    "w480": {
+     "bytes": 8716,
+     "hash": "da8b9f9a7988692217daef4a679ef0110ac525662d0376244800a97450474575",
+     "height": 160,
+     "key": "cdad5abe-86c2-4a56-afda-24751abf835e/e7556342-6b74-456b-9b93-914dbbfbddee/f6664415-9da3-473b-aaeb-7562ccb7adf9/w480.webp",
+     "path": "da8b9f9a7988692217daef4a679ef0110ac525662d0376244800a97450474575-w480.webp",
+     "width": 480
+    },
+    "w960": {
+     "bytes": 8652,
+     "hash": "6d7bfb52f700d02366a3bf9c3edef5ff472a5db7e5500d4c11db94382ff156b1",
+     "height": 320,
+     "key": "cdad5abe-86c2-4a56-afda-24751abf835e/e7556342-6b74-456b-9b93-914dbbfbddee/f6664415-9da3-473b-aaeb-7562ccb7adf9/w960.webp",
+     "path": "6d7bfb52f700d02366a3bf9c3edef5ff472a5db7e5500d4c11db94382ff156b1-w960.webp",
+     "width": 960
+    }
+   },
+   "width": 960
+  }
+ },
+ "redirects": [],
+ "routes": [
+  {
+   "itemId": "51017293-98b0-4401-ae42-f3903d2ea56e",
+   "kind": "page",
+   "path": "/"
+  },
+  {
+   "itemId": "58fc9af6-4dfc-438d-a7c6-95249b9a1763",
+   "kind": "page",
+   "path": "/about"
+  },
+  {
+   "itemId": "3f7ed5c6-0527-402e-8008-79aad5d46aa9",
+   "kind": "page",
+   "path": "/contact"
+  },
+  {
+   "kind": "index",
+   "module": "links",
+   "path": "/links"
+  },
+  {
+   "itemId": "9e20754f-24a3-4b97-bff0-17d0b479e987",
+   "kind": "link",
+   "path": "/links/backcountry-snow-safety"
+  },
+  {
+   "itemId": "e31a8b27-e258-4a85-83d7-462bd0dd5d87",
+   "kind": "link",
+   "path": "/links/front-range-trail-runners"
+  },
+  {
+   "kind": "index",
+   "module": "stores",
+   "path": "/locations"
+  },
+  {
+   "itemId": "b0233b84-eaba-4aaa-bd80-161f5f55234f",
+   "kind": "store",
+   "path": "/locations/boulder"
+  },
+  {
+   "itemId": "b17ad445-6cfa-422f-9941-e218411e1795",
+   "kind": "store",
+   "path": "/locations/fort-collins"
+  },
+  {
+   "itemId": "cb828543-62c4-405a-80c1-f41accf0259a",
+   "kind": "store",
+   "path": "/locations/longmont"
+  },
+  {
+   "kind": "search",
+   "path": "/search"
+  },
+  {
+   "kind": "index",
+   "module": "services",
+   "path": "/services"
+  },
+  {
+   "itemId": "c25687f2-b953-475e-b824-47817682487c",
+   "kind": "service",
+   "path": "/services/bike-service"
+  },
+  {
+   "itemId": "17b8e654-af75-470d-b277-3c64452710a4",
+   "kind": "service",
+   "path": "/services/shoe-fitting"
+  },
+  {
+   "itemId": "2d9d4103-1de5-4d5a-b88b-ccb7572671e8",
+   "kind": "service",
+   "path": "/services/ski-and-snowboard-tuning"
+  },
+  {
+   "itemId": "51f2edd2-de3a-4127-9c8f-30dc67b0539c",
+   "kind": "service",
+   "path": "/services/team-outfitting"
+  }
+ ],
+ "schemaVersion": 6,
+ "site": {
+  "contact": {
+   "address": "Range Athletics Inc., 4100 Foothills Way, Suite 200, Longmont, CO (fictional)",
+   "email": "stores@rangeathletics.example",
+   "phone": "(720) 555-0190"
+  },
+  "id": "e7556342-6b74-456b-9b93-914dbbfbddee",
+  "key": "range-athletics",
+  "mode": "demo",
+  "name": "Range Athletics",
+  "preset": "location_business",
+  "timeZone": "America/Denver"
+ }
+}

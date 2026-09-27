@@ -1,7 +1,8 @@
 import type { Db } from "@/server/data/db";
 import { kindRegistry, moduleIndexRoutes, routeFor, type ContentKind } from "@/modules/registry";
 import { siteConfigSchema, type SiteConfig } from "@/modules/site-config";
-import { collectImageAssetIds, type Block } from "@/lib/richtext";
+import { collectDocumentAssetIds, collectImageAssetIds, type Block } from "@/lib/richtext";
+import { documentLinkId, type MediaKind } from "@/server/media/content-types";
 import type { RevisionRow } from "@/server/data/content";
 import type { SiteRow } from "@/server/data/access";
 import {
@@ -32,12 +33,15 @@ export interface MediaAssetRow {
   id: string;
   siteId: string;
   organizationId: string;
+  /** A picture with WebP derivatives, or a document served as uploaded (B5-1). */
+  kind: MediaKind;
   status: "processing" | "ready" | "withdrawn";
   originalKey: string;
   mimeType: string;
   sha256: string;
-  width: number;
-  height: number;
+  /** Pixel dimensions of a picture; null for a document. */
+  width: number | null;
+  height: number | null;
   byteSize: number;
   title: string | null;
   altText: string | null;
@@ -62,6 +66,15 @@ export interface BuiltManifest {
   notes: SelectionNote[];
   mediaRows: Map<string, MediaAssetRow>;
   missingMedia: Array<{ assetId: string; itemId: string | null; field: string }>;
+  /** References that name a picture where a document is expected or the reverse (B5); absent in a manifest built from frozen media alone. */
+  mediaKindMismatches?: Array<{ assetId: string; itemId: string | null; field: string; expected: MediaKind; actual: MediaKind }>;
+}
+
+export interface AssetRef {
+  assetId: string;
+  field: string;
+  /** What the field expects; a reference of the other kind blocks publication. */
+  kind: MediaKind;
 }
 
 /** Review state of a revision = latest review decision on that exact revision. */
@@ -115,34 +128,61 @@ export async function resolveDefaultSelection(db: Db, siteId: string, base: Rele
   return { selection, notes };
 }
 
-/** Every media asset a payload refers to, with the field that refers to it (missing ones become `missing_media` blockers). */
-export function collectAssetRefs(kind: ContentKind, payload: Record<string, unknown>): Array<{ assetId: string; field: string }> {
-  const refs: Array<{ assetId: string; field: string }> = [];
+/**
+ * Every media asset a payload refers to, with the field that refers to it and the kind the field
+ * expects (missing ones become `missing_media` blockers, wrong kinds `media_kind_mismatch`).
+ * Documents (B5) are referenced from link targets (`document:<id>` in bodies, buttons and
+ * list-item links), from `attachments` and from the downloads section.
+ */
+export function collectAssetRefs(kind: ContentKind, payload: Record<string, unknown>): AssetRef[] {
+  const refs: AssetRef[] = [];
+  const image = (assetId: string, field: string) => refs.push({ assetId, field, kind: "image" });
+  const document = (assetId: string, field: string) => refs.push({ assetId, field, kind: "document" });
+  const scanBody = (blocks: Block[], field: string) => {
+    for (const id of collectImageAssetIds(blocks)) image(id, field);
+    for (const id of collectDocumentAssetIds(blocks)) document(id, field);
+  };
+  const scanLink = (value: unknown, field: string) => {
+    const id = typeof value === "string" ? documentLinkId(value) : null;
+    if (id) document(id, field);
+  };
   const featured = payload.featuredImageAssetId;
-  if (typeof featured === "string") refs.push({ assetId: featured, field: "featuredImageAssetId" });
+  if (typeof featured === "string") image(featured, "featuredImageAssetId");
   const body = payload.body as Block[] | undefined;
-  if (Array.isArray(body)) for (const id of collectImageAssetIds(body)) refs.push({ assetId: id, field: "body" });
+  if (Array.isArray(body)) scanBody(body, "body");
+  ((payload.attachments as Array<{ assetId?: unknown }> | undefined) ?? []).forEach((a, j) => {
+    if (typeof a.assetId === "string" && a.assetId) document(a.assetId, `attachments.${j}.assetId`);
+  });
   if (kind === "page") {
     const sections = (payload.sections as Array<Record<string, unknown>> | undefined) ?? [];
     sections.forEach((s, i) => {
-      if ((s.type === "image_hero" || s.type === "image_band") && typeof s.imageAssetId === "string") refs.push({ assetId: s.imageAssetId, field: `sections.${i}.imageAssetId` });
+      if ((s.type === "image_hero" || s.type === "image_band") && typeof s.imageAssetId === "string") image(s.imageAssetId, `sections.${i}.imageAssetId`);
       if (s.type === "image_hero" && Array.isArray(s.extraImageAssetIds)) {
         (s.extraImageAssetIds as unknown[]).forEach((id, j) => {
-          if (typeof id === "string" && id) refs.push({ assetId: id, field: `sections.${i}.extraImageAssetIds.${j}` });
+          if (typeof id === "string" && id) image(id, `sections.${i}.extraImageAssetIds.${j}`);
         });
       }
-      if (s.type === "rich_text" && Array.isArray(s.body)) for (const id of collectImageAssetIds(s.body as Block[])) refs.push({ assetId: id, field: `sections.${i}.body` });
-      if (s.type === "video" && typeof s.posterAssetId === "string") refs.push({ assetId: s.posterAssetId, field: `sections.${i}.posterAssetId` });
+      if (s.type === "rich_text" && Array.isArray(s.body)) scanBody(s.body as Block[], `sections.${i}.body`);
+      if (s.type === "video" && typeof s.posterAssetId === "string") image(s.posterAssetId, `sections.${i}.posterAssetId`);
+      scanLink(s.ctaPath, `sections.${i}.ctaPath`);
+      scanLink(s.secondaryPath, `sections.${i}.secondaryPath`);
       // Item lists whose entries carry a picture: gallery images, logos, portraits (quotes, team) and image rows.
       if (s.type === "gallery" || s.type === "logo_strip" || s.type === "quotes" || s.type === "team" || s.type === "image_text") {
-        ((s.items as Array<{ assetId?: string | null; body?: Block[] }>) ?? []).forEach((it, j) => {
-          if (typeof it.assetId === "string" && it.assetId) refs.push({ assetId: it.assetId, field: `sections.${i}.items.${j}.assetId` });
-          if (Array.isArray(it.body)) for (const id of collectImageAssetIds(it.body)) refs.push({ assetId: id, field: `sections.${i}.items.${j}.body` });
+        ((s.items as Array<{ assetId?: string | null; body?: Block[]; path?: unknown; ctaPath?: unknown }>) ?? []).forEach((it, j) => {
+          if (typeof it.assetId === "string" && it.assetId) image(it.assetId, `sections.${i}.items.${j}.assetId`);
+          if (Array.isArray(it.body)) scanBody(it.body, `sections.${i}.items.${j}.body`);
+          scanLink(it.path, `sections.${i}.items.${j}.path`);
+          scanLink(it.ctaPath, `sections.${i}.items.${j}.ctaPath`);
+        });
+      }
+      if (s.type === "downloads") {
+        ((s.items as Array<{ assetId?: unknown }>) ?? []).forEach((it, j) => {
+          if (typeof it.assetId === "string" && it.assetId) document(it.assetId, `sections.${i}.items.${j}.assetId`);
         });
       }
       if (s.type === "faq") {
         ((s.items as Array<{ answer?: Block[] }>) ?? []).forEach((it, j) => {
-          if (Array.isArray(it.answer)) for (const id of collectImageAssetIds(it.answer)) refs.push({ assetId: id, field: `sections.${i}.items.${j}.answer` });
+          if (Array.isArray(it.answer)) scanBody(it.answer, `sections.${i}.items.${j}.answer`);
         });
       }
     });
@@ -152,7 +192,7 @@ export function collectAssetRefs(kind: ContentKind, payload: Record<string, unkn
 
 export function toSnapshotMedia(row: MediaAssetRow): SnapshotMedia {
   const variants: SnapshotMedia["variants"] = {};
-  for (const k of ["w480", "w960", "w1600"] as const) {
+  for (const k of ["w480", "w960", "w1600", "file"] as const) {
     const d = row.derivatives[k];
     if (d) variants[k] = { key: d.key, path: d.path, width: d.width, height: d.height, bytes: d.bytes, hash: d.hash };
   }
@@ -161,8 +201,8 @@ export function toSnapshotMedia(row: MediaAssetRow): SnapshotMedia {
   return {
     id: row.id,
     hash: row.sha256,
-    width: row.width,
-    height: row.height,
+    width: row.width ?? 0,
+    height: row.height ?? 0,
     alt: row.altText ?? "",
     decorative: row.decorative,
     title: row.title ?? "",
@@ -170,6 +210,8 @@ export function toSnapshotMedia(row: MediaAssetRow): SnapshotMedia {
     license: row.license ?? "",
     variants,
     ...(focalX !== null && focalY !== null ? { focal: { x: focalX, y: focalY } } : {}),
+    // Pictures keep the shape every earlier release has; only documents say what they are.
+    ...(row.kind === "document" ? { kind: "document" as const, mime: row.mimeType } : {}),
   };
 }
 
@@ -189,7 +231,7 @@ export async function buildManifest(db: Db, site: SiteRow, selection: Selection,
   const byId = new Map(revisions.map((r) => [r.id, r]));
 
   const items: Record<string, SnapshotItem> = {};
-  const assetRefs: Array<{ assetId: string; itemId: string | null; field: string }> = [];
+  const assetRefs: Array<AssetRef & { itemId: string | null }> = [];
   for (const [itemId, revisionId] of Object.entries(selection.items)) {
     const rev = byId.get(revisionId);
     if (!rev || rev.itemId !== itemId) throw new Error(`selected revision ${revisionId} does not belong to item ${itemId} in this site`);
@@ -198,10 +240,10 @@ export async function buildManifest(db: Db, site: SiteRow, selection: Selection,
     items[itemId] = { id: itemId, kind: rev.kind, slug: rev.slug, title: rev.title, revisionId: rev.id, revisionVersion: rev.version, payload };
     for (const ref of collectAssetRefs(rev.kind, payload)) assetRefs.push({ ...ref, itemId });
   }
-  if (config.branding.logoAssetId) assetRefs.push({ assetId: config.branding.logoAssetId, itemId: null, field: "branding.logoAssetId" });
-  if (config.branding.logoDarkAssetId) assetRefs.push({ assetId: config.branding.logoDarkAssetId, itemId: null, field: "branding.logoDarkAssetId" });
-  if (config.metadata.faviconAssetId) assetRefs.push({ assetId: config.metadata.faviconAssetId, itemId: null, field: "metadata.faviconAssetId" });
-  if (config.metadata.shareImageAssetId) assetRefs.push({ assetId: config.metadata.shareImageAssetId, itemId: null, field: "metadata.shareImageAssetId" });
+  if (config.branding.logoAssetId) assetRefs.push({ assetId: config.branding.logoAssetId, itemId: null, field: "branding.logoAssetId", kind: "image" });
+  if (config.branding.logoDarkAssetId) assetRefs.push({ assetId: config.branding.logoDarkAssetId, itemId: null, field: "branding.logoDarkAssetId", kind: "image" });
+  if (config.metadata.faviconAssetId) assetRefs.push({ assetId: config.metadata.faviconAssetId, itemId: null, field: "metadata.faviconAssetId", kind: "image" });
+  if (config.metadata.shareImageAssetId) assetRefs.push({ assetId: config.metadata.shareImageAssetId, itemId: null, field: "metadata.shareImageAssetId", kind: "image" });
 
   // Routes: pages, enabled module indexes, items of enabled modules, and search.
   const routes: SnapshotRoute[] = [];
@@ -211,7 +253,10 @@ export async function buildManifest(db: Db, site: SiteRow, selection: Selection,
     if (mod && config.modules[mod]) enabledKinds.add(kind);
   }
   for (const idx of moduleIndexRoutes) {
-    if (config.modules[idx.module]) routes.push({ path: idx.path, kind: "index", module: idx.module });
+    if (!config.modules[idx.module]) continue;
+    // The listing of outside links (B5-2) is left out until there is a link to list (D-021 applied to a listing page).
+    if (idx.module === "links" && !Object.values(items).some((i) => i.kind === "link")) continue;
+    routes.push({ path: idx.path, kind: "index", module: idx.module });
   }
   routes.push({ path: "/search", kind: "search" });
   for (const item of Object.values(items)) {
@@ -245,10 +290,15 @@ export async function buildManifest(db: Db, site: SiteRow, selection: Selection,
   const mediaRows = new Map(mediaRowsList.map((m) => [m.id, m]));
   const media: Record<string, SnapshotMedia> = {};
   const missingMedia: BuiltManifest["missingMedia"] = [];
+  const mediaKindMismatches: BuiltManifest["mediaKindMismatches"] = [];
   for (const ref of assetRefs) {
     const row = mediaRows.get(ref.assetId);
     if (!row || row.status !== "ready") {
-      missingMedia.push(ref);
+      missingMedia.push({ assetId: ref.assetId, itemId: ref.itemId, field: ref.field });
+      continue;
+    }
+    if ((row.kind ?? "image") !== ref.kind) {
+      mediaKindMismatches.push({ assetId: ref.assetId, itemId: ref.itemId, field: ref.field, expected: ref.kind, actual: row.kind ?? "image" });
       continue;
     }
     media[row.id] = toSnapshotMedia(row);
@@ -272,5 +322,5 @@ export async function buildManifest(db: Db, site: SiteRow, selection: Selection,
     redirects: redirects.sort((a, b) => a.from.localeCompare(b.from)),
     media,
   };
-  return { manifest, notes, mediaRows, missingMedia };
+  return { manifest, notes, mediaRows, missingMedia, mediaKindMismatches };
 }

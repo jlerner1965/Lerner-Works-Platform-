@@ -145,7 +145,7 @@ describe("the category list fills itself from the published places", () => {
     expect(themeCapabilities.storefront.sectionTypes).not.toContain("category_list");
     expect(sectionCapabilityIssues("storefront", [{ type: "category_list" }])).toEqual([expect.objectContaining({ path: "sections.0.type" })]);
     expect(sectionCapabilityIssues("magazine", [{ type: "category_list" }])).toEqual([]);
-    const snapshot = freshSnapshot("community_guide", [place("a", "Eat & Drink")], { modules: { places: false, events: true, articles: true, stores: false, services: false, inquiries: true } });
+    const snapshot = freshSnapshot("community_guide", [place("a", "Eat & Drink")], { modules: { places: false, events: true, articles: true, stores: false, services: false, inquiries: true, links: true } });
     snapshot.routes = snapshot.routes.filter((r) => r.path !== "/places" && !r.path.startsWith("/places/"));
     snapshot.config.navigation.items = snapshot.config.navigation.items.filter((n) => n.path !== "/places");
     const r = validateManifest({ manifest: snapshot, notes: [], mediaRows: new Map(), missingMedia: [] }, { now });

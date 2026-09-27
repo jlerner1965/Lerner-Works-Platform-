@@ -21,6 +21,7 @@ Resume point for the build. Update after every milestone and before any context 
 | B2 From empty to launch (`docs/SITE-BUILDING-PLAN.md`) | DONE (2026-09-26; on `main` since pull request #11, merged by the owner as `4c69036` at 22:18 UTC; its migration `20260926000500_onboarding_package.sql` was already on production, applied with the D2 and B1 ones; the live checks on production are still to be run) | A section with nothing to show is left out of the public page by one rule shared by the four compositions and the validator (D-021); starter pages whose slots fill themselves, with a new `category_list` section; the onboarding package (template, dry run, one-transaction apply of images, rows and settings; migration `20260926000500_onboarding_package.sql`); CSV imports for articles and services with body text and featured images; multi-file upload with an alternative-text pass; quick add, duplicate, category suggestions and site defaults in the editor; imports approved on save under the review policy. SB-04 and SB-05 PASS, SB-06 re-measured (`docs/ACCEPTANCE.md`). |
 | B3 Design richness inside the boundary (`docs/SITE-BUILDING-PLAN.md`) | DONE (2026-09-26; on `main` since pull request #11 with B2, merged by the owner as `4c69036` at 22:18 UTC, no migration; the live checks on production are still to be run) | Richer section vocabulary as typed sections and enumerated options (D-022): people, logo strip, image-and-text rows, photo band, portraits on quotations, hero collage/offset/statement, gallery lightbox drawn by CSS, click-to-load map (D-013 extended), rich text divider/callout/button; shared renderers used by all six compositions; the almanac (guide) and practice (location business) compositions; both pilots re-composed; snapshot schema version 5 with the earlier eight frozen releases unchanged and version-5 fixtures added; `scripts/set-demo-theme.ts`. SB-07 PASS; DES-13 and DES-14 re-measured (144 KiB script, +1 KiB for the map); screenshots per composition. Open: the owner's judgement on two sample sites with real photography (B4). |
 | B4 The proof (`docs/SITE-BUILDING-PLAN.md`) | DONE in the repository (2026-09-26; on `main` since pull request #12, merged by the owner as `89a2f7b` at 23:37 UTC, no migration; the live checks on production are still to be run); the owner's judgement and own timing pending (SB-09) | Two realistic client sites with public-domain photography (Library of Congress, Carol M. Highsmith Archive; D-023) written as onboarding packages in `src/server/demo/proof/` (`pnpm proof:package`): Cedar Bend Guide (19 places, 7 events, 6 articles, 40 photographs) and Bookcliff Farm Markets (3 markets, 5 services, 21 photographs). Built end to end through the dashboard by `tests/e2e/proof.spec.ts`, counted per task and timed, captured under every composition of each preset (`docs/evidence/proof/`). Three defects found by the build and fixed: the proxy's 10 MB body buffer truncating a larger package, the settings sheet's opening picture ignored on a text-only home, colours failing contrast passing the dry run. Open: the owner's judgement on the captures and their own timed build on production with the packages (SB-08). |
+| B5 Documents, links and the workbook (`docs/SITE-BUILDING-PLAN.md`) | DONE in the repository (2026-09-27; on the branch `claude/lucid-darwin-cif2y6`, not yet on `main`; migrations `20260927000100_media_documents.sql` and `20260927000200_content_kind_link.sql` go to production before the merge) | The owner's review of B4 asked for PDFs beside the pictures, pages that are links to other websites and Excel instead of CSV (D-024). Documents in Media (PDF only, 25 MB, `media_assets.kind`; `document:<id>` link targets in text, buttons and section links; attachments on every item; the Downloads page section; served from the release as `<sha256>.pdf` inline with `nosniff`; a withdrawn document blocks the release; the site and onboarding packages carry them). Links as a content kind of both presets (https only, category, picture, summary, button label; cards that open the other site without a referrer; the `/links` index and its navigation entry once a link is published; a page of its own for search). The onboarding workbook (`content.xlsx` template with a sheet per kind, Site, Images, Documents and a Read me; uploaded on its own or inside the package; read by an OOXML subset in code and converted to the CSV files before the dry run; the proof packages carry it). Snapshot schema version 6, the ten earlier frozen releases unchanged, both pilots carrying sample links and documents. SB-10, SB-11 and SB-12 PASS. |
 
 ## Environment blockers (precise)
 
@@ -33,6 +34,22 @@ Resume point for the build. Update after every milestone and before any context 
 
 ## Last verified results
 
+- 2026-09-27 (site-building phase B5) `pnpm verify` on the final code: GATE PASSED in 795 s
+  (setup check 1 s, lint 19 s, typecheck 3 s, unit 6 s, integration 77 s, browser 652 s,
+  production build 37 s): 160 unit tests in 21 files (adds `documents.test`: the public names
+  and headers, the `document:` targets, the downloads section and attachments under every
+  composition, the manifest's kinds and the validator's blockers; `links.test`: the kind, its
+  routes, cards, index and page under every composition; `xlsx.test`: the workbook reader and
+  writer and the sheet matching; `onboarding.test` and `proof.test` on the workbook; two
+  version-6 fixtures in `rendering-hash.test`, the ten earlier ones unchanged); 78
+  integration tests in 20 files (adds `documents.test`, `links.test`, `workbook.test`); 40
+  browser tests against a production build (adds `documents.spec`, `links.spec`,
+  `workbook.spec`; the proof builds run with the workbook packages). Found by the gate and
+  fixed: the site package's path check named the content kinds by hand and refused a pilot
+  package carrying links (it is built from the registry now); the onboarding spec expected
+  the template's seven CSV files (four files now, the workbook among them); the workbook spec
+  imported a link with the same title as a pilot fixture link. The first gate run had failed
+  on the package check in three integration tests; nothing else changed between the runs.
 - 2026-09-26 (site-building phase B4) `PROOF_EVIDENCE=1 pnpm verify` on the final code: GATE
   PASSED in 620 s (setup check 1 s, lint 17 s, typecheck 3 s, unit 5 s, integration 72 s,
   browser 513 s, production build 9 s): 133 unit tests in the gate run, 136 on the unit suite
@@ -275,6 +292,24 @@ migration was already applied, see below; B3 has none), and B4 (the proof) follo
 request #12 (`89a2f7b`, 23:37 UTC); the live checks on production after those deployments are
 still to be run.
 
+Phase B5 is built on the branch (2026-09-27, D-024), from the owner's review of B4: documents
+in Media (`src/server/media/ingest.ts` ingests PDFs by signature and trailer into
+`media_assets` rows of kind `document`, migration `20260927000100_media_documents.sql`;
+`src/server/media/content-types.ts` names and serves the public copies; `document:<id>` link
+targets in rich text, buttons and section links; `attachments` on every item and the
+`downloads` page section rendered by `src/themes/shared/documents.tsx` under all six
+compositions; the manifest, the validator, the site package and the onboarding package carry
+documents), links to other websites as a content kind (`src/modules/link.ts`, migration
+`20260927000200_content_kind_link.sql`; `src/themes/shared/links.tsx` renders the cards, the
+`/links` index and the link's own page; the index route exists only once a link is published;
+quick add asks for the address; links import from a sheet), and the onboarding workbook
+(`src/server/import/xlsx.ts`, `src/server/import/workbook.ts`; the template is `content.xlsx`;
+a workbook uploads on its own or inside the package; `src/server/demo/proof/package.ts` writes
+the proof packages with it). Snapshot schema version 6 (`SnapshotMedia.kind` and `mime`, the
+`file` variant); version-6 fixtures of both pilots added with their sample links and
+documents, the ten earlier fixtures' hashes unchanged. Tests at three levels (`documents`,
+`links`, `xlsx` and `workbook`); screenshots `docs/evidence/dashboard/b5-*.png`.
+
 D2 and B1 reached production on 2026-09-26: the owner merged pull request #9 (D2, `d82bf6c`,
 deployed 18:08 UTC) and pull request #10 (B1, `167c9d1`, deployed 20:31 UTC). The merges
 came before their migrations: the migrations `20260926000300_design_delegation.sql`,
@@ -342,24 +377,28 @@ organization, site or hostname exists yet.
 
 ## Next action
 
-Site-building programme phase B4 (the proof, `docs/SITE-BUILDING-PLAN.md` section 3) is
-built on the branch (D-023): two realistic client sites with public-domain photography, written
-as the onboarding packages a client fills in (`src/server/demo/proof/`), built end to end
-through the dashboard by `tests/e2e/proof.spec.ts`, counted per task and timed, and captured
-under every composition of each preset in `docs/evidence/proof/`. What remains is the owner's:
-(1) B2, B3 and B4 are on `main` (pull requests #11 and #12, merged 22:18 and 23:37 UTC; no
-migration beyond the B2 one, `20260926000500_onboarding_package.sql`, already applied to the
-production project); the live checks on production for those deployments are still to be run
-(a version-1 release still renders; the onboarding template downloads for the test site; a
-package of more than 10 MB uploads whole, the proxy's body limit being 64 MB now); (2) the owner's own timed
+Site-building programme phase B5 (documents, links and the workbook, `docs/SITE-BUILDING-PLAN.md`
+section 3) is built and verified on the branch `claude/lucid-darwin-cif2y6` (D-024); no pull
+request has been opened. To put it on production, in the documented order: (1) apply the two
+migrations to the production project first (`20260927000100_media_documents.sql`: the
+`media_kind` type, `media_assets.kind`, dimensions nullable with a check by kind;
+`20260927000200_content_kind_link.sql`: the `link` value of `content_kind`, which cannot be used
+in the same transaction that adds it), then (2) open and merge the pull request on the owner's
+go, then (3) the live checks on production (a version-1 release still renders; the onboarding
+template downloads as `content.xlsx` for the test site; a PDF uploads to Media and, attached
+and published, is served from `/assets/<sha256>.pdf` inline; a link added from the Links list
+is at `/links` after publishing; a workbook uploaded on its own dry-runs), together with the
+B2, B3 and B4 live checks still to be run (a package of more than 10 MB uploads whole, the
+proxy's body limit being 64 MB now). What remains the owner's from B4: (4) their own timed
 build of a client site on production with the packages (`pnpm proof:package --site cedar-bend`
-and `--site bookcliff`, each imported on a fresh site of its preset through Import & export,
-then Look → composition, the home page composed as wanted, Publish now; the steps and the
-counts of the scripted build are in `docs/evidence/proof/README.md` and `latest.json`), the
-time recorded in the SB-08 row of `docs/ACCEPTANCE.md`; (3) the owner's judgement of the
-captures in `docs/evidence/proof/` and of the sites on production against the bar: would they
-choose the platform over building the site by hand, and does the result look launch-ready
-rather than templated? On the production test site the B3 additions are there to look at:
+and `--site bookcliff`, now carrying `content.xlsx`; each imported on a fresh site of its
+preset through Import & export, then Look → composition, the home page composed as wanted,
+Publish now; the steps and the counts of the scripted build are in
+`docs/evidence/proof/README.md` and `latest.json`), the time recorded in the SB-08 row of
+`docs/ACCEPTANCE.md`; (5) their judgement of the captures in `docs/evidence/proof/` and of the
+sites on production against the bar: would they choose the platform over building the site by
+hand, and does the result look launch-ready rather than templated? On the production test
+site the B3 additions are there to look at:
 Look → Theme lists the third composition (almanac or practice) with the preview beside it,
 the page editor's Add section offers People, Logo strip, Image and text rows and Photo band,
 the image hero's style list the Collage, Offset and Statement treatments, a gallery its
@@ -691,7 +730,7 @@ Columns: working UI · persistent backend · permission checks · tests · exter
 | Site creation from preset (UI + seed) | yes | yes (`create_site`) | owner-only function | e2e demo.spec step 10 | — |
 | Content list (filters, search, pagination, bulk archive) | yes | yes | RLS | manual | — |
 | Content editor, all six kinds, explicit save, conflicts | yes | yes | RLS | integration DATA-02, e2e | — |
-| Demonstration fixtures: 12 places/6 events/3 articles, 3 stores/4 services, pages, images, draft + pending review + two releases + fixture inquiry | seed + "Load demo content" | yes (normal services) | owner-only, demo sites only | e2e public specs | — |
+| Demonstration fixtures: 12 places/6 events/3 articles/3 links, 3 stores/4 services/2 links, pages, images, two documents each, draft + pending review + two releases + fixture inquiry | seed + "Load demo content" | yes (normal services) | owner-only, demo sites only | e2e public specs | — |
 | Draft preview and revision history | yes | yes | RLS | e2e demo.spec step 4 | — |
 | Review submit / comment / request changes / approve; review queue | editor panel + queue | immutable reviews | policy per state | e2e (approve) | — |
 | Candidate build, findings, waivers, frozen preview | yes | yes | publisher-only | integration PUB-01..05, e2e | — |
@@ -706,6 +745,9 @@ Columns: working UI · persistent backend · permission checks · tests · exter
 | Access management + invitations UI | yes | SQL functions | owner-only | integration AUTH-05/07 + invitations, e2e access.spec | invitation email via local sink; Supabase invite flow unverified |
 | CSV import (templates, mapping, dry run, confirm) | yes | import_jobs + transactions | editor+ | integration PORT-01/02 | — |
 | Site package export/import | yes | ZIP with checksums | owner-only | integration PORT-03, e2e demo.spec step 10 | — |
+| Documents in Media (PDF upload, downloads under items and in a page section, links from text and buttons, served from the release) | yes | `media_assets.kind`, private original + public `<sha256>.pdf` | RLS + publication validator | unit and integration `documents.test`, e2e `documents.spec` (SB-10) | — |
+| Links to other websites (content kind, cards that open the other site, `/links` index once published, own page) | yes | content items of kind `link` | RLS + module switch | unit and integration `links.test`, e2e `links.spec` (SB-11) | — |
+| Onboarding workbook (`content.xlsx` template, uploaded alone or in the package, converted to the sheets before the dry run) | yes | import jobs + one transaction | editor+ (settings sheet: owner) | unit `xlsx.test`, `onboarding.test`, `proof.test`; integration `workbook.test`; e2e `workbook.spec` (SB-12) | — |
 | Audit trail view | yes | append-only table | owner/publisher | manual | — |
 | Notification worker + retry + publisher re-queue | inquiry detail | lease-based queue | publisher retry | integration LEAD-02 | local sink; Resend adapter unverified |
 | Retention job, local backup, restore rehearsal | scripts | yes | local-target guard | OPS-02 executed | provider backups for hosted |

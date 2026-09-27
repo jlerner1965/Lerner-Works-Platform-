@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { zipSync } from "fflate";
 import { getSessionUser } from "@/server/auth/session";
 import { withUser, describeDbError } from "@/server/data/db";
 import { loadSiteContext } from "@/server/data/access";
@@ -7,6 +8,7 @@ import { parseCsv, autoMap, dryRun, MAX_BYTES } from "@/server/import/csv";
 import { isImportableKind } from "@/server/import/csv-spec";
 import { dryRunPackage, MAX_PACKAGE_BYTES } from "@/server/import/package";
 import { dryRunOnboarding, onboardingJobSummary, MAX_ONBOARDING_BYTES } from "@/server/import/onboarding";
+import { looksLikeWorkbook } from "@/server/import/xlsx";
 
 export const dynamic = "force-dynamic";
 
@@ -50,7 +52,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ sit
       }
       if (type === "onboarding") {
         if (file.size > MAX_ONBOARDING_BYTES) throw new Error("The package is larger than 64 MB.");
-        const bytes = new Uint8Array(await file.arrayBuffer());
+        const uploaded = new Uint8Array(await file.arrayBuffer());
+        // A workbook on its own (B5-3) is a package with the workbook and nothing else.
+        const bytes = looksLikeWorkbook(uploaded, file.name) ? zipSync({ "content.xlsx": uploaded }, { level: 6 }) : uploaded;
         const dry = await dryRunOnboarding(db, ctx.site, bytes, { canApplySettings: ctx.capabilities.isOwner });
         const sha = createHash("sha256").update(bytes).digest("hex");
         const [job] = await db<{ id: string }[]>`insert into public.import_jobs (organization_id, site_id, package_type, filename, file_sha256, row_count, dry_run_result, created_by)

@@ -18,7 +18,7 @@ export interface PresetDefinition {
    * through the page schema when created.
    */
   initialPages: (input: { siteName: string }) => Array<{ slug: string; title: string; payload: PagePayloadInput }>;
-  kinds: Array<"page" | "place" | "event" | "article" | "store" | "service">;
+  kinds: Array<"page" | "place" | "event" | "article" | "store" | "service" | "link">;
 }
 
 const uid = (n: string) => `s-${n}`;
@@ -29,7 +29,7 @@ export const presets: Record<PresetKey, PresetDefinition> = {
     label: "Community guide",
     description: "Editorial local guide with a place directory, events calendar and short articles.",
     defaultTimeZone: "America/Denver",
-    kinds: ["page", "place", "event", "article"],
+    kinds: ["page", "place", "event", "article", "link"],
     config: ({ siteName }) => ({
       schemaVersion: 1,
       branding: {
@@ -49,7 +49,7 @@ export const presets: Record<PresetKey, PresetDefinition> = {
         ],
       },
       footer: { text: "", links: [{ label: "About", path: "/about" }, { label: "Contact", path: "/contact" }], showContactDetails: true },
-      modules: { places: true, events: true, articles: true, stores: false, services: false, inquiries: true },
+      modules: { places: true, events: true, articles: true, stores: false, services: false, inquiries: true, links: true },
       metadata: { defaultTitle: siteName, titleSuffix: siteName, defaultDescription: "" },
     }),
     initialPages: ({ siteName }) => [
@@ -94,7 +94,7 @@ export const presets: Record<PresetKey, PresetDefinition> = {
     label: "Location business",
     description: "Multi-location retail or service business with store pages, hours, services and inquiries.",
     defaultTimeZone: "America/Denver",
-    kinds: ["page", "store", "service"],
+    kinds: ["page", "store", "service", "link"],
     config: ({ siteName }) => ({
       schemaVersion: 1,
       branding: {
@@ -113,7 +113,7 @@ export const presets: Record<PresetKey, PresetDefinition> = {
         ],
       },
       footer: { text: "", links: [{ label: "Locations", path: "/locations" }, { label: "Contact", path: "/contact" }], showContactDetails: true },
-      modules: { places: false, events: false, articles: false, stores: true, services: true, inquiries: true },
+      modules: { places: false, events: false, articles: false, stores: true, services: true, inquiries: true, links: true },
       metadata: { defaultTitle: siteName, titleSuffix: siteName, defaultDescription: "" },
     }),
     initialPages: ({ siteName }) => [

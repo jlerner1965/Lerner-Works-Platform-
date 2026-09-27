@@ -14,7 +14,7 @@ export async function loadDemoContentAction(formData: FormData): Promise<void> {
   try {
     const result = await loadDemoContent(user.id, siteId);
     revalidatePath(`/app/sites/${siteId}`);
-    redirect(`/app/sites/${siteId}?demo=${encodeURIComponent(`${result.created} created, ${result.updated} updated, ${result.unchanged} unchanged, ${result.images} images, ${result.releases.length} releases`)}`);
+    redirect(`/app/sites/${siteId}?demo=${encodeURIComponent(`${result.created} created, ${result.updated} updated, ${result.unchanged} unchanged, ${result.images} images, ${result.documents} documents, ${result.releases.length} releases`)}`);
   } catch (err) {
     if ((err as { digest?: string }).digest?.startsWith("NEXT_REDIRECT")) throw err;
     redirect(`/app/sites/${siteId}?demoError=${encodeURIComponent((err as Error).message.slice(0, 300))}`);

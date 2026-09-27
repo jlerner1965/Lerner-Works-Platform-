@@ -16,6 +16,8 @@ import { SectionFrame, PageContainer } from "@/themes/shared/frame";
 import { siteDesign, columnsFor, isColouredBand } from "@/themes/shared/design";
 import { FaqSection, QuotesSection, CtaBannerSection, GallerySection, FactsSection, VideoSection, MapLinkSection, columnsClass, type SectionStyle } from "@/themes/shared/sections";
 import { TeamSection, LogoStripSection, ImageTextSection, ImageBandSection, HeroCollage, heroExtras } from "@/themes/shared/rich-sections";
+import { DownloadsSection, Attachments } from "@/themes/shared/documents";
+import { LinkCards, LinkIndex, OutsideLinkDetail } from "@/themes/shared/links";
 import { PracticeStoreDetail, PracticeServiceDetail, PracticeIndex, PracticeSearch } from "@/themes/practice/pages";
 import type { Block } from "@/lib/richtext";
 
@@ -202,7 +204,7 @@ export function PracticeLayout({ ctx, children }: { ctx: RenderContext; children
   );
 }
 
-const narrowByDefault = new Set<PageSection["type"]>(["rich_text", "inquiry_form", "faq", "video", "map_link"]);
+const narrowByDefault = new Set<PageSection["type"]>(["rich_text", "inquiry_form", "faq", "video", "map_link", "downloads"]);
 
 export function PracticeSections({ ctx, page }: { ctx: RenderContext; page: PagePayload }) {
   // Sections with nothing to show are left out (B2, D-021); publication lists them.
@@ -367,7 +369,7 @@ function PracticeSection({ ctx, section, first }: { ctx: RenderContext; section:
       return (
         <>
           {section.heading ? <PracticeHeading>{section.heading}</PracticeHeading> : null}
-          <PracticeCollection ctx={ctx} items={items} variant={section.variant} columns={columnsFor("practice", "content_collection", section.columns)} />
+          {section.kind === "link" ? <LinkCards ctx={ctx} items={items} style={practiceStyle} columns={columnsFor("practice", "content_collection", section.columns)} variant={section.variant} /> : <PracticeCollection ctx={ctx} items={items} variant={section.variant} columns={columnsFor("practice", "content_collection", section.columns)} />}
         </>
       );
     }
@@ -425,6 +427,8 @@ function PracticeSection({ ctx, section, first }: { ctx: RenderContext; section:
       return <LogoStripSection ctx={ctx} section={section} style={practiceStyle} />;
     case "image_text":
       return <ImageTextSection ctx={ctx} section={section} style={practiceStyle} />;
+    case "downloads":
+      return <DownloadsSection ctx={ctx} section={section} style={practiceStyle} />;
     case "image_band":
       // Rendered by PracticeSections outside the section frame.
       return null;
@@ -504,6 +508,7 @@ function GenericDetail({ ctx, item }: { ctx: RenderContext; item: SnapshotItem }
       <h1 className={pracH1}>{item.title}</h1>
       {item.payload.summary ? <p className="mt-3 text-lg text-(--section-muted)">{String(item.payload.summary)}</p> : null}
       <RichText ctx={ctx} blocks={(item.payload.body as Block[]) ?? []} className="prac-prose mt-6" />
+      <Attachments ctx={ctx} item={item} style={practiceStyle} />
     </article>
   );
 }
@@ -524,13 +529,13 @@ export const practiceTheme: Theme = {
       case "detail":
         return (
           <PracticeLayout ctx={ctx}>
-            <PageContainer>{route.kind === "store" ? <PracticeStoreDetail ctx={ctx} item={route.item} /> : route.kind === "service" ? <PracticeServiceDetail ctx={ctx} item={route.item} /> : <GenericDetail ctx={ctx} item={route.item} />}</PageContainer>
+            <PageContainer>{route.kind === "link" ? <OutsideLinkDetail ctx={ctx} item={route.item} style={practiceStyle} /> : route.kind === "store" ? <PracticeStoreDetail ctx={ctx} item={route.item} /> : route.kind === "service" ? <PracticeServiceDetail ctx={ctx} item={route.item} /> : <GenericDetail ctx={ctx} item={route.item} />}</PageContainer>
           </PracticeLayout>
         );
       case "index":
         return (
           <PracticeLayout ctx={ctx}>
-            <PageContainer><PracticeIndex ctx={ctx} kind={route.kind} /></PageContainer>
+            <PageContainer>{route.kind === "link" ? <LinkIndex ctx={ctx} style={practiceStyle} /> : <PracticeIndex ctx={ctx} kind={route.kind} />}</PageContainer>
           </PracticeLayout>
         );
       case "search":

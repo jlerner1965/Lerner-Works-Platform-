@@ -14,7 +14,7 @@ describe("sidebar grouped by task", () => {
   it("offers an owner every task of a community guide, grouped", () => {
     expect(labels(context("community_guide", "owner", null))).toEqual([
       { title: "Cedar Bend", items: ["Overview"] },
-      { title: "Content", items: ["Pages", "Places", "Events", "Articles", "Media", "Reviews"] },
+      { title: "Content", items: ["Pages", "Places", "Events", "Articles", "Links", "Media", "Reviews"] },
       { title: "Site", items: ["Look", "Publish", "Inbox", "Settings"] },
       { title: "Manage", items: ["Team", "Import & export", "Activity log"] },
     ]);
@@ -23,19 +23,19 @@ describe("sidebar grouped by task", () => {
   it("lists the location business kinds and links each kind to its filtered list", () => {
     const sections = siteNavSections(context("location_business", "owner", null));
     const content = sections[1]!;
-    expect(content.items.map((i) => i.label)).toEqual(["Pages", "Stores", "Services", "Media", "Reviews"]);
+    expect(content.items.map((i) => i.label)).toEqual(["Pages", "Stores", "Services", "Links", "Media", "Reviews"]);
     expect(content.items[1]!.href).toMatch(/\/content\?kind=store$/);
   });
 
   it("hides what editors and reviewers cannot use", () => {
     expect(labels(context("community_guide", null, "editor"))).toEqual([
       { title: "Cedar Bend", items: ["Overview"] },
-      { title: "Content", items: ["Pages", "Places", "Events", "Articles", "Media", "Reviews"] },
+      { title: "Content", items: ["Pages", "Places", "Events", "Articles", "Links", "Media", "Reviews"] },
       { title: "Manage", items: ["Import & export"] },
     ]);
     expect(labels(context("community_guide", null, "reviewer"))).toEqual([
       { title: "Cedar Bend", items: ["Overview"] },
-      { title: "Content", items: ["Pages", "Places", "Events", "Articles", "Reviews"] },
+      { title: "Content", items: ["Pages", "Places", "Events", "Articles", "Links", "Reviews"] },
     ]);
   });
 

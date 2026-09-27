@@ -98,19 +98,23 @@ export default async function ImportJobPage({ params }: { params: Promise<{ site
     const warnings = o.warnings ?? [];
     const kinds = o.kinds ?? [];
     const images = o.images ?? [];
+    const documents = o.documents ?? [];
     const settings = snakeCaseKeys(o.settings?.values);
-    const summary = o.summary ?? { items: 0, images: 0, settings: 0, rowErrors: 0 };
-    const canConfirm = job.state === "dry_run" && errors.length === 0 && summary.items + summary.images + summary.settings > 0;
-    const result = job.result as { created?: number; updated?: number; images?: number; settings?: string[]; pages?: string[]; approved?: boolean } | null;
+    const summary = o.summary ?? { items: 0, images: 0, documents: 0, settings: 0, rowErrors: 0 };
+    // Jobs stored before B5 have no document count.
+    const documentCount = summary.documents ?? 0;
+    const canConfirm = job.state === "dry_run" && errors.length === 0 && summary.items + summary.images + documentCount + summary.settings > 0;
+    const result = job.result as { created?: number; updated?: number; images?: number; documents?: number; settings?: string[]; pages?: string[]; approved?: boolean } | null;
+    const filesLabel = `${summary.images} image(s)${documentCount ? `, ${documentCount} document(s)` : ""}`;
     return (
       <>
         <PageHeader eyebrow={`${ctx.site.name} · Import`} title={job.filename ?? "Onboarding package"} description={<span><Link href={base} className="text-action underline">← Import and export</Link> · uploaded {formatDateTime(job.createdAt, ctx.site.timeZone)} · <Badge tone={job.state === "completed" ? "success" : job.state === "dry_run" ? "info" : "neutral"}>{job.state.replace("_", " ")}</Badge></span>} />
         {job.state === "completed" && result ? (
-          <div className="mb-4"><Alert tone="success">Applied {formatDateTime(job.completedAt, ctx.site.timeZone)}: {result.created ?? 0} created, {result.updated ?? 0} updated, {result.images ?? 0} images{result.settings?.length ? `, settings ${result.settings.join(", ")}` : ""}{result.pages?.length ? `, the ${result.pages.join(" and ")} page${result.pages.length === 1 ? "" : "s"} given their text` : ""}. {result.approved ? "Everything imported is approved and goes out with the next publish." : "Imported items are drafts in Content."} <Link href={`/app/sites/${siteId}/publishing`} className="underline">Publish</Link></Alert></div>
+          <div className="mb-4"><Alert tone="success">Applied {formatDateTime(job.completedAt, ctx.site.timeZone)}: {result.created ?? 0} created, {result.updated ?? 0} updated, {result.images ?? 0} images{result.documents ? `, ${result.documents} document${result.documents === 1 ? "" : "s"}` : ""}{result.settings?.length ? `, settings ${result.settings.join(", ")}` : ""}{result.pages?.length ? `, the ${result.pages.join(" and ")} page${result.pages.length === 1 ? "" : "s"} given their text` : ""}. {result.approved ? "Everything imported is approved and goes out with the next publish." : "Imported items are drafts in Content."} <Link href={`/app/sites/${siteId}/publishing`} className="underline">Publish</Link></Alert></div>
         ) : null}
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
           <div className="space-y-4">
-            <Card title={`Dry run: ${summary.items} row(s) to import, ${summary.images} image(s), ${summary.settings} setting(s)${summary.rowErrors ? `, ${summary.rowErrors} row(s) with errors` : ""}`}>
+            <Card title={`Dry run: ${summary.items} row(s) to import, ${filesLabel}, ${summary.settings} setting(s)${summary.rowErrors ? `, ${summary.rowErrors} row(s) with errors` : ""}`}>
               {errors.length ? <ul className="mb-3 list-disc pl-5 text-sm text-danger">{errors.map((e, i) => <li key={i}>{e}</li>)}</ul> : <p className="mb-3 text-sm text-success">The package is well-formed. Nothing has been written.</p>}
               {warnings.length ? <ul className="mb-3 list-disc pl-5 text-sm text-warning">{warnings.map((w, i) => <li key={i}>{w}</li>)}</ul> : null}
               {Object.keys(settings).length ? (
@@ -139,11 +143,36 @@ export default async function ImportJobPage({ params }: { params: Promise<{ site
                 </ul>
               </Card>
             ) : null}
+            {o.workbook ? (
+              <Card title={`Workbook ${o.workbook.file}`}>
+                <ul className="divide-y divide-line text-sm">
+                  {o.workbook.sheets.map((s) => (
+                    <li key={s.name} className="flex flex-wrap items-center gap-2 py-1.5">
+                      <span className="mr-auto font-medium">{s.name}</span>
+                      {s.file ? <span className="text-xs text-ink-subtle">read as <code>{s.file}</code> · {s.rows} row{s.rows === 1 ? "" : "s"}</span> : <Badge tone="neutral">ignored</Badge>}
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+            ) : null}
+            {documents.length ? (
+              <Card title={`Documents (${documents.length})`}>
+                <ul className="divide-y divide-line text-sm">
+                  {documents.map((doc) => (
+                    <li key={doc.file} className="flex flex-wrap items-center gap-2 py-1.5">
+                      <code className="mr-auto">{doc.file}</code>
+                      <span className="text-xs text-ink-subtle">{doc.title} · PDF · {Math.round(doc.bytes / 1024)} KB</span>
+                      {doc.license ? <Badge tone="success">licensed</Badge> : <Badge tone="warning">no license</Badge>}
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+            ) : null}
           </div>
           {job.state === "dry_run" ? (
             <Card title="Confirm">
-              <p className="mb-2 text-sm text-ink-muted">Imports the images, then the rows in order, then the settings sheet, all at once. Rows with errors are skipped; fix them in the file and upload again if they matter.</p>
-              <ConfirmImportForm siteId={siteId} jobId={job.id} disabled={!canConfirm} label={errors.length ? "Fix the package first" : canConfirm ? `Import ${summary.items} row(s), ${summary.images} image(s) and ${summary.settings} setting(s)` : "Nothing to import"} />
+              <p className="mb-2 text-sm text-ink-muted">Imports the images and documents, then the rows in order, then the settings sheet, all at once. Rows with errors are skipped; fix them in the file and upload again if they matter.</p>
+              <ConfirmImportForm siteId={siteId} jobId={job.id} disabled={!canConfirm} label={errors.length ? "Fix the package first" : canConfirm ? `Import ${summary.items} row(s), ${filesLabel} and ${summary.settings} setting(s)` : "Nothing to import"} />
               <form action={cancelImportAction} className="mt-2"><input type="hidden" name="siteId" value={siteId} /><input type="hidden" name="jobId" value={job.id} /><Button type="submit" variant="ghost">Cancel this import</Button></form>
             </Card>
           ) : null}

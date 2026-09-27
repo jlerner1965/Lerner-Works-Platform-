@@ -41,6 +41,8 @@ export function sectionHasContent(scope: CollectionScope, section: PageSection):
       return section.items.some((it) => Boolean(scope.snapshot.media[it.assetId]));
     case "image_band":
       return Boolean(section.heading || section.text || (section.imageAssetId && scope.snapshot.media[section.imageAssetId]));
+    case "downloads":
+      return section.items.some((it) => Boolean(scope.snapshot.media[it.assetId]?.variants.file));
   }
 }
 

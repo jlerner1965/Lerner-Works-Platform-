@@ -14,6 +14,8 @@ import { SectionFrame, PageContainer } from "@/themes/shared/frame";
 import { siteDesign, columnsFor } from "@/themes/shared/design";
 import { FaqSection, QuotesSection, CtaBannerSection, GallerySection, FactsSection, VideoSection, MapLinkSection, columnsClass, type SectionStyle } from "@/themes/shared/sections";
 import { TeamSection, LogoStripSection, ImageTextSection, ImageBandSection, HeroCollage, heroExtras } from "@/themes/shared/rich-sections";
+import { DownloadsSection, Attachments } from "@/themes/shared/documents";
+import { LinkCards, LinkIndex, OutsideLinkDetail } from "@/themes/shared/links";
 import { formatEventDate, formatEventTimeRange, formatDateOnly } from "@/lib/events";
 import { GuidePlaceDetail, GuideEventDetail, GuideArticleDetail, GuideIndex, GuideSearch } from "@/themes/guide/pages";
 import type { Block } from "@/lib/richtext";
@@ -165,7 +167,7 @@ function PageHeading({ children, className = "" }: { children: ReactNode; classN
 }
 
 /** Section types that read best at prose width unless the owner widens them. */
-const narrowByDefault = new Set<PageSection["type"]>(["rich_text", "inquiry_form", "faq", "video", "map_link"]);
+const narrowByDefault = new Set<PageSection["type"]>(["rich_text", "inquiry_form", "faq", "video", "map_link", "downloads"]);
 
 export function GuideSections({ ctx, page }: { ctx: RenderContext; page: PagePayload }) {
   // Sections with nothing to show are left out (B2, D-021); publication lists them.
@@ -316,7 +318,7 @@ function GuideSection({ ctx, section, first }: { ctx: RenderContext; section: Pa
       return (
         <>
           {section.heading ? <GuideSectionHeading>{section.heading}</GuideSectionHeading> : null}
-          <GuideCollection ctx={ctx} kind={section.kind} items={items} mode={section.mode} variant={section.variant} columns={columnsFor("guide", "content_collection", section.columns)} />
+          {section.kind === "link" ? <LinkCards ctx={ctx} items={items} style={guideStyle} columns={columnsFor("guide", "content_collection", section.columns)} variant={section.variant} /> : <GuideCollection ctx={ctx} kind={section.kind} items={items} mode={section.mode} variant={section.variant} columns={columnsFor("guide", "content_collection", section.columns)} />}
         </>
       );
     }
@@ -415,6 +417,8 @@ function GuideSection({ ctx, section, first }: { ctx: RenderContext; section: Pa
       return <LogoStripSection ctx={ctx} section={section} style={guideStyle} />;
     case "image_text":
       return <ImageTextSection ctx={ctx} section={section} style={guideStyle} />;
+    case "downloads":
+      return <DownloadsSection ctx={ctx} section={section} style={guideStyle} />;
     case "image_band":
       // Rendered by GuideSections outside the section frame.
       return null;
@@ -594,14 +598,14 @@ export const guideTheme: Theme = {
         return (
           <GuideLayout ctx={ctx}>
             <PageContainer>
-              {route.kind === "place" ? <GuidePlaceDetail ctx={ctx} item={route.item} /> : route.kind === "event" ? <GuideEventDetail ctx={ctx} item={route.item} /> : route.kind === "article" ? <GuideArticleDetail ctx={ctx} item={route.item} /> : <GenericDetail ctx={ctx} item={route.item} />}
+              {route.kind === "link" ? <OutsideLinkDetail ctx={ctx} item={route.item} style={guideStyle} /> : route.kind === "place" ? <GuidePlaceDetail ctx={ctx} item={route.item} /> : route.kind === "event" ? <GuideEventDetail ctx={ctx} item={route.item} /> : route.kind === "article" ? <GuideArticleDetail ctx={ctx} item={route.item} /> : <GenericDetail ctx={ctx} item={route.item} />}
             </PageContainer>
           </GuideLayout>
         );
       case "index":
         return (
           <GuideLayout ctx={ctx}>
-            <PageContainer><GuideIndex ctx={ctx} kind={route.kind} /></PageContainer>
+            <PageContainer>{route.kind === "link" ? <LinkIndex ctx={ctx} style={guideStyle} /> : <GuideIndex ctx={ctx} kind={route.kind} />}</PageContainer>
           </GuideLayout>
         );
       case "search":
@@ -622,6 +626,7 @@ function GenericDetail({ ctx, item }: { ctx: RenderContext; item: SnapshotItem }
       <PageHeading className="text-4xl">{item.title}</PageHeading>
       {item.payload.summary ? <p className="mt-3 text-lg">{String(item.payload.summary)}</p> : null}
       <RichText ctx={ctx} blocks={(item.payload.body as Block[]) ?? []} className="guide-prose mt-6" />
+      <Attachments ctx={ctx} item={item} style={guideStyle} />
     </article>
   );
 }

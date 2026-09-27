@@ -1,20 +1,12 @@
 import { getStorage } from "@/server/media/storage";
+import { publicAssetHeaders } from "@/server/media/content-types";
 
 export const dynamic = "force-dynamic";
 
-const NAME = /^[0-9a-f]{64}-w(480|960|1600)\.webp$/;
-
-/** Immutable published derivatives addressed by content hash. */
+/** Immutable published derivatives addressed by content hash: image variants and documents (B5-1). */
 export async function GET(_request: Request, { params }: { params: Promise<{ name: string }> }) {
   const { name } = await params;
-  if (!NAME.test(name)) return new Response("Not found", { status: 404 });
-  const data = await getStorage().getPublic(name);
+  const data = publicAssetHeaders(name, 0) ? await getStorage().getPublic(name) : null;
   if (!data) return new Response("Not found", { status: 404 });
-  return new Response(data as BodyInit, {
-    headers: {
-      "Content-Type": "image/webp",
-      "Content-Length": String(data.byteLength),
-      "Cache-Control": "public, max-age=31536000, immutable",
-    },
-  });
+  return new Response(data as BodyInit, { headers: publicAssetHeaders(name, data.byteLength)! });
 }

@@ -14,6 +14,8 @@ import { SectionFrame, PageContainer } from "@/themes/shared/frame";
 import { siteDesign, columnsFor, isColouredBand } from "@/themes/shared/design";
 import { FaqSection, QuotesSection, CtaBannerSection, GallerySection, FactsSection, VideoSection, MapLinkSection, columnsClass, type SectionStyle } from "@/themes/shared/sections";
 import { TeamSection, LogoStripSection, ImageTextSection, ImageBandSection, HeroCollage, heroExtras } from "@/themes/shared/rich-sections";
+import { DownloadsSection, Attachments } from "@/themes/shared/documents";
+import { LinkCards, LinkIndex, OutsideLinkDetail } from "@/themes/shared/links";
 import { formatEventTimeRange, formatDateOnly } from "@/lib/events";
 import { AlmanacPlaceDetail, AlmanacEventDetail, AlmanacArticleDetail, AlmanacIndex, AlmanacSearch } from "@/themes/almanac/pages";
 import type { Block } from "@/lib/richtext";
@@ -181,7 +183,7 @@ export function AlmanacLayout({ ctx, children }: { ctx: RenderContext; children:
 }
 
 /** Section types that read best at prose width unless the owner widens them. */
-const narrowByDefault = new Set<PageSection["type"]>(["rich_text", "inquiry_form", "faq", "video", "map_link"]);
+const narrowByDefault = new Set<PageSection["type"]>(["rich_text", "inquiry_form", "faq", "video", "map_link", "downloads"]);
 
 export function AlmanacSections({ ctx, page }: { ctx: RenderContext; page: PagePayload }) {
   // Sections with nothing to show are left out (B2, D-021); publication lists them.
@@ -340,7 +342,7 @@ function AlmanacSection({ ctx, section, first }: { ctx: RenderContext; section: 
       return (
         <>
           {section.heading ? <AlmanacHeading>{section.heading}</AlmanacHeading> : null}
-          <AlmanacCollection ctx={ctx} kind={section.kind} items={items} variant={section.variant} columns={columnsFor("almanac", "content_collection", section.columns)} />
+          {section.kind === "link" ? <LinkCards ctx={ctx} items={items} style={almanacStyle} columns={columnsFor("almanac", "content_collection", section.columns)} variant={section.variant} /> : <AlmanacCollection ctx={ctx} kind={section.kind} items={items} variant={section.variant} columns={columnsFor("almanac", "content_collection", section.columns)} />}
         </>
       );
     }
@@ -442,6 +444,8 @@ function AlmanacSection({ ctx, section, first }: { ctx: RenderContext; section: 
       return <LogoStripSection ctx={ctx} section={section} style={almanacStyle} />;
     case "image_text":
       return <ImageTextSection ctx={ctx} section={section} style={almanacStyle} />;
+    case "downloads":
+      return <DownloadsSection ctx={ctx} section={section} style={almanacStyle} />;
     case "image_band":
       // Rendered by AlmanacSections outside the section frame.
       return null;
@@ -611,6 +615,7 @@ function GenericDetail({ ctx, item }: { ctx: RenderContext; item: SnapshotItem }
       <h1 className={almH1}>{item.title}</h1>
       {item.payload.summary ? <p className="mt-3 text-lg">{String(item.payload.summary)}</p> : null}
       <RichText ctx={ctx} blocks={(item.payload.body as Block[]) ?? []} className="alm-prose mt-6" />
+      <Attachments ctx={ctx} item={item} style={almanacStyle} />
     </article>
   );
 }
@@ -633,14 +638,14 @@ export const almanacTheme: Theme = {
         return (
           <AlmanacLayout ctx={ctx}>
             <PageContainer>
-              {route.kind === "place" ? <AlmanacPlaceDetail ctx={ctx} item={route.item} /> : route.kind === "event" ? <AlmanacEventDetail ctx={ctx} item={route.item} /> : route.kind === "article" ? <AlmanacArticleDetail ctx={ctx} item={route.item} /> : <GenericDetail ctx={ctx} item={route.item} />}
+              {route.kind === "link" ? <OutsideLinkDetail ctx={ctx} item={route.item} style={almanacStyle} /> : route.kind === "place" ? <AlmanacPlaceDetail ctx={ctx} item={route.item} /> : route.kind === "event" ? <AlmanacEventDetail ctx={ctx} item={route.item} /> : route.kind === "article" ? <AlmanacArticleDetail ctx={ctx} item={route.item} /> : <GenericDetail ctx={ctx} item={route.item} />}
             </PageContainer>
           </AlmanacLayout>
         );
       case "index":
         return (
           <AlmanacLayout ctx={ctx}>
-            <PageContainer><AlmanacIndex ctx={ctx} kind={route.kind} /></PageContainer>
+            <PageContainer>{route.kind === "link" ? <LinkIndex ctx={ctx} style={almanacStyle} /> : <AlmanacIndex ctx={ctx} kind={route.kind} />}</PageContainer>
           </AlmanacLayout>
         );
       case "search":

@@ -7,6 +7,7 @@ import { Picture } from "@/themes/shared/picture";
 import { featuredImage, itemPath } from "@/themes/shared/collections";
 import { indexCopy } from "@/themes/shared/site-root";
 import { MagazineCollection, MagazineHeading, magazineStyle, kicker } from "@/themes/magazine/index";
+import { Attachments } from "@/themes/shared/documents";
 import { formatEventDate, formatEventTimeRange, formatDateOnly, classifyEvent } from "@/lib/events";
 import { formatWeeklyHours } from "@/lib/hours";
 import type { WeeklyHours } from "@/modules/common";
@@ -64,6 +65,7 @@ export function MagazinePlaceDetail({ ctx, item }: { ctx: RenderContext; item: S
       <div className="mt-10 grid gap-10 md:grid-cols-[2fr_1fr]">
         <div>
           <RichText ctx={ctx} blocks={(p.body as Block[]) ?? []} className="mag-prose mag-dropcap" />
+          <Attachments ctx={ctx} item={item} style={magazineStyle} />
           {next?.label && next.path ? (
             <p className="mt-8">
               <a href={next.path.startsWith("/") ? href(ctx, next.path) : next.path} className={magazineStyle.buttonPrimary} {...(next.path.startsWith("http") ? { rel: "noreferrer" } : {})}>
@@ -137,6 +139,7 @@ export function MagazineEventDetail({ ctx, item }: { ctx: RenderContext; item: S
       {img ? <Picture ctx={ctx} media={img} sizes="(min-width: 768px) 720px, 100vw" className="mt-8 aspect-[16/9] w-full rounded-(--radius) object-cover" /> : null}
       {p.summary ? <p className={`mt-8 ${deck}`}>{String(p.summary)}</p> : null}
       <RichText ctx={ctx} blocks={(p.body as Block[]) ?? []} className="mag-prose mt-6" />
+      <Attachments ctx={ctx} item={item} style={magazineStyle} />
       <p className="mt-10 text-sm"><a href={href(ctx, "/events")} className="text-(--section-accent) underline">← All events</a></p>
     </article>
   );
@@ -169,6 +172,7 @@ export function MagazineArticleDetail({ ctx, item }: { ctx: RenderContext; item:
       ) : null}
       <div className="mt-10 grid gap-10 md:grid-cols-[2fr_1fr]">
         <RichText ctx={ctx} blocks={(p.body as Block[]) ?? []} className="mag-prose mag-dropcap" />
+        <Attachments ctx={ctx} item={item} style={magazineStyle} className="md:order-3 md:col-start-1" />
         <aside>
           {more.length ? (
             <div className="border-t-2 border-(--section-heading) pt-3">
@@ -284,6 +288,7 @@ export function MagazineSearch({ ctx }: { ctx: RenderContext }) {
           <option value="event">Events</option>
           <option value="article">Articles</option>
           <option value="page">Pages</option>
+          {Object.values(ctx.snapshot.items).some((i) => i.kind === "link") ? <option value="link">Links</option> : null}
         </select>
         <button type="submit" className={magazineStyle.buttonPrimary}>Search</button>
         {q ? <a href={href(ctx, "/search")} className="self-center text-sm underline">Clear</a> : null}

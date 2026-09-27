@@ -17,6 +17,16 @@ export const ianaTimeZoneSchema = z.string().min(1).max(64).refine(
   { message: "Enter a valid IANA time zone such as America/Denver." },
 );
 
+/**
+ * A document from the media library listed as a download on the item's page (site-building
+ * programme B5-1). The label is the link text; empty means the document's own title.
+ */
+export const attachmentSchema = z.object({
+  assetId: z.uuid(),
+  label: z.string().trim().max(120).default(""),
+});
+export type Attachment = z.infer<typeof attachmentSchema>;
+
 /** Fields shared by every content type (see build guide, section 8). */
 export const commonFields = {
   schemaVersion: z.literal(1).default(1),
@@ -25,6 +35,8 @@ export const commonFields = {
   summary: z.string().trim().max(500).default(""),
   body: bodySchema.default([]),
   featuredImageAssetId: z.uuid().nullable().default(null),
+  /** Documents listed as downloads under the body (B5-1); pages use the `downloads` section instead. */
+  attachments: z.array(attachmentSchema).max(20).default([]),
   metaTitle: z.string().trim().max(70).default(""),
   metaDescription: z.string().trim().max(200).default(""),
   indexable: z.boolean().default(true),

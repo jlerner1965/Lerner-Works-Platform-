@@ -23,7 +23,14 @@ composition per preset (`almanac`, `practice`); snapshot schema version 5. B4 is
 packages in `src/server/demo/proof/` (`pnpm proof:package`), built end to end through the
 dashboard by `tests/e2e/proof.spec.ts` with the counts, times and captures in
 `docs/evidence/proof/`; the owner's own timing on production is the number the bar is
-judged by.
+judged by. B5 is built (D-024): documents in Media (PDF only, `media_assets.kind`,
+`document:<id>` link targets, attachments on every item, the `downloads` page section,
+`src/server/media/content-types.ts`, `src/themes/shared/documents.tsx`), links to other
+websites as a content kind (`src/modules/link.ts`, `src/themes/shared/links.tsx`; the `/links`
+index and its navigation entry exist only once a link is published), and the onboarding
+workbook (`src/server/import/xlsx.ts` reads and writes an OOXML subset in code;
+`src/server/import/workbook.ts` turns a workbook into the package's CSV files before the dry
+run; the template and the proof packages carry `content.xlsx`); snapshot schema version 6.
 Public themes use only the derived brand tokens, design variables and font variables described
 in `docs/DESIGN-TOKENS.md` (a unit test rejects literal colours in `src/themes`). A theme or
 renderer change must keep every frozen release in `tests/fixtures/releases/` rendering as

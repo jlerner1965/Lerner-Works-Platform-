@@ -19,11 +19,15 @@ import type { PresetKey } from "@/modules/presets";
  *     `lightbox`, a portrait per quotation, and the click-to-load map (`embed`, `latitude`,
  *     `longitude`); rich text gained divider, callout and button blocks (site-building
  *     programme B3). Every addition defaults to the earlier behaviour.
+ * 6 — media may be a document (`kind: "document"`, `mime`, one `file` variant served as
+ *     `<sha256>.pdf`); items carry `attachments` listed as downloads on their page; pages gained
+ *     the `downloads` section; link targets may name a document (`document:<asset id>`)
+ *     (site-building programme B5). Older snapshots have none of it and render unchanged.
  * Older snapshots render unchanged: `normalizeSnapshot` fills the schema defaults at read
  * time and never rewrites the stored release (the rendering-hash test proves the output).
  */
-export const SNAPSHOT_SCHEMA_VERSION = 5 as const;
-export const SUPPORTED_SNAPSHOT_SCHEMA_VERSIONS = [1, 2, 3, 4, 5];
+export const SNAPSHOT_SCHEMA_VERSION = 6 as const;
+export const SUPPORTED_SNAPSHOT_SCHEMA_VERSIONS = [1, 2, 3, 4, 5, 6];
 
 export interface SnapshotItem {
   id: string;
@@ -35,13 +39,15 @@ export interface SnapshotItem {
   payload: Record<string, unknown>;
 }
 
-export type MediaVariantKey = "w480" | "w960" | "w1600";
+/** Image widths, and `file` for a document's one published copy (B5-1). */
+export type MediaVariantKey = "w480" | "w960" | "w1600" | "file";
 
 export interface SnapshotMediaVariant {
   /** Object key of the private derivative (for previews and export). */
   key: string;
-  /** Public content-hash file name, e.g. "<sha256>-w960.webp". */
+  /** Public content-hash file name, e.g. "<sha256>-w960.webp" or "<sha256>.pdf". */
   path: string;
+  /** Pixel dimensions of an image variant; 0 for a document. */
   width: number;
   height: number;
   bytes: number;
@@ -51,6 +57,7 @@ export interface SnapshotMediaVariant {
 export interface SnapshotMedia {
   id: string;
   hash: string;
+  /** Pixel dimensions of the original image; 0 for a document. */
   width: number;
   height: number;
   alt: string;
@@ -61,6 +68,15 @@ export interface SnapshotMedia {
   variants: Partial<Record<MediaVariantKey, SnapshotMediaVariant>>;
   /** Focal point (0–1 from the left and the top) that every crop keeps in view; absent = centre. */
   focal?: { x: number; y: number };
+  /** Absent for images (every release before B5); "document" for a file served as uploaded. */
+  kind?: "image" | "document";
+  /** The document's content type (documents only). */
+  mime?: string;
+}
+
+/** Whether a media entry is a document with a published copy to link to. */
+export function isSnapshotDocument(media: SnapshotMedia | undefined | null): media is SnapshotMedia & { kind: "document" } {
+  return Boolean(media && media.kind === "document" && media.variants.file);
 }
 
 export interface SnapshotRoute {
@@ -76,7 +92,7 @@ export interface SnapshotRedirect {
 }
 
 export interface ReleaseSnapshot {
-  schemaVersion: 1 | 2 | 3 | 4 | 5;
+  schemaVersion: 1 | 2 | 3 | 4 | 5 | 6;
   site: {
     id: string;
     key: string;

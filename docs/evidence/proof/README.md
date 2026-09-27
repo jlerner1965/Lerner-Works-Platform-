@@ -23,7 +23,9 @@ photographs of consenting people were available.
 
 `tests/e2e/proof.spec.ts` builds each site as a person does, through the sidebar, the forms
 and the buttons, from the onboarding package a client fills in (`pnpm proof:package --site
-cedar-bend`): create the site, import the package (brand, contact details, content, pictures
+cedar-bend`; since B5 the package carries the content as one Excel workbook, `content.xlsx`,
+with a sheet per kind and the Site and Images sheets, beside the pictures): create the site,
+import the package (brand, contact details, content, pictures
 with their alternative text and rights, the home and About text), choose the composition,
 compose the home page section by section in the editor, compose the About page, add an event
 from the list, publish. Per task it counts the screens opened, the fields filled and the links

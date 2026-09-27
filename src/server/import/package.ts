@@ -5,9 +5,9 @@ import type { SiteRow } from "@/server/data/access";
 import { getStorage } from "@/server/media/storage";
 import { getCurrentSiteConfig, saveSiteConfig } from "@/server/data/sites";
 import { siteConfigSchema, type SiteConfig } from "@/modules/site-config";
-import { kindRegistry, isContentKind, type ContentKind } from "@/modules/registry";
+import { kindRegistry, isContentKind, contentKinds, type ContentKind } from "@/modules/registry";
 import { validatePayload, createContentItem, saveRevision, getItem, approveOnSave } from "@/server/data/content";
-import { ingestImage } from "@/server/media/ingest";
+import { ingestImage, ingestDocument } from "@/server/media/ingest";
 import { normalizeSnapshot } from "@/server/publishing/snapshot";
 import { sectionCapabilityIssues, themeCompatibilityIssues, themeKeyFor } from "@/themes/capabilities";
 
@@ -36,6 +36,7 @@ interface PackagedMedia {
   id: string;
   file: string;
   sha256: string;
+  /** Pixel dimensions of a picture's exported derivative; 0 for a document. */
   width: number;
   height: number;
   title: string;
@@ -46,6 +47,9 @@ interface PackagedMedia {
   sourceUrl: string;
   /** Focal point (0–1) kept in view by every crop; absent or null = centre. */
   focal?: { x: number; y: number } | null;
+  /** Absent in packages from before B5 (a picture); "document" for a PDF exported as uploaded. */
+  kind?: "image" | "document";
+  mime?: string;
 }
 
 const sha = (b: Uint8Array) => createHash("sha256").update(b).digest("hex");
@@ -70,18 +74,33 @@ export async function exportSitePackage(db: Db, site: SiteRow): Promise<Uint8Arr
   const [active] = await db<{ snapshot: unknown }[]>`select snapshot from public.releases where id = ${site.activeReleaseId}`;
   const redirects = (active ? normalizeSnapshot(active.snapshot) : null)?.redirects ?? [];
   add("redirects.json", strToU8(JSON.stringify(redirects, null, 2)));
-  const media = await db<Array<{ id: string; title: string | null; altText: string | null; decorative: boolean; attributionText: string | null; license: string | null; sourceUrl: string | null; derivatives: Record<string, { key: string; width: number; height: number; hash: string }>; focalX: number | null; focalY: number | null }>>`
-    select id, title, alt_text, decorative, attribution_text, license, source_url, derivatives, focal_x::float as focal_x, focal_y::float as focal_y from public.media_assets where site_id = ${site.id} and status = 'ready' order by created_at`;
+  const media = await db<Array<{ id: string; kind: "image" | "document"; mimeType: string; title: string | null; altText: string | null; decorative: boolean; attributionText: string | null; license: string | null; sourceUrl: string | null; derivatives: Record<string, { key: string; width: number; height: number; hash: string }>; focalX: number | null; focalY: number | null }>>`
+    select id, kind::text, mime_type, title, alt_text, decorative, attribution_text, license, source_url, derivatives, focal_x::float as focal_x, focal_y::float as focal_y from public.media_assets where site_id = ${site.id} and status = 'ready' order by created_at`;
   const storage = getStorage();
   let mediaCount = 0;
   for (const m of media) {
-    const best = m.derivatives.w1600 ?? m.derivatives.w960 ?? m.derivatives.w480;
+    const isDocument = m.kind === "document";
+    const best = isDocument ? m.derivatives.file : (m.derivatives.w1600 ?? m.derivatives.w960 ?? m.derivatives.w480);
     if (!best) continue;
     const data = await storage.getPrivate(best.key);
     if (!data) continue;
-    const file = `media/${m.id}/image.webp`;
+    const file = isDocument ? `media/${m.id}/document.pdf` : `media/${m.id}/image.webp`;
     add(file, data);
-    const meta: PackagedMedia = { id: m.id, file, sha256: sha(data), width: best.width, height: best.height, title: m.title ?? "", alt: m.altText ?? "", decorative: m.decorative, attribution: m.attributionText ?? "", license: m.license ?? "", sourceUrl: m.sourceUrl ?? "", focal: m.focalX !== null && m.focalY !== null ? { x: m.focalX, y: m.focalY } : null };
+    const meta: PackagedMedia = {
+      id: m.id,
+      file,
+      sha256: sha(data),
+      width: isDocument ? 0 : best.width,
+      height: isDocument ? 0 : best.height,
+      title: m.title ?? "",
+      alt: m.altText ?? "",
+      decorative: m.decorative,
+      attribution: m.attributionText ?? "",
+      license: m.license ?? "",
+      sourceUrl: m.sourceUrl ?? "",
+      focal: m.focalX !== null && m.focalY !== null ? { x: m.focalX, y: m.focalY } : null,
+      ...(isDocument ? { kind: "document" as const, mime: m.mimeType } : {}),
+    };
     add(`media/${m.id}/meta.json`, strToU8(JSON.stringify(meta, null, 2)));
     mediaCount++;
   }
@@ -95,12 +114,13 @@ Exported ${new Date().toISOString()} from site "${site.name}" (key ${site.key}, 
 - content/<kind>/<id>.json — the current working revision of every content item (payload, kind, external id, archived flag).
 - redirects.json — redirects from the active release, if any.
 - media/<id>/image.webp + meta.json — the largest published-quality derivative of each ready image with its rights metadata.
+- media/<id>/document.pdf + meta.json — each ready document as uploaded, with its rights metadata.
 
 ## Not included, by design
 Passwords, tokens, provider secrets, memberships, invitations, audit data, inquiries, notification recipients and domain bindings.
 
 ## Limitations
-- Original uploads are not included; derivatives are web quality (max 1600 px wide).
+- Original picture uploads are not included; derivatives are web quality (max 1600 px wide). Documents are the uploaded files.
 - Review history and release history are not included; imported content starts as drafts.
 - Importing into a site maps every id to a new id; internal references are rewritten.
 `;
@@ -127,7 +147,8 @@ export interface PackageDryRun {
   redirects: Array<{ from: string; to: string }>;
 }
 
-const SAFE_PATH = /^(manifest\.json|README\.md|site-config\.json|redirects\.json|content\/(page|place|event|article|store|service)\/[0-9a-f-]{36}\.json|media\/[0-9a-f-]{36}\/(image\.webp|meta\.json))$/;
+// Every content kind of the registry has its folder (the link kind arrived in B5-2), so the check is built from the registry rather than repeated here.
+const SAFE_PATH = new RegExp(`^(manifest\\.json|README\\.md|site-config\\.json|redirects\\.json|content\\/(${contentKinds.join("|")})\\/[0-9a-f-]{36}\\.json|media\\/[0-9a-f-]{36}\\/(image\\.webp|document\\.pdf|meta\\.json))$`);
 
 /** Validates a package without writing: structure, sizes, checksums, schema versions, payloads. */
 export async function dryRunPackage(db: Db, site: SiteRow, bytes: Uint8Array): Promise<PackageDryRun> {
@@ -205,7 +226,9 @@ export async function dryRunPackage(db: Db, site: SiteRow, bytes: Uint8Array): P
       continue;
     }
     if (sha(data) !== meta.sha256) out.errors.push(`Media checksum mismatch for ${meta.id}`);
-    if (!meta.license) out.warnings.push(`Image "${meta.title || meta.id.slice(0, 8)}" has no license recorded; publication will be blocked until one is added.`);
+    if (meta.kind === "document" && !meta.file.endsWith("document.pdf")) out.errors.push(`Document ${meta.id} must be stored as document.pdf`);
+    if (meta.kind !== "document" && !meta.file.endsWith("image.webp")) out.errors.push(`Image ${meta.id} must be stored as image.webp`);
+    if (!meta.license) out.warnings.push(`${meta.kind === "document" ? "Document" : "Image"} "${meta.title || meta.id.slice(0, 8)}" has no license recorded; publication will be blocked until one is added.`);
     out.media.push({ ...meta, data });
   }
   for (const p of paths.filter((x) => x.startsWith("content/"))) {
@@ -245,11 +268,16 @@ export async function dryRunPackage(db: Db, site: SiteRow, bytes: Uint8Array): P
   return out;
 }
 
-/** Rewrites every id-shaped string in a payload through the old→new map (item ids and asset ids). */
+/** Rewrites every id-shaped string in a payload through the old→new map (item ids and asset ids, also inside `item:` and `document:` links and body text). */
 function remap(value: unknown, map: Map<string, string>): unknown {
   if (typeof value === "string") {
     if (map.has(value)) return map.get(value);
     if (value.startsWith("item:") && map.has(value.slice(5))) return `item:${map.get(value.slice(5))}`;
+    if (value.startsWith("document:") && map.has(value.slice(9))) return `document:${map.get(value.slice(9))}`;
+    // Links written inside body text carry the ids as `(item:<id>)` or `(document:<id>)`.
+    if (value.includes("](item:") || value.includes("](document:") || value.includes("| item:") || value.includes("| document:")) {
+      return value.replace(/(item|document):([0-9a-f-]{36})/gi, (whole, scheme: string, id: string) => (map.has(id) ? `${scheme}:${map.get(id)}` : whole));
+    }
     return value;
   }
   if (Array.isArray(value)) return value.map((v) => remap(v, map));
@@ -271,10 +299,12 @@ export async function applyPackage(db: Db, site: SiteRow, userId: string, dry: P
   const idMap = new Map<string, string>();
   let mediaCount = 0;
   for (const m of dry.media) {
-    const result = await ingestImage(db, { siteId: site.id, organizationId: site.organizationId, userId, bytes: m.data, filename: `${m.id}.webp`, declaredMime: "image/webp", title: m.title, altText: m.alt, decorative: m.decorative, attributionText: m.attribution, license: m.license, sourceUrl: m.sourceUrl });
-    if (!result.ok) throw new Error(`image ${m.id}: ${result.error}`);
+    const result = m.kind === "document"
+      ? await ingestDocument(db, { siteId: site.id, organizationId: site.organizationId, userId, bytes: m.data, filename: `${m.id}.pdf`, declaredMime: "application/pdf", title: m.title, attributionText: m.attribution, license: m.license, sourceUrl: m.sourceUrl })
+      : await ingestImage(db, { siteId: site.id, organizationId: site.organizationId, userId, bytes: m.data, filename: `${m.id}.webp`, declaredMime: "image/webp", title: m.title, altText: m.alt, decorative: m.decorative, attributionText: m.attribution, license: m.license, sourceUrl: m.sourceUrl });
+    if (!result.ok) throw new Error(`${m.kind === "document" ? "document" : "image"} ${m.id}: ${result.error}`);
     const focal = m.focal;
-    if (focal && Number.isFinite(focal.x) && Number.isFinite(focal.y) && focal.x >= 0 && focal.x <= 1 && focal.y >= 0 && focal.y <= 1) {
+    if (m.kind !== "document" && focal && Number.isFinite(focal.x) && Number.isFinite(focal.y) && focal.x >= 0 && focal.x <= 1 && focal.y >= 0 && focal.y <= 1) {
       await db`update public.media_assets set focal_x = ${Math.round(focal.x * 1000) / 1000}, focal_y = ${Math.round(focal.y * 1000) / 1000} where id = ${result.asset.id} and site_id = ${site.id}`;
     }
     idMap.set(m.id, result.asset.id);
@@ -293,9 +323,9 @@ export async function applyPackage(db: Db, site: SiteRow, userId: string, dry: P
       adopted++;
       continue;
     }
-    // The placeholder only allocates the id: references are stripped, and a page's sections are
-    // left out (several of them carry pictures that are required, so they cannot be stripped).
-    const placeholder = { ...item.payload, featuredImageAssetId: null, ...(item.kind === "page" ? { sections: [] } : {}) } as Record<string, unknown>;
+    // The placeholder only allocates the id: references are stripped, attachments (each a required
+    // document id) and a page's sections (several carry pictures that are required) are left out.
+    const placeholder = { ...item.payload, featuredImageAssetId: null, attachments: [], ...(item.kind === "page" ? { sections: [] } : {}) } as Record<string, unknown>;
     const stripped = stripRefs(placeholder);
     const created = await createContentItem(db, { siteId: site.id, organizationId: site.organizationId, kind: item.kind, payload: validatePayload(item.kind, stripped), authorId: userId, externalId: item.externalId ? `pkg:${item.externalId}` : null, changeNote: "Imported from site package" });
     idMap.set(item.id, created.item.id);

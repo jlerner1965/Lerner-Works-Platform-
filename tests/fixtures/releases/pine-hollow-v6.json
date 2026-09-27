@@ -1,0 +1,3516 @@
+{
+ "config": {
+  "branding": {
+   "colors": {
+    "accent": "#a4502b",
+    "background": "#f7f4ec",
+    "primary": "#2f5d3a",
+    "text": "#25302a"
+   },
+   "logoAssetId": "a50ee7cd-6a89-4bcf-a5b6-de22b1d97f3e",
+   "logoDarkAssetId": null,
+   "tagline": "A resident-written guide to a fictional mountain town",
+   "typography": "editorial-serif",
+   "wordmark": "Pine Hollow Guide"
+  },
+  "design": {
+   "cards": "default",
+   "container": "regular",
+   "density": "regular",
+   "header": "default",
+   "hero": "default",
+   "overrides": {
+    "border": "",
+    "borderStrong": "",
+    "focus": "",
+    "muted": "",
+    "surface": "",
+    "surfaceStrong": ""
+   },
+   "radius": "none",
+   "theme": "default"
+  },
+  "footer": {
+   "links": [
+    {
+     "label": "About",
+     "path": "/about"
+    },
+    {
+     "label": "Contact",
+     "path": "/contact"
+    }
+   ],
+   "showContactDetails": true,
+   "text": "Pine Hollow is fictional. This guide demonstrates a community website: verified listings, honest unknowns, and events that stay visible when cancelled.",
+   "variant": "columns"
+  },
+  "indexes": {
+   "articles": {
+    "intro": "",
+    "title": ""
+   },
+   "events": {
+    "intro": "",
+    "title": ""
+   },
+   "links": {
+    "intro": "",
+    "title": ""
+   },
+   "places": {
+    "intro": "",
+    "title": ""
+   },
+   "services": {
+    "intro": "",
+    "title": ""
+   },
+   "stores": {
+    "intro": "",
+    "title": ""
+   }
+  },
+  "metadata": {
+   "defaultDescription": "A resident-written guide to Pine Hollow, Colorado (fictional): places, events and short articles.",
+   "defaultTitle": "Pine Hollow Guide",
+   "faviconAssetId": null,
+   "language": "en",
+   "shareImageAssetId": "781f7d85-edcf-4834-be95-f3257c9e734c",
+   "titleSuffix": "Pine Hollow Guide"
+  },
+  "modules": {
+   "articles": true,
+   "events": true,
+   "inquiries": true,
+   "links": true,
+   "places": true,
+   "services": false,
+   "stores": false
+  },
+  "navigation": {
+   "cta": {
+    "label": "",
+    "path": ""
+   },
+   "items": [
+    {
+     "label": "Directory",
+     "path": "/places"
+    },
+    {
+     "label": "Events",
+     "path": "/events"
+    },
+    {
+     "label": "Articles",
+     "path": "/articles"
+    },
+    {
+     "label": "About",
+     "path": "/about"
+    },
+    {
+     "label": "Contact",
+     "path": "/contact"
+    }
+   ],
+   "showSearch": true
+  },
+  "schemaVersion": 1
+ },
+ "configRevisionId": "8d311edc-65dd-41ba-b79d-2d58550c7992",
+ "items": {
+  "004fca5a-b8fe-405a-a61b-666ab08b67a5": {
+   "id": "004fca5a-b8fe-405a-a61b-666ab08b67a5",
+   "kind": "page",
+   "payload": {
+    "attachments": [],
+    "attribution": "",
+    "body": [],
+    "featuredImageAssetId": null,
+    "indexable": true,
+    "lastVerifiedOn": "",
+    "metaDescription": "A resident-written guide to Pine Hollow, Colorado (fictional): places, events and short articles.",
+    "metaTitle": "",
+    "schemaVersion": 1,
+    "sections": [
+     {
+      "appearance": {
+       "align": "start",
+       "background": "default",
+       "width": "default"
+      },
+      "ctaLabel": "Browse the directory",
+      "ctaPath": "/places",
+      "extraImageAssetIds": [
+       "d60327f1-c8e3-4a18-aa3f-4f6860055fc3",
+       "318c16bd-bcd0-4bd7-ac87-7d8fe8943478",
+       "4114c7e5-6a53-4711-8c0c-a629902401c7"
+      ],
+      "heading": "Pine Hollow, at walking pace",
+      "id": "s-hero",
+      "imageAssetId": "781f7d85-edcf-4834-be95-f3257c9e734c",
+      "overlay": "medium",
+      "subheading": "A small mountain town, written up by the people who live in it. Verified details, no sponsored listings, and an honest note when the hours are unknown.",
+      "type": "image_hero",
+      "variant": "collage"
+     },
+     {
+      "appearance": {
+       "align": "start",
+       "background": "default",
+       "width": "default"
+      },
+      "heading": "Browse by category",
+      "id": "s-cats",
+      "items": [
+       {
+        "path": "/places?category=Eat%20%26%20Drink",
+        "text": "Coffee at dawn, pie by nine, music on the porch.",
+        "title": "Eat & Drink"
+       },
+       {
+        "path": "/places?category=Outdoors",
+        "text": "Trails, the pond and the falls, with the caveats that matter.",
+        "title": "Outdoors"
+       },
+       {
+        "path": "/places?category=Shops%20%26%20Services",
+        "text": "The Mercantile, the bookshop and the one bike mechanic.",
+        "title": "Shops & Services"
+       },
+       {
+        "path": "/places?category=Arts%20%26%20Community",
+        "text": "Library, gallery and the hall with the terrible acoustics.",
+        "title": "Arts & Community"
+       }
+      ],
+      "type": "feature_list",
+      "variant": "default"
+     },
+     {
+      "appearance": {
+       "align": "start",
+       "background": "default",
+       "width": "default"
+      },
+      "heading": "Upcoming events",
+      "id": "s-events",
+      "itemIds": [],
+      "kind": "event",
+      "limit": 4,
+      "mode": "upcoming",
+      "type": "content_collection",
+      "variant": "default"
+     },
+     {
+      "appearance": {
+       "align": "start",
+       "background": "default",
+       "width": "default"
+      },
+      "heading": "How the guide works",
+      "id": "s-how",
+      "items": [
+       {
+        "assetId": "62274913-1570-465f-b180-377dc40996a7",
+        "body": [
+         {
+          "text": "Every listing carries the date someone from the guide last stood in the doorway, and the source of what it says. Nothing is copied from a directory or inferred from a category.",
+          "type": "paragraph"
+         }
+        ],
+        "ctaLabel": "",
+        "ctaPath": "",
+        "heading": "Checked in person"
+       },
+       {
+        "assetId": "232a53d2-74b4-49ab-a165-c0d41b80a328",
+        "body": [
+         {
+          "text": "If the bakery has not confirmed its winter Mondays, the listing shows no hours rather than a guess, and asks you to call ahead. A cancelled event stays visible so nobody drives out for it.",
+          "type": "paragraph"
+         }
+        ],
+        "ctaLabel": "Send a correction",
+        "ctaPath": "/contact",
+        "heading": "Honest about the unknowns"
+       }
+      ],
+      "type": "image_text",
+      "variant": "default"
+     },
+     {
+      "appearance": {
+       "align": "start",
+       "background": "default",
+       "width": "default"
+      },
+      "heading": "Selected places",
+      "id": "s-places",
+      "itemIds": [
+       "8a1bd0f7-4ed1-429e-9d52-2d4005c1b1c1",
+       "3344575b-ea7b-4e7a-ad22-83dee06d4715",
+       "ebf1bf00-3501-493c-a35f-898c13ae62af",
+       "74895ae5-129b-4c29-a7c4-ac5f37255b3d",
+       "c2e674b3-fbad-46cb-870e-d542b9dac760",
+       "7efb6a45-8241-413d-9c4a-d2e377bde8ab"
+      ],
+      "kind": "place",
+      "limit": 6,
+      "mode": "selected",
+      "type": "content_collection",
+      "variant": "default"
+     },
+     {
+      "appearance": {
+       "align": "center",
+       "background": "default",
+       "width": "default"
+      },
+      "ctaLabel": "Where to watch",
+      "ctaPath": "/articles/where-to-watch-the-elk-this-fall",
+      "heading": "Autumn is elk season",
+      "id": "s-band",
+      "imageAssetId": "6c9a0576-d30c-43ca-8de2-8e4bc8bd96a9",
+      "secondaryLabel": "",
+      "secondaryPath": "",
+      "strength": "medium",
+      "text": "The herd moves through the lower meadows from late September. Where to look, and how not to be the person who gets too close.",
+      "tint": "dark",
+      "type": "image_band",
+      "variant": "default"
+     },
+     {
+      "appearance": {
+       "align": "start",
+       "background": "default",
+       "width": "default"
+      },
+      "heading": "From the guide",
+      "id": "s-feature",
+      "itemIds": [],
+      "kind": "article",
+      "limit": 3,
+      "mode": "latest",
+      "type": "content_collection",
+      "variant": "default"
+     },
+     {
+      "appearance": {
+       "align": "start",
+       "background": "default",
+       "width": "default"
+      },
+      "heading": "Useful links",
+      "id": "s-links",
+      "itemIds": [],
+      "kind": "link",
+      "limit": 3,
+      "mode": "latest",
+      "type": "content_collection",
+      "variant": "default"
+     },
+     {
+      "appearance": {
+       "align": "start",
+       "background": "default",
+       "width": "default"
+      },
+      "columns": 4,
+      "heading": "Pine Hollow at a glance",
+      "id": "s-facts",
+      "items": [
+       {
+        "label": "Elevation",
+        "value": "8,240 ft"
+       },
+       {
+        "label": "Founded",
+        "value": "1881 (fictional)"
+       },
+       {
+        "label": "Year-round residents",
+        "value": "About 2,300"
+       },
+       {
+        "label": "From Denver",
+        "value": "90 minutes by car"
+       }
+      ],
+      "type": "facts",
+      "variant": "grid"
+     },
+     {
+      "appearance": {
+       "align": "start",
+       "background": "tint",
+       "width": "default"
+      },
+      "heading": "From people who live here",
+      "id": "s-voices",
+      "items": [
+       {
+        "assetId": "18d4492c-09ad-4089-9ab5-0317a56255f0",
+        "attribution": "Marta Ellison",
+        "role": "Runs the roaster on Creek Path (fictional)",
+        "text": "The guide is the only place that tells you the Mercantile closes at noon on Wednesdays. Everything else online is a guess."
+       },
+       {
+        "assetId": "ecc6710f-5246-4b7e-b2e0-add94bc351c6",
+        "attribution": "Dev Okafor",
+        "role": "Larkspur Loop volunteer crew (fictional)",
+        "text": "When the trail day got rained out, the listing said so within the hour. That is why people trust it."
+       }
+      ],
+      "type": "quotes",
+      "variant": "grid"
+     },
+     {
+      "appearance": {
+       "align": "start",
+       "background": "default",
+       "width": "default"
+      },
+      "heading": "The editors",
+      "id": "s-editors",
+      "intro": "Three residents keep the guide honest, on their own time. All three are fictional.",
+      "items": [
+       {
+        "assetId": "b1656b20-c096-4110-8f85-dfdf4106dad9",
+        "name": "June Hollis",
+        "path": "",
+        "role": "Editor",
+        "text": "Walks every trail listing twice a year and keeps the verification dates."
+       },
+       {
+        "assetId": "dc4f3912-cb5d-4a71-b322-da05bb089e67",
+        "name": "Ravi Sethi",
+        "path": "",
+        "role": "Photographs and maps",
+        "text": "Draws the trail maps sold at the Mercantile."
+       },
+       {
+        "assetId": "4657e234-875a-4fa4-8593-3597fb512da2",
+        "name": "Ann Peltier",
+        "path": "",
+        "role": "Events desk",
+        "text": "Talks to every organizer before a listing goes up, and marks the cancellations within the hour."
+       }
+      ],
+      "type": "team",
+      "variant": "default"
+     },
+     {
+      "appearance": {
+       "align": "start",
+       "background": "default",
+       "width": "default"
+      },
+      "heading": "Members of",
+      "id": "s-members",
+      "items": [
+       {
+        "assetId": "751303a7-5e76-4b6f-bff2-b45f52d91b53",
+        "label": "",
+        "path": "https://pinehollowtrails.example"
+       },
+       {
+        "assetId": "fd902d2c-eea2-4d0a-90ef-3d9510dff374",
+        "label": "",
+        "path": ""
+       },
+       {
+        "assetId": "779d7213-9837-4cb6-9c90-bcccedd86c1b",
+        "label": "",
+        "path": ""
+       },
+       {
+        "assetId": "c3c6b7c2-8a18-4126-82de-c261924a5ac4",
+        "label": "",
+        "path": ""
+       }
+      ],
+      "type": "logo_strip",
+      "variant": "default"
+     },
+     {
+      "appearance": {
+       "align": "center",
+       "background": "primary",
+       "width": "default"
+      },
+      "ctaLabel": "Tell the editors",
+      "ctaPath": "/contact",
+      "heading": "Know a place we should list?",
+      "id": "s-contact",
+      "secondaryLabel": "",
+      "secondaryPath": "",
+      "text": "The guide is written by residents and updated when someone checks the facts. Tell us what changed or what is missing.",
+      "type": "cta_banner",
+      "variant": "default"
+     }
+    ],
+    "slug": "home",
+    "sourceUrl": "",
+    "summary": "A resident-written guide to Pine Hollow, Colorado: places worth the drive, events worth the evening, and the small facts that make a visit go well.",
+    "title": "Home"
+   },
+   "revisionId": "8d3ed978-d506-4e02-aa30-e0f35d722415",
+   "revisionVersion": 2,
+   "slug": "home",
+   "title": "Home"
+  },
+  "0f1db498-46d8-4e0a-b6d8-f54c67d5a584": {
+   "id": "0f1db498-46d8-4e0a-b6d8-f54c67d5a584",
+   "kind": "place",
+   "payload": {
+    "address": {
+     "approved": false,
+     "line1": "112 Aspen Street",
+     "line2": "",
+     "locality": "Pine Hollow",
+     "postalCode": "80999",
+     "region": "CO"
+    },
+    "areaDescription": "",
+    "attachments": [],
+    "attribution": "Guide visit",
+    "body": [
+     {
+      "text": "The front room is new titles and maps; the back room is used paperbacks priced by the inch. The owner runs the reading nights at the library and will special-order anything the distributor carries within a week.",
+      "type": "paragraph"
+     },
+     {
+      "items": [
+       "Trade credit for used books",
+       "Local trail maps and guides",
+       "Reading nights: see events"
+      ],
+      "style": "bullet",
+      "type": "list"
+     }
+    ],
+    "category": "Shops & Services",
+    "featuredImageAssetId": "9fb9852f-6f90-4318-bcad-ff70456ee351",
+    "hours": {
+     "fri": [
+      {
+       "close": "18:00",
+       "closesNextDay": false,
+       "open": "10:00"
+      }
+     ],
+     "mon": [],
+     "sat": [
+      {
+       "close": "18:00",
+       "closesNextDay": false,
+       "open": "10:00"
+      }
+     ],
+     "sun": [
+      {
+       "close": "16:00",
+       "closesNextDay": false,
+       "open": "12:00"
+      }
+     ],
+     "thu": [
+      {
+       "close": "18:00",
+       "closesNextDay": false,
+       "open": "10:00"
+      }
+     ],
+     "tue": [
+      {
+       "close": "18:00",
+       "closesNextDay": false,
+       "open": "10:00"
+      }
+     ],
+     "wed": [
+      {
+       "close": "18:00",
+       "closesNextDay": false,
+       "open": "10:00"
+      }
+     ]
+    },
+    "indexable": true,
+    "lastVerifiedOn": "2026-09-11",
+    "metaDescription": "",
+    "metaTitle": "",
+    "nextAction": {
+     "label": "Autumn reading night",
+     "path": "/events/autumn-reading-night"
+    },
+    "phone": "(303) 555-0143",
+    "schemaVersion": 1,
+    "slug": "aspen-street-books",
+    "sourceUrl": "https://aspenstreetbooks.example",
+    "summary": "New and used books in two small rooms, with a strong shelf of regional history and a resident cat who ignores everyone.",
+    "title": "Aspen Street Books",
+    "website": "https://aspenstreetbooks.example"
+   },
+   "revisionId": "4b374541-b819-42a5-8f86-d31807a357dc",
+   "revisionVersion": 2,
+   "slug": "aspen-street-books",
+   "title": "Aspen Street Books"
+  },
+  "14e92b57-1809-44ae-a0e1-c62b056412b5": {
+   "id": "14e92b57-1809-44ae-a0e1-c62b056412b5",
+   "kind": "article",
+   "payload": {
+    "attachments": [],
+    "attribution": "",
+    "authorName": "Pine Hollow Guide editors",
+    "body": [
+     {
+      "text": "At 6:28 the light is still behind Saddle Ridge and the window is already open. The first order is a black coffee for a man who has ordered a black coffee every morning for eleven years. The second is a cortado for someone who moved here in June and is trying hard to become a regular.",
+      "type": "paragraph"
+     },
+     {
+      "text": "By seven the roaster is loud enough to end conversation, which is the point: the bench outside becomes the place where the town's weather predictions are settled. By nine the rush is over and the owner starts bagging beans for the Mercantile shelf.",
+      "type": "paragraph"
+     },
+     {
+      "level": 2,
+      "text": "If you go",
+      "type": "heading"
+     },
+     {
+      "items": [
+       "Arrive before 8 for the bench",
+       "Ask what is roasting; it changes weekly",
+       "The creek path starts behind the building"
+      ],
+      "style": "bullet",
+      "type": "list"
+     }
+    ],
+    "featuredImageAssetId": "84471f77-bd2d-410a-8621-0f3db9e601bd",
+    "indexable": true,
+    "lastVerifiedOn": "",
+    "metaDescription": "",
+    "metaTitle": "",
+    "publishedOn": "2026-09-07",
+    "schemaVersion": 1,
+    "slug": "a-morning-at-creekside-coffee-roasters",
+    "sourceUrl": "",
+    "summary": "Six-thirty on a Tuesday: the roaster is running, the dog walkers are arguing about snow, and the bench is already full.",
+    "title": "A morning at Creekside Coffee Roasters",
+    "updatedOn": "2026-09-18"
+   },
+   "revisionId": "6205362e-12de-4ab4-9071-fb78bf4d6fbe",
+   "revisionVersion": 2,
+   "slug": "a-morning-at-creekside-coffee-roasters",
+   "title": "A morning at Creekside Coffee Roasters"
+  },
+  "2b4d0ae8-62f9-44f7-9afe-29919321690d": {
+   "id": "2b4d0ae8-62f9-44f7-9afe-29919321690d",
+   "kind": "place",
+   "payload": {
+    "address": {
+     "approved": false,
+     "line1": "2 Depot Square",
+     "line2": "",
+     "locality": "Pine Hollow",
+     "postalCode": "80999",
+     "region": "CO"
+    },
+    "areaDescription": "",
+    "attachments": [],
+    "attribution": "Gallery notice",
+    "body": [
+     {
+      "text": "The depot lost its trains in 1958 and gained its artists in 1998. Members staff the desk, so the person selling you a print may well have made it. Openings are the best-attended events in town after the harvest market.",
+      "type": "paragraph"
+     },
+     {
+      "text": "Winter hours are shorter and the gallery closes entirely during changeovers; check the events list before driving out.",
+      "type": "paragraph"
+     }
+    ],
+    "category": "Arts & Community",
+    "featuredImageAssetId": "9624b860-8857-4887-9d0c-1505503255e4",
+    "hours": {
+     "fri": [
+      {
+       "close": "17:00",
+       "closesNextDay": false,
+       "open": "11:00"
+      }
+     ],
+     "mon": [],
+     "sat": [
+      {
+       "close": "17:00",
+       "closesNextDay": false,
+       "open": "11:00"
+      }
+     ],
+     "sun": [
+      {
+       "close": "17:00",
+       "closesNextDay": false,
+       "open": "11:00"
+      }
+     ],
+     "thu": [
+      {
+       "close": "17:00",
+       "closesNextDay": false,
+       "open": "11:00"
+      }
+     ],
+     "tue": [],
+     "wed": []
+    },
+    "indexable": true,
+    "lastVerifiedOn": "2026-07-28",
+    "metaDescription": "",
+    "metaTitle": "",
+    "nextAction": {
+     "label": "Gallery events",
+     "path": "/events"
+    },
+    "phone": "(303) 555-0188",
+    "schemaVersion": 1,
+    "slug": "old-depot-gallery",
+    "sourceUrl": "https://olddepotgallery.example",
+    "summary": "Cooperative gallery in the former rail depot: paintings, weaving and photography by valley artists, with a new show every season.",
+    "title": "Old Depot Gallery",
+    "website": "https://olddepotgallery.example"
+   },
+   "revisionId": "47f17735-ae4c-478d-9f37-2ac923d7ff45",
+   "revisionVersion": 2,
+   "slug": "old-depot-gallery",
+   "title": "Old Depot Gallery"
+  },
+  "2bfa0493-d927-4de7-90e2-ca34534bea57": {
+   "id": "2bfa0493-d927-4de7-90e2-ca34534bea57",
+   "kind": "link",
+   "payload": {
+    "attachments": [],
+    "attribution": "",
+    "body": [],
+    "category": "Arts & Community",
+    "ctaLabel": "",
+    "featuredImageAssetId": null,
+    "indexable": true,
+    "lastVerifiedOn": "2026-09-14",
+    "metaDescription": "",
+    "metaTitle": "",
+    "schemaVersion": 1,
+    "slug": "library-catalogue",
+    "sourceUrl": "",
+    "summary": "Search the shelves of the public library, renew a loan and book the meeting room with the terrible acoustics.",
+    "title": "Library catalogue and room bookings",
+    "url": "https://library.pine-hollow.example"
+   },
+   "revisionId": "41ac838c-1eb7-4e84-b2e4-1df945cd9c21",
+   "revisionVersion": 1,
+   "slug": "library-catalogue",
+   "title": "Library catalogue and room bookings"
+  },
+  "30ea4ddb-6ce1-4e53-a65f-e5b4b12a2e6d": {
+   "id": "30ea4ddb-6ce1-4e53-a65f-e5b4b12a2e6d",
+   "kind": "place",
+   "payload": {
+    "address": {
+     "approved": false,
+     "line1": "County Road 9, mile marker 4",
+     "line2": "",
+     "locality": "Pine Hollow",
+     "postalCode": "80999",
+     "region": "CO"
+    },
+    "areaDescription": "Pull-off on County Road 9, four miles east of town",
+    "attachments": [],
+    "attribution": "Guide visit",
+    "body": [
+     {
+      "text": "The overlook is a quarter mile from the pull-off on County Road 9 and is one of the few viewpoints in the valley that works for wheelchairs and strollers. The railing is new; the drop beyond it is not something to test.",
+      "type": "paragraph"
+     },
+     {
+      "text": "Star parties use the overlook lot because it faces away from town lights. Bring a red flashlight if you join one.",
+      "type": "paragraph"
+     }
+    ],
+    "category": "Outdoors",
+    "featuredImageAssetId": "4114c7e5-6a53-4711-8c0c-a629902401c7",
+    "hours": null,
+    "indexable": true,
+    "lastVerifiedOn": "2026-08-12",
+    "metaDescription": "",
+    "metaTitle": "",
+    "nextAction": {
+     "label": "Join the star party",
+     "path": "/events/star-party-at-timber-falls"
+    },
+    "phone": "",
+    "schemaVersion": 1,
+    "slug": "timber-falls-overlook",
+    "sourceUrl": "",
+    "summary": "Short paved walk to a railed overlook above a 60-foot waterfall. Loud in June, a ribbon by September, frozen and beautiful in January.",
+    "title": "Timber Falls Overlook",
+    "website": ""
+   },
+   "revisionId": "3183389e-9d50-4ae2-8e14-9d254651f14d",
+   "revisionVersion": 2,
+   "slug": "timber-falls-overlook",
+   "title": "Timber Falls Overlook"
+  },
+  "3344575b-ea7b-4e7a-ad22-83dee06d4715": {
+   "id": "3344575b-ea7b-4e7a-ad22-83dee06d4715",
+   "kind": "place",
+   "payload": {
+    "address": {
+     "approved": false,
+     "line1": "End of Miner's Road",
+     "line2": "",
+     "locality": "Pine Hollow",
+     "postalCode": "80999",
+     "region": "CO"
+    },
+    "areaDescription": "Trailhead lot 1.5 miles north of town on Miner's Road",
+    "attachments": [],
+    "attribution": "Pine Hollow Trails Association (fictional)",
+    "body": [
+     {
+      "text": "Park at the gravel lot at the end of Miner's Road. The loop runs counter-clockwise by convention so that the steep section is a climb rather than a descent. Expect mud through mid-June and ice on the north side from November.",
+      "type": "paragraph"
+     },
+     {
+      "level": 2,
+      "text": "Before you go",
+      "type": "heading"
+     },
+     {
+      "items": [
+       "No water at the trailhead",
+       "Dogs on leash April–July for ground-nesting birds",
+       "Cell coverage ends past the second switchback"
+      ],
+      "style": "bullet",
+      "type": "list"
+     }
+    ],
+    "category": "Outdoors",
+    "featuredImageAssetId": "d60327f1-c8e3-4a18-aa3f-4f6860055fc3",
+    "hours": null,
+    "indexable": true,
+    "lastVerifiedOn": "2026-09-14",
+    "metaDescription": "",
+    "metaTitle": "",
+    "nextAction": {
+     "label": "Volunteer trail day",
+     "path": "/events/larkspur-loop-volunteer-trail-day"
+    },
+    "phone": "",
+    "schemaVersion": 1,
+    "slug": "larkspur-loop-trailhead",
+    "sourceUrl": "https://pinehollowtrails.example/larkspur",
+    "summary": "Four-mile loop with 900 feet of gain, wildflowers in June and the best sunrise bench in the county.",
+    "title": "Larkspur Loop Trailhead",
+    "website": "https://pinehollowtrails.example/larkspur"
+   },
+   "revisionId": "1433e25a-b76a-421a-97f9-d1a6733e651b",
+   "revisionVersion": 2,
+   "slug": "larkspur-loop-trailhead",
+   "title": "Larkspur Loop Trailhead"
+  },
+  "3444b244-7dc7-4e97-9d40-7ebaf97ad120": {
+   "id": "3444b244-7dc7-4e97-9d40-7ebaf97ad120",
+   "kind": "place",
+   "payload": {
+    "address": {
+     "approved": false,
+     "line1": "88 Aspen Street",
+     "line2": "",
+     "locality": "Pine Hollow",
+     "postalCode": "80999",
+     "region": "CO"
+    },
+    "areaDescription": "",
+    "attachments": [],
+    "attribution": "Guide visit",
+    "body": [
+     {
+      "text": "The bakery shares a wall with the old assay office and keeps the original tin ceiling. Loaves come out at 7:30; the pie case fills by 9. If you are heading up-valley, the provisions shelf covers the basics: eggs, milk, coffee, batteries and the local honey.",
+      "type": "paragraph"
+     },
+     {
+      "text": "Hours are unverified for the winter season. The owner said they may close Mondays after the first snow; call before making a special trip.",
+      "type": "paragraph"
+     }
+    ],
+    "category": "Eat & Drink",
+    "featuredImageAssetId": "232a53d2-74b4-49ab-a165-c0d41b80a328",
+    "hours": null,
+    "indexable": true,
+    "lastVerifiedOn": "2026-09-22",
+    "metaDescription": "",
+    "metaTitle": "",
+    "nextAction": {
+     "label": "",
+     "path": ""
+    },
+    "phone": "(303) 555-0157",
+    "schemaVersion": 1,
+    "slug": "hollow-bakery-provisions",
+    "sourceUrl": "",
+    "summary": "Sourdough, mountain pies and a small grocery shelf for the cabins up the valley. Sells out by noon on Saturdays.",
+    "title": "Hollow Bakery & Provisions",
+    "website": ""
+   },
+   "revisionId": "7f530174-be9f-4846-b9a5-5e1b2df72b7e",
+   "revisionVersion": 2,
+   "slug": "hollow-bakery-provisions",
+   "title": "Hollow Bakery & Provisions"
+  },
+  "3aa312bf-751b-4f04-9b31-b735b8dc5a68": {
+   "id": "3aa312bf-751b-4f04-9b31-b735b8dc5a68",
+   "kind": "event",
+   "payload": {
+    "admission": "Free",
+    "attachments": [],
+    "attribution": "",
+    "body": [
+     {
+      "text": "Doors open at 6:30. Readings start at 7 and run about an hour, followed by a book table run by Aspen Street Books.",
+      "type": "paragraph"
+     }
+    ],
+    "endsAt": "2026-10-30T02:30:00.000Z",
+    "eventUrl": "",
+    "featuredImageAssetId": null,
+    "indexable": true,
+    "lastVerifiedOn": "",
+    "metaDescription": "",
+    "metaTitle": "",
+    "organizerName": "Pine Hollow Public Library",
+    "organizerUrl": "https://library.pinehollow.example",
+    "schemaVersion": 1,
+    "slug": "autumn-reading-night",
+    "sourceUrl": "",
+    "startsAt": "2026-10-30T00:30:00.000Z",
+    "status": "scheduled",
+    "summary": "Four valley writers read new work in the library's reading room. Cider, cookies and the wood stove.",
+    "timeZone": "America/Denver",
+    "title": "Autumn Reading Night",
+    "venueItemId": "74895ae5-129b-4c29-a7c4-ac5f37255b3d",
+    "venueText": ""
+   },
+   "revisionId": "d44c185d-6afd-4172-b295-0ac0d8e27703",
+   "revisionVersion": 2,
+   "slug": "autumn-reading-night",
+   "title": "Autumn Reading Night"
+  },
+  "424b84bb-561d-4346-9b1b-83b34672ac39": {
+   "id": "424b84bb-561d-4346-9b1b-83b34672ac39",
+   "kind": "place",
+   "payload": {
+    "address": {
+     "approved": false,
+     "line1": "50 Park Street",
+     "line2": "",
+     "locality": "Pine Hollow",
+     "postalCode": "80999",
+     "region": "CO"
+    },
+    "areaDescription": "",
+    "attachments": [],
+    "attribution": "Town of Pine Hollow (fictional)",
+    "body": [
+     {
+      "text": "The hall holds 120 seated and has a kitchen, a stage and terrible acoustics that nobody has fixed in forty years. The town council meets here the first Tuesday of the month, and the meeting is open.",
+      "type": "paragraph"
+     },
+     {
+      "items": [
+       "Rentals: call the town office",
+       "Kitchen available with rental",
+       "Accessible entrance on the park side"
+      ],
+      "style": "bullet",
+      "type": "list"
+     }
+    ],
+    "category": "Arts & Community",
+    "featuredImageAssetId": "7b059c0a-df9b-4e37-a028-d71b100760bc",
+    "hours": null,
+    "indexable": true,
+    "lastVerifiedOn": "2026-06-28",
+    "metaDescription": "",
+    "metaTitle": "",
+    "nextAction": {
+     "label": "Contact the guide about a booking",
+     "path": "/contact"
+    },
+    "phone": "(303) 555-0100",
+    "schemaVersion": 1,
+    "slug": "community-hall-miners-park",
+    "sourceUrl": "",
+    "summary": "Town-owned hall for meetings, potlucks, the winter market and the occasional wedding. Rentals through the town office.",
+    "title": "Community Hall at Miner's Park",
+    "website": ""
+   },
+   "revisionId": "128f3b40-58d0-4ff3-87dd-e62f80dac297",
+   "revisionVersion": 2,
+   "slug": "community-hall-miners-park",
+   "title": "Community Hall at Miner's Park"
+  },
+  "569d9cdc-7ca7-4f39-acac-f4d0b7fd10b7": {
+   "id": "569d9cdc-7ca7-4f39-acac-f4d0b7fd10b7",
+   "kind": "page",
+   "payload": {
+    "attachments": [],
+    "attribution": "",
+    "body": [],
+    "featuredImageAssetId": null,
+    "indexable": true,
+    "lastVerifiedOn": "",
+    "metaDescription": "",
+    "metaTitle": "",
+    "schemaVersion": 1,
+    "sections": [
+     {
+      "appearance": {
+       "align": "start",
+       "background": "default",
+       "width": "default"
+      },
+      "ctaLabel": "",
+      "ctaPath": "",
+      "extraImageAssetIds": [],
+      "heading": "About the guide",
+      "id": "s-about-hero",
+      "imageAssetId": "84471f77-bd2d-410a-8621-0f3db9e601bd",
+      "overlay": "medium",
+      "subheading": "Who writes it, how listings are verified, and what this demonstration is and is not.",
+      "type": "image_hero",
+      "variant": "offset"
+     },
+     {
+      "appearance": {
+       "align": "start",
+       "background": "default",
+       "width": "default"
+      },
+      "body": [
+       {
+        "text": "Pine Hollow is a fictional mountain town, and this guide is a demonstration of a community-guide website. Every place, event, person and phone number on these pages was invented for the demonstration; none of it describes a real business in Colorado or anywhere else.",
+        "type": "paragraph"
+       },
+       {
+        "level": 2,
+        "text": "How a real guide would work",
+        "type": "heading"
+       },
+       {
+        "text": "Listings carry a verification date and a source. When a detail is unknown, the page says so rather than guessing: hours are never inferred from a category, and a cancelled event stays visible so nobody drives out for it.",
+        "type": "paragraph"
+       },
+       {
+        "items": [
+         "Places are checked in person or with the owner",
+         "Events come from organizers and are marked cancelled rather than removed",
+         "Articles are short, signed and dated"
+        ],
+        "style": "bullet",
+        "type": "list"
+       },
+       {
+        "type": "divider"
+       },
+       {
+        "text": "Corrections and suggestions go through the contact page. Messages are stored with a receipt reference and answered by the editors within a week.",
+        "type": "callout"
+       },
+       {
+        "label": "Send a correction",
+        "target": "/contact",
+        "type": "button"
+       }
+      ],
+      "heading": "About the Pine Hollow Guide",
+      "id": "s-about",
+      "type": "rich_text",
+      "variant": "default"
+     },
+     {
+      "appearance": {
+       "align": "start",
+       "background": "default",
+       "width": "default"
+      },
+      "heading": "Visiting Pine Hollow",
+      "id": "s-faq",
+      "items": [
+       {
+        "answer": [
+         {
+          "text": "Late June to early October for the trails and the pond; the **Harvest Market** in October is the busiest weekend of the year. Winter visits are quiet, and several places keep shorter hours, which the listings show per day.",
+          "type": "paragraph"
+         }
+        ],
+        "question": "When is the best time to visit?"
+       },
+       {
+        "answer": [
+         {
+          "text": "In town, yes. It fades past the Mill Pond dam and is gone at Timber Falls, so download directions before you leave the Mercantile.",
+          "type": "paragraph"
+         }
+        ],
+        "question": "Is there mobile coverage in the valley?"
+       },
+       {
+        "answer": [
+         {
+          "text": "On a leash at Larkspur Loop and Mill Pond Park. Timber Falls Overlook asks visitors to leave dogs in town because of the drop-offs near the viewpoint.",
+          "type": "paragraph"
+         }
+        ],
+        "question": "Can I bring a dog to the trailheads?"
+       }
+      ],
+      "type": "faq",
+      "variant": "default"
+     },
+     {
+      "appearance": {
+       "align": "start",
+       "background": "default",
+       "width": "default"
+      },
+      "aspect": "landscape",
+      "columns": 3,
+      "heading": "The valley through the year",
+      "id": "s-gallery",
+      "items": [
+       {
+        "assetId": "781f7d85-edcf-4834-be95-f3257c9e734c",
+        "caption": "The valley from Saddle Ridge at midday"
+       },
+       {
+        "assetId": "d60327f1-c8e3-4a18-aa3f-4f6860055fc3",
+        "caption": "Larkspur Loop above the tree line"
+       },
+       {
+        "assetId": "4114c7e5-6a53-4711-8c0c-a629902401c7",
+        "caption": "Timber Falls after the spring melt"
+       },
+       {
+        "assetId": "318c16bd-bcd0-4bd7-ac87-7d8fe8943478",
+        "caption": "Mill Pond Park on a still morning"
+       },
+       {
+        "assetId": "62274913-1570-465f-b180-377dc40996a7",
+        "caption": "Creekside Coffee Roasters on Creek Path"
+       },
+       {
+        "assetId": "7b059c0a-df9b-4e37-a028-d71b100760bc",
+        "caption": "The community hall, acoustics and all"
+       }
+      ],
+      "lightbox": true,
+      "type": "gallery",
+      "variant": "grid"
+     },
+     {
+      "appearance": {
+       "align": "start",
+       "background": "default",
+       "width": "default"
+      },
+      "heading": "Guide documents",
+      "id": "s-downloads",
+      "intro": "Printable copies of what the guide refers to most often.",
+      "items": [
+       {
+        "assetId": "93d1060c-970b-4d6f-8665-ea98b3fd8191",
+        "label": "Aspen Street snow route map",
+        "note": "In force from December 1 to April 1."
+       },
+       {
+        "assetId": "774d4097-6145-4a25-963f-7b63ed077a81",
+        "label": "",
+        "note": "Bring the signed form to any trail day."
+       }
+      ],
+      "type": "downloads",
+      "variant": "default"
+     }
+    ],
+    "slug": "about",
+    "sourceUrl": "",
+    "summary": "Who writes the Pine Hollow Guide, how listings are verified, and what this demonstration is and is not.",
+    "title": "About the guide"
+   },
+   "revisionId": "4b5771bd-6085-486e-8002-ac31eb9eb6b2",
+   "revisionVersion": 2,
+   "slug": "about",
+   "title": "About the guide"
+  },
+  "74895ae5-129b-4c29-a7c4-ac5f37255b3d": {
+   "id": "74895ae5-129b-4c29-a7c4-ac5f37255b3d",
+   "kind": "place",
+   "payload": {
+    "address": {
+     "approved": false,
+     "line1": "30 School Street",
+     "line2": "",
+     "locality": "Pine Hollow",
+     "postalCode": "80999",
+     "region": "CO"
+    },
+    "areaDescription": "",
+    "attachments": [],
+    "attribution": "Library notice",
+    "body": [
+     {
+      "text": "The library is a two-room stone building beside the school. Cards are free to anyone in the county. The reading room has a wood stove and is the unofficial warming hut on ski days.",
+      "type": "paragraph"
+     },
+     {
+      "items": [
+       "Public computers and printing",
+       "Seed exchange February–May",
+       "Story time Wednesdays at 10"
+      ],
+      "style": "bullet",
+      "type": "list"
+     }
+    ],
+    "category": "Arts & Community",
+    "featuredImageAssetId": "e6832dba-6f4c-4d0d-be17-745291edc50c",
+    "hours": {
+     "fri": [
+      {
+       "close": "18:00",
+       "closesNextDay": false,
+       "open": "10:00"
+      }
+     ],
+     "mon": [
+      {
+       "close": "18:00",
+       "closesNextDay": false,
+       "open": "10:00"
+      }
+     ],
+     "sat": [
+      {
+       "close": "14:00",
+       "closesNextDay": false,
+       "open": "10:00"
+      }
+     ],
+     "sun": [],
+     "thu": [
+      {
+       "close": "18:00",
+       "closesNextDay": false,
+       "open": "10:00"
+      }
+     ],
+     "tue": [
+      {
+       "close": "18:00",
+       "closesNextDay": false,
+       "open": "10:00"
+      }
+     ],
+     "wed": [
+      {
+       "close": "18:00",
+       "closesNextDay": false,
+       "open": "10:00"
+      }
+     ]
+    },
+    "indexable": true,
+    "lastVerifiedOn": "2026-09-24",
+    "metaDescription": "",
+    "metaTitle": "",
+    "nextAction": {
+     "label": "Autumn reading night",
+     "path": "/events/autumn-reading-night"
+    },
+    "phone": "(303) 555-0177",
+    "schemaVersion": 1,
+    "slug": "pine-hollow-public-library",
+    "sourceUrl": "https://library.pinehollow.example",
+    "summary": "Small library with big windows, a free seed exchange, public computers and the warmest reading room in town.",
+    "title": "Pine Hollow Public Library",
+    "website": "https://library.pinehollow.example"
+   },
+   "revisionId": "f39ddb85-dade-4a3a-a0ec-00db014ed47a",
+   "revisionVersion": 2,
+   "slug": "pine-hollow-public-library",
+   "title": "Pine Hollow Public Library"
+  },
+  "7577bedc-815a-491a-a863-08c290430ac0": {
+   "id": "7577bedc-815a-491a-a863-08c290430ac0",
+   "kind": "article",
+   "payload": {
+    "attachments": [],
+    "attribution": "",
+    "authorName": "Pine Hollow Guide editors",
+    "body": [
+     {
+      "text": "Every autumn the elk come down from the high country and spend a few weeks in the meadows below Timber Falls. The bugling starts at dusk and carries across the valley; the Ridge House porch is a fine place to hear it with a drink in hand.",
+      "type": "paragraph"
+     },
+     {
+      "level": 2,
+      "text": "Where",
+      "type": "heading"
+     },
+     {
+      "items": [
+       "County Road 9 pull-offs between mile markers 2 and 5",
+       "The Mill Pond boathouse at dawn",
+       "The Larkspur Loop lower meadow, from the trail only"
+      ],
+      "style": "bullet",
+      "type": "list"
+     },
+     {
+      "level": 2,
+      "text": "How",
+      "type": "heading"
+     },
+     {
+      "text": "Stay in or beside your car on the county road. Bulls in the rut are unpredictable and faster than you. Binoculars are better than closeness, and the guide has heard every excuse for the person who wanted the photo.",
+      "type": "paragraph"
+     }
+    ],
+    "featuredImageAssetId": "68518243-e68c-4f71-99d1-af09b51c5b96",
+    "indexable": true,
+    "lastVerifiedOn": "",
+    "metaDescription": "",
+    "metaTitle": "",
+    "publishedOn": "2026-08-24",
+    "schemaVersion": 1,
+    "slug": "where-to-watch-the-elk-this-fall",
+    "sourceUrl": "",
+    "summary": "The herd moves through the lower meadows from late September. Here is where to look, and how not to be the person who gets too close.",
+    "title": "Where to watch the elk this fall",
+    "updatedOn": ""
+   },
+   "revisionId": "897b2785-0d08-42eb-b2f5-a5a1a4be5257",
+   "revisionVersion": 2,
+   "slug": "where-to-watch-the-elk-this-fall",
+   "title": "Where to watch the elk this fall"
+  },
+  "76c0162e-92ff-40b1-a5b5-9bd31f8907ba": {
+   "id": "76c0162e-92ff-40b1-a5b5-9bd31f8907ba",
+   "kind": "event",
+   "payload": {
+    "admission": "Free",
+    "attachments": [],
+    "attribution": "",
+    "body": [
+     {
+      "text": "Thirty-one volunteers pulled eleven bags of debris and one shopping cart from the pond. Thank you; the boathouse coffee was on the town.",
+      "type": "paragraph"
+     }
+    ],
+    "endsAt": "2026-09-11T18:00:00.000Z",
+    "eventUrl": "",
+    "featuredImageAssetId": null,
+    "indexable": true,
+    "lastVerifiedOn": "",
+    "metaDescription": "",
+    "metaTitle": "",
+    "organizerName": "Town of Pine Hollow Parks (fictional)",
+    "organizerUrl": "",
+    "schemaVersion": 1,
+    "slug": "mill-pond-cleanup",
+    "sourceUrl": "",
+    "startsAt": "2026-09-11T15:00:00.000Z",
+    "status": "scheduled",
+    "summary": "Annual shoreline cleanup before the pond freezes. Waders provided for the brave.",
+    "timeZone": "America/Denver",
+    "title": "Mill Pond Cleanup",
+    "venueItemId": "7efb6a45-8241-413d-9c4a-d2e377bde8ab",
+    "venueText": ""
+   },
+   "revisionId": "a7c3a3ba-75b6-4690-8f2a-9f731f62f71f",
+   "revisionVersion": 2,
+   "slug": "mill-pond-cleanup",
+   "title": "Mill Pond Cleanup"
+  },
+  "793a4989-5a4b-46be-8d1a-29f9bbe6e15b": {
+   "id": "793a4989-5a4b-46be-8d1a-29f9bbe6e15b",
+   "kind": "article",
+   "payload": {
+    "attachments": [
+     {
+      "assetId": "774d4097-6145-4a25-963f-7b63ed077a81",
+      "label": "Trail day sign-up form (PDF)"
+     }
+    ],
+    "attribution": "",
+    "authorName": "Pine Hollow Guide editors",
+    "body": [
+     {
+      "text": "The Larkspur Loop trailhead sits on a strip of county land that nobody wanted until everybody did. In 2004 the trails association agreed to plow it, the county agreed to grade it, and the Mercantile agreed to sell the maps. Twenty years later the arrangement still holds, mostly because nobody has written it down.",
+      "type": "paragraph"
+     },
+     {
+      "level": 2,
+      "text": "Why it matters",
+      "type": "heading"
+     },
+     {
+      "text": "Trailheads close when they become a problem for one landowner. Spreading the work across three parties means no single bad winter ends access. It also means the volunteer trail days are not optional: the water bars on the upper switchbacks are the association's half of the bargain.",
+      "type": "paragraph"
+     },
+     {
+      "level": 2,
+      "text": "How to help",
+      "type": "heading"
+     },
+     {
+      "items": [
+       "Join a trail day (see the events list)",
+       "Buy the map at the Mercantile; proceeds fund tools",
+       "Park inside the lot, not along Miner's Road"
+      ],
+      "style": "bullet",
+      "type": "list"
+     },
+     {
+      "text": "The association's [trail day sign-up form](document:774d4097-6145-4a25-963f-7b63ed077a81) can be printed and left at the Mercantile.",
+      "type": "paragraph"
+     }
+    ],
+    "featuredImageAssetId": "55e8f61f-7137-44a9-b572-f2ccdf2ddc9b",
+    "indexable": true,
+    "lastVerifiedOn": "2026-09-21",
+    "metaDescription": "",
+    "metaTitle": "",
+    "publishedOn": "2026-09-20",
+    "schemaVersion": 1,
+    "slug": "how-pine-hollow-keeps-its-trailheads-open",
+    "sourceUrl": "",
+    "summary": "Nobody owns the Larkspur Loop lot, which is exactly why it stays plowed. A short history of the valley's volunteer trail deal.",
+    "title": "How Pine Hollow keeps its trailheads open",
+    "updatedOn": ""
+   },
+   "revisionId": "53e6ae71-e958-40db-a649-3f2cd16d78e9",
+   "revisionVersion": 2,
+   "slug": "how-pine-hollow-keeps-its-trailheads-open",
+   "title": "How Pine Hollow keeps its trailheads open"
+  },
+  "7efb6a45-8241-413d-9c4a-d2e377bde8ab": {
+   "id": "7efb6a45-8241-413d-9c4a-d2e377bde8ab",
+   "kind": "place",
+   "payload": {
+    "address": {
+     "approved": false,
+     "line1": "1 Pond Road",
+     "line2": "",
+     "locality": "Pine Hollow",
+     "postalCode": "80999",
+     "region": "CO"
+    },
+    "areaDescription": "",
+    "attachments": [],
+    "attribution": "Town of Pine Hollow parks notice (fictional)",
+    "body": [
+     {
+      "text": "The pond was dug for the sawmill in the 1890s and has been the town's swimming hole for a century. The path is flat and stroller-friendly. The town posts an ice-safety sign at the boathouse in winter; if the sign is not out, stay off the ice.",
+      "type": "paragraph"
+     },
+     {
+      "items": [
+       "Restrooms open May–October",
+       "Picnic tables first come, first served",
+       "No motorized boats"
+      ],
+      "style": "bullet",
+      "type": "list"
+     }
+    ],
+    "category": "Outdoors",
+    "featuredImageAssetId": "318c16bd-bcd0-4bd7-ac87-7d8fe8943478",
+    "hours": {
+     "fri": [
+      {
+       "close": "22:00",
+       "closesNextDay": false,
+       "open": "06:00"
+      }
+     ],
+     "mon": [
+      {
+       "close": "22:00",
+       "closesNextDay": false,
+       "open": "06:00"
+      }
+     ],
+     "sat": [
+      {
+       "close": "22:00",
+       "closesNextDay": false,
+       "open": "06:00"
+      }
+     ],
+     "sun": [
+      {
+       "close": "22:00",
+       "closesNextDay": false,
+       "open": "06:00"
+      }
+     ],
+     "thu": [
+      {
+       "close": "22:00",
+       "closesNextDay": false,
+       "open": "06:00"
+      }
+     ],
+     "tue": [
+      {
+       "close": "22:00",
+       "closesNextDay": false,
+       "open": "06:00"
+      }
+     ],
+     "wed": [
+      {
+       "close": "22:00",
+       "closesNextDay": false,
+       "open": "06:00"
+      }
+     ]
+    },
+    "indexable": true,
+    "lastVerifiedOn": "2026-08-27",
+    "metaDescription": "",
+    "metaTitle": "",
+    "nextAction": {
+     "label": "Read about the pond cleanup",
+     "path": "/events/mill-pond-cleanup"
+    },
+    "phone": "(303) 555-0100",
+    "schemaVersion": 1,
+    "slug": "mill-pond-park",
+    "sourceUrl": "",
+    "summary": "Town park around the old mill pond: a half-mile path, picnic tables, a swimming beach in July and skating when the ice is posted safe.",
+    "title": "Mill Pond Park",
+    "website": ""
+   },
+   "revisionId": "27ceec70-22f3-46c6-943e-17f9bf97f513",
+   "revisionVersion": 2,
+   "slug": "mill-pond-park",
+   "title": "Mill Pond Park"
+  },
+  "8041740b-9798-404b-ac78-de0291c0390a": {
+   "id": "8041740b-9798-404b-ac78-de0291c0390a",
+   "kind": "event",
+   "payload": {
+    "admission": "Free",
+    "attachments": [],
+    "attribution": "",
+    "body": [
+     {
+      "text": "The county astronomy club sets up four telescopes at the overlook. Arrive before dark to park without headlights on the group, and bring a red flashlight. The event runs past midnight, so the listed end time is on the following calendar day.",
+      "type": "paragraph"
+     }
+    ],
+    "endsAt": "2026-10-23T06:30:00.000Z",
+    "eventUrl": "",
+    "featuredImageAssetId": null,
+    "indexable": true,
+    "lastVerifiedOn": "",
+    "metaDescription": "",
+    "metaTitle": "",
+    "organizerName": "Front Range Sky Club (fictional)",
+    "organizerUrl": "",
+    "schemaVersion": 1,
+    "slug": "star-party-at-timber-falls",
+    "sourceUrl": "",
+    "startsAt": "2026-10-23T02:30:00.000Z",
+    "status": "scheduled",
+    "summary": "Telescopes on the overlook lot from dusk until well past midnight. Dress for winter even in September.",
+    "timeZone": "America/Denver",
+    "title": "Star Party at Timber Falls",
+    "venueItemId": "30ea4ddb-6ce1-4e53-a65f-e5b4b12a2e6d",
+    "venueText": ""
+   },
+   "revisionId": "1c8e6b91-888a-46a4-a1ab-2ca85559ebb2",
+   "revisionVersion": 2,
+   "slug": "star-party-at-timber-falls",
+   "title": "Star Party at Timber Falls"
+  },
+  "81d3b5cb-1f45-4cad-a7cf-4e0f9594c0b2": {
+   "id": "81d3b5cb-1f45-4cad-a7cf-4e0f9594c0b2",
+   "kind": "place",
+   "payload": {
+    "address": {
+     "approved": false,
+     "line1": "6 Station Alley",
+     "line2": "",
+     "locality": "Pine Hollow",
+     "postalCode": "80999",
+     "region": "CO"
+    },
+    "areaDescription": "",
+    "attachments": [],
+    "attribution": "Owner interview",
+    "body": [
+     {
+      "text": "Ask for Dee. The shop is a converted garage, so the door is usually open and the radio is usually on. Rentals are old but tuned, and the price includes a helmet and a map of the pond loop.",
+      "type": "paragraph"
+     },
+     {
+      "items": [
+       "Flats fixed while you wait",
+       "Rentals by the half day",
+       "Cash or card"
+      ],
+      "style": "bullet",
+      "type": "list"
+     }
+    ],
+    "category": "Shops & Services",
+    "featuredImageAssetId": "98f69d9b-47c4-4876-bdf0-97c57123776a",
+    "hours": {
+     "fri": [
+      {
+       "close": "17:00",
+       "closesNextDay": false,
+       "open": "09:00"
+      }
+     ],
+     "mon": [
+      {
+       "close": "17:00",
+       "closesNextDay": false,
+       "open": "09:00"
+      }
+     ],
+     "sat": [
+      {
+       "close": "17:00",
+       "closesNextDay": false,
+       "open": "09:00"
+      }
+     ],
+     "sun": [],
+     "thu": [],
+     "tue": [],
+     "wed": [
+      {
+       "close": "17:00",
+       "closesNextDay": false,
+       "open": "09:00"
+      }
+     ]
+    },
+    "indexable": true,
+    "lastVerifiedOn": "2026-09-23",
+    "metaDescription": "",
+    "metaTitle": "",
+    "nextAction": {
+     "label": "",
+     "path": ""
+    },
+    "phone": "(303) 555-0166",
+    "schemaVersion": 1,
+    "slug": "foothill-bike-repair",
+    "sourceUrl": "",
+    "summary": "One-mechanic shop behind the fire station. Same-day flats, tune-ups by appointment, loaner bikes for visitors.",
+    "title": "Foothill Bike Repair",
+    "website": ""
+   },
+   "revisionId": "eb5f94f6-2018-493e-b728-6af7dc071a18",
+   "revisionVersion": 2,
+   "slug": "foothill-bike-repair",
+   "title": "Foothill Bike Repair"
+  },
+  "83d25523-7524-49f0-89cd-e80e7d44da99": {
+   "id": "83d25523-7524-49f0-89cd-e80e7d44da99",
+   "kind": "event",
+   "payload": {
+    "admission": "Free; sign up at the trails association site",
+    "attachments": [],
+    "attribution": "",
+    "body": [
+     {
+      "text": "Meet at the trailhead lot. Work is on the upper switchbacks, so expect a mile of walking before the first shovel. Wear boots. Under-16s need an adult along.",
+      "type": "paragraph"
+     }
+    ],
+    "endsAt": "2026-10-16T19:00:00.000Z",
+    "eventUrl": "https://pinehollowtrails.example/volunteer",
+    "featuredImageAssetId": null,
+    "indexable": true,
+    "lastVerifiedOn": "",
+    "metaDescription": "",
+    "metaTitle": "",
+    "organizerName": "Pine Hollow Trails Association (fictional)",
+    "organizerUrl": "https://pinehollowtrails.example",
+    "schemaVersion": 1,
+    "slug": "larkspur-loop-volunteer-trail-day",
+    "sourceUrl": "",
+    "startsAt": "2026-10-16T14:30:00.000Z",
+    "status": "scheduled",
+    "summary": "Help rebuild the water bars on the steep section before the snow. Tools, gloves and lunch provided.",
+    "timeZone": "America/Denver",
+    "title": "Larkspur Loop Volunteer Trail Day",
+    "venueItemId": "3344575b-ea7b-4e7a-ad22-83dee06d4715",
+    "venueText": ""
+   },
+   "revisionId": "c715e371-b0e9-4e59-9206-2dd8c6acabe3",
+   "revisionVersion": 2,
+   "slug": "larkspur-loop-volunteer-trail-day",
+   "title": "Larkspur Loop Volunteer Trail Day"
+  },
+  "87e53986-b0c1-4913-9172-1f3c853db5a4": {
+   "id": "87e53986-b0c1-4913-9172-1f3c853db5a4",
+   "kind": "event",
+   "payload": {
+    "admission": "Free",
+    "attachments": [],
+    "attribution": "",
+    "body": [
+     {
+      "text": "The gallery cooperative cancelled the opening after the October storm damaged the depot roof. The show itself is postponed to spring; this listing stays visible so nobody drives out for it.",
+      "type": "paragraph"
+     }
+    ],
+    "endsAt": "2026-10-22T01:30:00.000Z",
+    "eventUrl": "",
+    "featuredImageAssetId": "079aff37-0951-46f9-b9c7-f665e7c4efa1",
+    "indexable": true,
+    "lastVerifiedOn": "",
+    "metaDescription": "",
+    "metaTitle": "",
+    "organizerName": "Old Depot Gallery cooperative",
+    "organizerUrl": "https://olddepotgallery.example",
+    "schemaVersion": 1,
+    "slug": "depot-gallery-opening-winter-light",
+    "sourceUrl": "",
+    "startsAt": "2026-10-21T23:00:00.000Z",
+    "status": "cancelled",
+    "summary": "Opening reception for the winter show. Cancelled this year while the depot roof is repaired.",
+    "timeZone": "America/Denver",
+    "title": "Depot Gallery Opening: Winter Light",
+    "venueItemId": "2b4d0ae8-62f9-44f7-9afe-29919321690d",
+    "venueText": ""
+   },
+   "revisionId": "71eaff5f-a8d2-4c7d-be71-7b2f8afaa66c",
+   "revisionVersion": 2,
+   "slug": "depot-gallery-opening-winter-light",
+   "title": "Depot Gallery Opening: Winter Light"
+  },
+  "8a1bd0f7-4ed1-429e-9d52-2d4005c1b1c1": {
+   "id": "8a1bd0f7-4ed1-429e-9d52-2d4005c1b1c1",
+   "kind": "place",
+   "payload": {
+    "address": {
+     "approved": false,
+     "line1": "14 Creek Path",
+     "line2": "",
+     "locality": "Pine Hollow",
+     "postalCode": "80999",
+     "region": "CO"
+    },
+    "areaDescription": "",
+    "attachments": [],
+    "attribution": "Guide visit and owner interview",
+    "body": [
+     {
+      "text": "Creekside opens before the sun clears the ridge, which is why half the town's dog walkers end up on its bench by seven. The roaster runs Tuesday and Friday mornings; if the door is propped open, you will smell it from the footbridge.",
+      "type": "paragraph"
+     },
+     {
+      "text": "Order at the window in summer or inside from October on. Cards and cash are both fine. The creek path behind the building connects to Mill Pond Park in about ten minutes on foot.",
+      "type": "paragraph"
+     },
+     {
+      "level": 2,
+      "text": "Good to know",
+      "type": "heading"
+     },
+     {
+      "items": [
+       "Dogs welcome on the patio",
+       "Beans sold by the half pound",
+       "Busy 8–9 a.m. on weekends"
+      ],
+      "style": "bullet",
+      "type": "list"
+     }
+    ],
+    "category": "Eat & Drink",
+    "featuredImageAssetId": "62274913-1570-465f-b180-377dc40996a7",
+    "hours": {
+     "fri": [
+      {
+       "close": "14:00",
+       "closesNextDay": false,
+       "open": "06:30"
+      }
+     ],
+     "mon": [
+      {
+       "close": "14:00",
+       "closesNextDay": false,
+       "open": "06:30"
+      }
+     ],
+     "sat": [
+      {
+       "close": "14:00",
+       "closesNextDay": false,
+       "open": "06:30"
+      }
+     ],
+     "sun": [
+      {
+       "close": "14:00",
+       "closesNextDay": false,
+       "open": "06:30"
+      }
+     ],
+     "thu": [
+      {
+       "close": "14:00",
+       "closesNextDay": false,
+       "open": "06:30"
+      }
+     ],
+     "tue": [
+      {
+       "close": "14:00",
+       "closesNextDay": false,
+       "open": "06:30"
+      }
+     ],
+     "wed": [
+      {
+       "close": "14:00",
+       "closesNextDay": false,
+       "open": "06:30"
+      }
+     ]
+    },
+    "indexable": true,
+    "lastVerifiedOn": "2026-09-17",
+    "metaDescription": "",
+    "metaTitle": "",
+    "nextAction": {
+     "label": "Plan a walk to Mill Pond Park",
+     "path": "/places/mill-pond-park"
+    },
+    "phone": "(303) 555-0112",
+    "schemaVersion": 1,
+    "slug": "creekside-coffee-roasters",
+    "sourceUrl": "https://creekside.example",
+    "summary": "Small-batch roaster on the creek path with a walk-up window, early hours and the town's most reliable weather chatter.",
+    "title": "Creekside Coffee Roasters",
+    "website": "https://creekside.example"
+   },
+   "revisionId": "1cfa6357-c52d-4605-8970-5e862498197c",
+   "revisionVersion": 2,
+   "slug": "creekside-coffee-roasters",
+   "title": "Creekside Coffee Roasters"
+  },
+  "b78b5632-16af-44cb-b6ca-20528292433c": {
+   "id": "b78b5632-16af-44cb-b6ca-20528292433c",
+   "kind": "link",
+   "payload": {
+    "attachments": [],
+    "attribution": "",
+    "body": [
+     {
+      "text": "The association posts trail conditions on Fridays through the season and cancels a trail day on its own site first. Membership is by donation; the sign-up form is on the trailheads article.",
+      "type": "paragraph"
+     }
+    ],
+    "category": "Outdoors",
+    "ctaLabel": "Visit the association",
+    "featuredImageAssetId": "d60327f1-c8e3-4a18-aa3f-4f6860055fc3",
+    "indexable": true,
+    "lastVerifiedOn": "2026-09-23",
+    "metaDescription": "",
+    "metaTitle": "",
+    "schemaVersion": 1,
+    "slug": "pine-hollow-trails-association",
+    "sourceUrl": "",
+    "summary": "Trail conditions, the volunteer day calendar and the map the Mercantile sells, from the people who keep the Larkspur Loop open.",
+    "title": "Pine Hollow Trails Association",
+    "url": "https://pinehollowtrails.example"
+   },
+   "revisionId": "982d9c6c-8121-411d-b812-cb37acf9822c",
+   "revisionVersion": 2,
+   "slug": "pine-hollow-trails-association",
+   "title": "Pine Hollow Trails Association"
+  },
+  "c2e674b3-fbad-46cb-870e-d542b9dac760": {
+   "id": "c2e674b3-fbad-46cb-870e-d542b9dac760",
+   "kind": "place",
+   "payload": {
+    "address": {
+     "approved": false,
+     "line1": "201 Ridge Lane",
+     "line2": "",
+     "locality": "Pine Hollow",
+     "postalCode": "80999",
+     "region": "CO"
+    },
+    "areaDescription": "",
+    "attachments": [],
+    "attribution": "Guide visit",
+    "body": [
+     {
+      "text": "The Ridge House has been the town's living room since the mine closed. The porch faces west, so evenings are the draw: bring a layer, because the temperature drops fast once the sun goes behind Saddle Ridge.",
+      "type": "paragraph"
+     },
+     {
+      "text": "Kitchen hours are shorter than bar hours. Reservations are only taken for groups of eight or more; everyone else waits on the porch with a drink.",
+      "type": "paragraph"
+     },
+     {
+      "level": 2,
+      "text": "Good to know",
+      "type": "heading"
+     },
+     {
+      "items": [
+       "Music Saturdays from 7 p.m.",
+       "Kids welcome until 8 p.m.",
+       "Parking is on Aspen Street, not on the lane"
+      ],
+      "style": "bullet",
+      "type": "list"
+     }
+    ],
+    "category": "Eat & Drink",
+    "featuredImageAssetId": "29e82823-d908-4b88-a7e7-9abf03a7a248",
+    "hours": {
+     "fri": [
+      {
+       "close": "00:30",
+       "closesNextDay": true,
+       "open": "16:00"
+      }
+     ],
+     "mon": [],
+     "sat": [
+      {
+       "close": "23:30",
+       "closesNextDay": false,
+       "open": "12:00"
+      }
+     ],
+     "sun": [
+      {
+       "close": "22:00",
+       "closesNextDay": false,
+       "open": "16:00"
+      }
+     ],
+     "thu": [
+      {
+       "close": "22:00",
+       "closesNextDay": false,
+       "open": "16:00"
+      }
+     ],
+     "tue": [],
+     "wed": [
+      {
+       "close": "22:00",
+       "closesNextDay": false,
+       "open": "16:00"
+      }
+     ]
+    },
+    "indexable": true,
+    "lastVerifiedOn": "2026-09-26",
+    "metaDescription": "",
+    "metaTitle": "",
+    "nextAction": {
+     "label": "See upcoming events",
+     "path": "/events"
+    },
+    "phone": "(303) 555-0134",
+    "schemaVersion": 1,
+    "slug": "ridge-house-tavern",
+    "sourceUrl": "https://ridgehouse.example",
+    "summary": "Timber-frame tavern with a long porch, a short menu that changes weekly and live music most Saturdays.",
+    "title": "The Ridge House Tavern",
+    "website": "https://ridgehouse.example"
+   },
+   "revisionId": "6e19a1bc-124c-45c8-a4ef-15bb00769c01",
+   "revisionVersion": 3,
+   "slug": "ridge-house-tavern",
+   "title": "The Ridge House Tavern"
+  },
+  "dd5ba52e-a975-48d4-afe8-e7ef4c7390f4": {
+   "id": "dd5ba52e-a975-48d4-afe8-e7ef4c7390f4",
+   "kind": "page",
+   "payload": {
+    "attachments": [],
+    "attribution": "",
+    "body": [],
+    "featuredImageAssetId": null,
+    "indexable": true,
+    "lastVerifiedOn": "",
+    "metaDescription": "",
+    "metaTitle": "",
+    "schemaVersion": 1,
+    "sections": [
+     {
+      "appearance": {
+       "align": "start",
+       "background": "default",
+       "width": "default"
+      },
+      "heading": "Get in touch",
+      "id": "s-callout",
+      "showContactDetails": true,
+      "text": "Corrections, new places and event listings all start here. Include a way to reach you if we have questions.",
+      "type": "contact_callout",
+      "variant": "default"
+     },
+     {
+      "appearance": {
+       "align": "start",
+       "background": "default",
+       "width": "default"
+      },
+      "heading": "Send a message",
+      "id": "s-form",
+      "intro": "Tell us what you noticed. If it concerns a specific place, choose it below.",
+      "locationSelect": true,
+      "type": "inquiry_form",
+      "variant": "default"
+     },
+     {
+      "address": {
+       "approved": false,
+       "line1": "30 School Street",
+       "line2": "",
+       "locality": "Pine Hollow",
+       "postalCode": "80999",
+       "region": "CO"
+      },
+      "appearance": {
+       "align": "start",
+       "background": "default",
+       "width": "default"
+      },
+      "embed": true,
+      "heading": "Find the editors",
+      "id": "s-map",
+      "label": "Get directions",
+      "latitude": 39.742,
+      "longitude": -105.513,
+      "provider": "openstreetmap",
+      "text": "The guide's desk is the reading room of the public library; someone is usually there on weekday mornings.",
+      "type": "map_link",
+      "variant": "card"
+     }
+    ],
+    "slug": "contact",
+    "sourceUrl": "",
+    "summary": "Send a correction, suggest a place, or ask about an event. Messages get a receipt reference.",
+    "title": "Contact"
+   },
+   "revisionId": "c0ab75ed-fafd-4ec7-829d-34c9da3c5d81",
+   "revisionVersion": 2,
+   "slug": "contact",
+   "title": "Contact"
+  },
+  "e23046ef-5754-47e1-aab3-fac279ba8914": {
+   "id": "e23046ef-5754-47e1-aab3-fac279ba8914",
+   "kind": "link",
+   "payload": {
+    "attachments": [],
+    "attribution": "",
+    "body": [],
+    "category": "Town services",
+    "ctaLabel": "Check the roads",
+    "featuredImageAssetId": "6c9a0576-d30c-43ca-8de2-8e4bc8bd96a9",
+    "indexable": true,
+    "lastVerifiedOn": "2026-09-23",
+    "metaDescription": "",
+    "metaTitle": "",
+    "schemaVersion": 1,
+    "slug": "county-road-conditions",
+    "sourceUrl": "",
+    "summary": "Closures, chain laws and plow schedules for County Road 9 and the passes into the valley, kept by the county through the winter.",
+    "title": "County road conditions",
+    "url": "https://roads.pine-hollow.example"
+   },
+   "revisionId": "8c572fe8-82d7-4e87-a685-06309746869c",
+   "revisionVersion": 2,
+   "slug": "county-road-conditions",
+   "title": "County road conditions"
+  },
+  "e802f45d-e572-4b09-8954-1f0b98357432": {
+   "id": "e802f45d-e572-4b09-8954-1f0b98357432",
+   "kind": "event",
+   "payload": {
+    "admission": "Free; pie raffle tickets $2",
+    "attachments": [],
+    "attribution": "",
+    "body": [
+     {
+      "text": "Bring a blanket. The band plays two sets with a break for the pie raffle, which funds next year's series.",
+      "type": "paragraph"
+     }
+    ],
+    "endsAt": "2026-08-18T02:30:00.000Z",
+    "eventUrl": "",
+    "featuredImageAssetId": "8c0a9f0f-d588-457f-8524-b4de2ca94dae",
+    "indexable": true,
+    "lastVerifiedOn": "",
+    "metaDescription": "",
+    "metaTitle": "",
+    "organizerName": "Friends of Miner's Park (fictional)",
+    "organizerUrl": "",
+    "schemaVersion": 1,
+    "slug": "summer-concert-on-the-green",
+    "sourceUrl": "",
+    "startsAt": "2026-08-18T00:00:00.000Z",
+    "status": "scheduled",
+    "summary": "The last of the summer concert series at Miner's Park, with the valley's own brass band.",
+    "timeZone": "America/Denver",
+    "title": "Summer Concert on the Green",
+    "venueItemId": "424b84bb-561d-4346-9b1b-83b34672ac39",
+    "venueText": ""
+   },
+   "revisionId": "3b409490-a1d5-481e-bd0c-8d903b77317f",
+   "revisionVersion": 2,
+   "slug": "summer-concert-on-the-green",
+   "title": "Summer Concert on the Green"
+  },
+  "ebf1bf00-3501-493c-a35f-898c13ae62af": {
+   "id": "ebf1bf00-3501-493c-a35f-898c13ae62af",
+   "kind": "place",
+   "payload": {
+    "address": {
+     "approved": false,
+     "line1": "100 Aspen Street",
+     "line2": "",
+     "locality": "Pine Hollow",
+     "postalCode": "80999",
+     "region": "CO"
+    },
+    "areaDescription": "",
+    "attachments": [],
+    "attribution": "Owner interview",
+    "body": [
+     {
+      "text": "If Pine Hollow has a town square, it is the Mercantile's front step. The store stocks what the valley actually needs: stove parts, snow shovels in October, seed potatoes in April, and a wall of wool. Fishing and hunting licenses are sold at the back counter.",
+      "type": "paragraph"
+     },
+     {
+      "items": [
+       "Key cutting while you wait",
+       "Propane exchange out back",
+       "Closed Sundays"
+      ],
+      "style": "bullet",
+      "type": "list"
+     }
+    ],
+    "category": "Shops & Services",
+    "featuredImageAssetId": "d7d5b9f8-48a8-4a48-9bd5-a929c2423c4d",
+    "hours": {
+     "fri": [
+      {
+       "close": "18:00",
+       "closesNextDay": false,
+       "open": "08:00"
+      }
+     ],
+     "mon": [
+      {
+       "close": "18:00",
+       "closesNextDay": false,
+       "open": "08:00"
+      }
+     ],
+     "sat": [
+      {
+       "close": "18:00",
+       "closesNextDay": false,
+       "open": "08:00"
+      }
+     ],
+     "sun": [],
+     "thu": [
+      {
+       "close": "18:00",
+       "closesNextDay": false,
+       "open": "08:00"
+      }
+     ],
+     "tue": [
+      {
+       "close": "18:00",
+       "closesNextDay": false,
+       "open": "08:00"
+      }
+     ],
+     "wed": [
+      {
+       "close": "18:00",
+       "closesNextDay": false,
+       "open": "08:00"
+      }
+     ]
+    },
+    "indexable": true,
+    "lastVerifiedOn": "2026-09-19",
+    "metaDescription": "",
+    "metaTitle": "",
+    "nextAction": {
+     "label": "",
+     "path": ""
+    },
+    "phone": "(303) 555-0121",
+    "schemaVersion": 1,
+    "slug": "hollow-mercantile",
+    "sourceUrl": "https://hollowmercantile.example",
+    "summary": "Hardware, wool socks, fishing licenses and the only key-cutting machine for thirty miles. Open since 1921.",
+    "title": "Hollow Mercantile",
+    "website": "https://hollowmercantile.example"
+   },
+   "revisionId": "a4854678-d073-42d1-8b77-11c2f03be90d",
+   "revisionVersion": 2,
+   "slug": "hollow-mercantile",
+   "title": "Hollow Mercantile"
+  },
+  "f8116377-c1e1-4397-8742-ed5406d721db": {
+   "id": "f8116377-c1e1-4397-8742-ed5406d721db",
+   "kind": "event",
+   "payload": {
+    "admission": "Free",
+    "attachments": [],
+    "attribution": "",
+    "body": [
+     {
+      "text": "Forty vendors line Aspen Street from the Mercantile to the bookshop. Come early for eggs and late for deals on squash. The street reopens to cars at 5 p.m.",
+      "type": "paragraph"
+     },
+     {
+      "items": [
+       "Free entry",
+       "Bring bags",
+       "Parking at the school"
+      ],
+      "style": "bullet",
+      "type": "list"
+     }
+    ],
+    "endsAt": "2026-10-08T22:00:00.000Z",
+    "eventUrl": "",
+    "featuredImageAssetId": "5232b563-5081-4e52-8467-4efb2e1bfddd",
+    "indexable": true,
+    "lastVerifiedOn": "",
+    "metaDescription": "",
+    "metaTitle": "",
+    "organizerName": "Pine Hollow Growers' Circle (fictional)",
+    "organizerUrl": "https://growers.pinehollow.example",
+    "schemaVersion": 1,
+    "slug": "harvest-market-on-aspen-street",
+    "sourceUrl": "",
+    "startsAt": "2026-10-08T15:00:00.000Z",
+    "status": "scheduled",
+    "summary": "Aspen Street closes to cars for the valley's growers, bakers and makers. Music from noon, cider all day.",
+    "timeZone": "America/Denver",
+    "title": "Harvest Market on Aspen Street",
+    "venueItemId": null,
+    "venueText": "Aspen Street, between the Mercantile and Aspen Street Books"
+   },
+   "revisionId": "4cfa8706-fed7-488c-be46-a225638effb3",
+   "revisionVersion": 2,
+   "slug": "harvest-market-on-aspen-street",
+   "title": "Harvest Market on Aspen Street"
+  }
+ },
+ "media": {
+  "079aff37-0951-46f9-b9c7-f665e7c4efa1": {
+   "alt": "Poster reading Winter Light in pale type on a dark blue background",
+   "attribution": "Original artwork created for the Lerner Works demonstration",
+   "decorative": false,
+   "hash": "b12790a408f78e9792f07300b6663839ba4d53c8995cc7074fc784ad421db874",
+   "height": 900,
+   "id": "079aff37-0951-46f9-b9c7-f665e7c4efa1",
+   "license": "CC0-1.0 — original vector artwork generated for this demonstration",
+   "title": "Winter Light opening poster",
+   "variants": {
+    "w1600": {
+     "bytes": 14350,
+     "hash": "cd807288ed42cdd8d90144fe0932a79438f9212035216398a3a99e5b5e4f35ba",
+     "height": 900,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/079aff37-0951-46f9-b9c7-f665e7c4efa1/w1600.webp",
+     "path": "cd807288ed42cdd8d90144fe0932a79438f9212035216398a3a99e5b5e4f35ba-w1600.webp",
+     "width": 1600
+    },
+    "w480": {
+     "bytes": 4400,
+     "hash": "fcdcd4854da221f42740ae50dd8a5bfcc6f4430c0ef2ccaac2e081c7da958dc2",
+     "height": 270,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/079aff37-0951-46f9-b9c7-f665e7c4efa1/w480.webp",
+     "path": "fcdcd4854da221f42740ae50dd8a5bfcc6f4430c0ef2ccaac2e081c7da958dc2-w480.webp",
+     "width": 480
+    },
+    "w960": {
+     "bytes": 8680,
+     "hash": "59f3550285ea2d152f60d17a0437ac13eb9606c1a24b0b58f00bb7e25ff5ddd5",
+     "height": 540,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/079aff37-0951-46f9-b9c7-f665e7c4efa1/w960.webp",
+     "path": "59f3550285ea2d152f60d17a0437ac13eb9606c1a24b0b58f00bb7e25ff5ddd5-w960.webp",
+     "width": 960
+    }
+   },
+   "width": 1600
+  },
+  "18d4492c-09ad-4089-9ab5-0317a56255f0": {
+   "alt": "Stylised portrait of Marta Ellison, a fictional resident",
+   "attribution": "Original artwork created for the Lerner Works demonstration",
+   "decorative": false,
+   "hash": "ec081919f8cda994820880dd7fe67b66019c99886638339319ea78fd3aff7d86",
+   "height": 800,
+   "id": "18d4492c-09ad-4089-9ab5-0317a56255f0",
+   "license": "CC0-1.0 — original vector artwork generated for this demonstration",
+   "title": "Marta Ellison",
+   "variants": {
+    "w480": {
+     "bytes": 6082,
+     "hash": "742e5894711fd6fa2ca9f6af9acca6902f45d0e912c667775e454fa937533ff9",
+     "height": 480,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/18d4492c-09ad-4089-9ab5-0317a56255f0/w480.webp",
+     "path": "742e5894711fd6fa2ca9f6af9acca6902f45d0e912c667775e454fa937533ff9-w480.webp",
+     "width": 480
+    },
+    "w960": {
+     "bytes": 10272,
+     "hash": "2cbeabd1d9a79a50936aca2f0a228d77c78a697c7fa463963bf3a30e557ca137",
+     "height": 800,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/18d4492c-09ad-4089-9ab5-0317a56255f0/w960.webp",
+     "path": "2cbeabd1d9a79a50936aca2f0a228d77c78a697c7fa463963bf3a30e557ca137-w960.webp",
+     "width": 800
+    }
+   },
+   "width": 800
+  },
+  "232a53d2-74b4-49ab-a165-c0d41b80a328": {
+   "alt": "Illustrated bakery storefront with a cream awning and a loaf of bread sign",
+   "attribution": "Original artwork created for the Lerner Works demonstration",
+   "decorative": false,
+   "hash": "37a1dfedac7bc978a642da78c90b9f538bb94909cec18db5b674eb4c4e497745",
+   "height": 1067,
+   "id": "232a53d2-74b4-49ab-a165-c0d41b80a328",
+   "license": "CC0-1.0 — original vector artwork generated for this demonstration",
+   "title": "Hollow Bakery & Provisions",
+   "variants": {
+    "w1600": {
+     "bytes": 16742,
+     "hash": "01fcfdbd8acc8226f9efe36a7d66bbf2ddc6aeb0aad739d1c73f7d977ae3ef0c",
+     "height": 1067,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/232a53d2-74b4-49ab-a165-c0d41b80a328/w1600.webp",
+     "path": "01fcfdbd8acc8226f9efe36a7d66bbf2ddc6aeb0aad739d1c73f7d977ae3ef0c-w1600.webp",
+     "width": 1600
+    },
+    "w480": {
+     "bytes": 5976,
+     "hash": "666f99f2f0a7494331704968e3e59123211788426dbc56afdc77470e8fedca28",
+     "height": 320,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/232a53d2-74b4-49ab-a165-c0d41b80a328/w480.webp",
+     "path": "666f99f2f0a7494331704968e3e59123211788426dbc56afdc77470e8fedca28-w480.webp",
+     "width": 480
+    },
+    "w960": {
+     "bytes": 9942,
+     "hash": "76b056f1b095d904950dcab355141615bc1128130031ae58a5dc422ef99e3607",
+     "height": 640,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/232a53d2-74b4-49ab-a165-c0d41b80a328/w960.webp",
+     "path": "76b056f1b095d904950dcab355141615bc1128130031ae58a5dc422ef99e3607-w960.webp",
+     "width": 960
+    }
+   },
+   "width": 1600
+  },
+  "29e82823-d908-4b88-a7e7-9abf03a7a248": {
+   "alt": "Illustrated timber tavern facade with a rust-colored awning under an evening sky",
+   "attribution": "Original artwork created for the Lerner Works demonstration",
+   "decorative": false,
+   "hash": "a428a31c76935bf667dff87fdb609ec304bdfe413edbb74543c3098c1df05940",
+   "height": 1067,
+   "id": "29e82823-d908-4b88-a7e7-9abf03a7a248",
+   "license": "CC0-1.0 — original vector artwork generated for this demonstration",
+   "title": "The Ridge House Tavern at dusk",
+   "variants": {
+    "w1600": {
+     "bytes": 16088,
+     "hash": "9a74aa569cf457e6ee90432be31f56ddfb27021ab38b524370ad5bbd918f7fe7",
+     "height": 1067,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/29e82823-d908-4b88-a7e7-9abf03a7a248/w1600.webp",
+     "path": "9a74aa569cf457e6ee90432be31f56ddfb27021ab38b524370ad5bbd918f7fe7-w1600.webp",
+     "width": 1600
+    },
+    "w480": {
+     "bytes": 6046,
+     "hash": "3a9f5bb488061a60b83815d1e9c25ac301a764727de13e7f08968741c6b38767",
+     "height": 320,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/29e82823-d908-4b88-a7e7-9abf03a7a248/w480.webp",
+     "path": "3a9f5bb488061a60b83815d1e9c25ac301a764727de13e7f08968741c6b38767-w480.webp",
+     "width": 480
+    },
+    "w960": {
+     "bytes": 10092,
+     "hash": "ca23c98f7a888144ea5250b81363fbf77c55d795a40e18917ad4095bc0dc06bf",
+     "height": 640,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/29e82823-d908-4b88-a7e7-9abf03a7a248/w960.webp",
+     "path": "ca23c98f7a888144ea5250b81363fbf77c55d795a40e18917ad4095bc0dc06bf-w960.webp",
+     "width": 960
+    }
+   },
+   "width": 1600
+  },
+  "318c16bd-bcd0-4bd7-ac87-7d8fe8943478": {
+   "alt": "Illustrated pond reflecting a blue sky with wooded hills behind it",
+   "attribution": "Original artwork created for the Lerner Works demonstration",
+   "decorative": false,
+   "hash": "950e1ac689c2d8b430a42b5c19f503d2f1eeae1bc6503ab3c84cada7b6afa471",
+   "height": 1067,
+   "id": "318c16bd-bcd0-4bd7-ac87-7d8fe8943478",
+   "license": "CC0-1.0 — original vector artwork generated for this demonstration",
+   "title": "Mill Pond in late summer",
+   "variants": {
+    "w1600": {
+     "bytes": 13434,
+     "hash": "54c613ef59f1a2fa2900481a5d01a3c8b0abe56eaeb54a9705f2d046cd4b7b5d",
+     "height": 1067,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/318c16bd-bcd0-4bd7-ac87-7d8fe8943478/w1600.webp",
+     "path": "54c613ef59f1a2fa2900481a5d01a3c8b0abe56eaeb54a9705f2d046cd4b7b5d-w1600.webp",
+     "width": 1600
+    },
+    "w480": {
+     "bytes": 3624,
+     "hash": "5b02f84441543206e3598745089a86f38159444a0f3e87748a7571ab7ee56dd3",
+     "height": 320,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/318c16bd-bcd0-4bd7-ac87-7d8fe8943478/w480.webp",
+     "path": "5b02f84441543206e3598745089a86f38159444a0f3e87748a7571ab7ee56dd3-w480.webp",
+     "width": 480
+    },
+    "w960": {
+     "bytes": 7542,
+     "hash": "26036f98c558ad0ddfbdcdf6e29553f2bc32363dc8668bab3046aaded28bb468",
+     "height": 640,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/318c16bd-bcd0-4bd7-ac87-7d8fe8943478/w960.webp",
+     "path": "26036f98c558ad0ddfbdcdf6e29553f2bc32363dc8668bab3046aaded28bb468-w960.webp",
+     "width": 960
+    }
+   },
+   "width": 1600
+  },
+  "4114c7e5-6a53-4711-8c0c-a629902401c7": {
+   "alt": "Illustrated waterfall dropping between dark cliffs into a pool",
+   "attribution": "Original artwork created for the Lerner Works demonstration",
+   "decorative": false,
+   "hash": "32ecac8b71b66efee0441355a328ef6330eb92895cc783c1f425db6629ca63fc",
+   "height": 900,
+   "id": "4114c7e5-6a53-4711-8c0c-a629902401c7",
+   "license": "CC0-1.0 — original vector artwork generated for this demonstration",
+   "title": "Timber Falls",
+   "variants": {
+    "w1600": {
+     "bytes": 3842,
+     "hash": "3abd783918901d9772d7cd1ab91d880b5ec4b40a55207f576e2ec7001d7cf7c3",
+     "height": 900,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/4114c7e5-6a53-4711-8c0c-a629902401c7/w1600.webp",
+     "path": "3abd783918901d9772d7cd1ab91d880b5ec4b40a55207f576e2ec7001d7cf7c3-w1600.webp",
+     "width": 1200
+    },
+    "w480": {
+     "bytes": 1180,
+     "hash": "4bfd218358bf67246095c6202dfd56c6585aeffac286429a7a7e9a5677826e0f",
+     "height": 360,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/4114c7e5-6a53-4711-8c0c-a629902401c7/w480.webp",
+     "path": "4bfd218358bf67246095c6202dfd56c6585aeffac286429a7a7e9a5677826e0f-w480.webp",
+     "width": 480
+    },
+    "w960": {
+     "bytes": 2638,
+     "hash": "f46e982cfbcfde8bc006d2463afe4f3ec5a30c2627801e764b78210104a3c39a",
+     "height": 720,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/4114c7e5-6a53-4711-8c0c-a629902401c7/w960.webp",
+     "path": "f46e982cfbcfde8bc006d2463afe4f3ec5a30c2627801e764b78210104a3c39a-w960.webp",
+     "width": 960
+    }
+   },
+   "width": 1200
+  },
+  "4657e234-875a-4fa4-8593-3597fb512da2": {
+   "alt": "Stylised portrait of Ann Peltier, the guide's fictional events editor",
+   "attribution": "Original artwork created for the Lerner Works demonstration",
+   "decorative": false,
+   "hash": "39acb07898c25234b2f3d3059935db57cac8fa9cc82fb193ad1135eb73a71aeb",
+   "height": 800,
+   "id": "4657e234-875a-4fa4-8593-3597fb512da2",
+   "license": "CC0-1.0 — original vector artwork generated for this demonstration",
+   "title": "Ann Peltier",
+   "variants": {
+    "w480": {
+     "bytes": 5352,
+     "hash": "fc9fc08d888ca3143fa389ad56f92556fb77a47677e5fc7ad0593c8343ed0474",
+     "height": 480,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/4657e234-875a-4fa4-8593-3597fb512da2/w480.webp",
+     "path": "fc9fc08d888ca3143fa389ad56f92556fb77a47677e5fc7ad0593c8343ed0474-w480.webp",
+     "width": 480
+    },
+    "w960": {
+     "bytes": 9164,
+     "hash": "ce46ccc544d683d1633100dfb6b2b2263f88577a7685a8c33a52541db1e77059",
+     "height": 800,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/4657e234-875a-4fa4-8593-3597fb512da2/w960.webp",
+     "path": "ce46ccc544d683d1633100dfb6b2b2263f88577a7685a8c33a52541db1e77059-w960.webp",
+     "width": 800
+    }
+   },
+   "width": 800
+  },
+  "5232b563-5081-4e52-8467-4efb2e1bfddd": {
+   "alt": "Poster with the words Harvest Market on Aspen Street in bold type",
+   "attribution": "Original artwork created for the Lerner Works demonstration",
+   "decorative": false,
+   "hash": "5ef2258a218f37c2163707bbedd4690aa30215641a9d2944e18213472ef636e1",
+   "height": 900,
+   "id": "5232b563-5081-4e52-8467-4efb2e1bfddd",
+   "license": "CC0-1.0 — original vector artwork generated for this demonstration",
+   "title": "Harvest Market poster",
+   "variants": {
+    "w1600": {
+     "bytes": 22518,
+     "hash": "7623ec5dad75e723b98c6e99c28effdf8d41dc66131766ce9ee9a2a3588db9df",
+     "height": 900,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/5232b563-5081-4e52-8467-4efb2e1bfddd/w1600.webp",
+     "path": "7623ec5dad75e723b98c6e99c28effdf8d41dc66131766ce9ee9a2a3588db9df-w1600.webp",
+     "width": 1600
+    },
+    "w480": {
+     "bytes": 7072,
+     "hash": "1d1e4d3eb0a76c3658af54d2367ecab40cc93525da9a6f4933e948938300f70b",
+     "height": 270,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/5232b563-5081-4e52-8467-4efb2e1bfddd/w480.webp",
+     "path": "1d1e4d3eb0a76c3658af54d2367ecab40cc93525da9a6f4933e948938300f70b-w480.webp",
+     "width": 480
+    },
+    "w960": {
+     "bytes": 14026,
+     "hash": "7a641c0adf84e4cbc934fdce55efee61b39e3a756e59cd8858d442f15d44310c",
+     "height": 540,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/5232b563-5081-4e52-8467-4efb2e1bfddd/w960.webp",
+     "path": "7a641c0adf84e4cbc934fdce55efee61b39e3a756e59cd8858d442f15d44310c-w960.webp",
+     "width": 960
+    }
+   },
+   "width": 1600
+  },
+  "55e8f61f-7137-44a9-b572-f2ccdf2ddc9b": {
+   "alt": "Illustrated autumn hillside with warm-colored ridges and evergreens",
+   "attribution": "Original artwork created for the Lerner Works demonstration",
+   "decorative": false,
+   "hash": "269d4b4fc01ab461d4f0a016d29e61561efee0a4b07994208a3979b32c723c48",
+   "height": 1067,
+   "id": "55e8f61f-7137-44a9-b572-f2ccdf2ddc9b",
+   "license": "CC0-1.0 — original vector artwork generated for this demonstration",
+   "title": "Miner's Road in autumn",
+   "variants": {
+    "w1600": {
+     "bytes": 18474,
+     "hash": "622259e99ed0490d5f3a9a3f31c3aea29db48c5bfdc748d304bd7cd5bf391efc",
+     "height": 1067,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/55e8f61f-7137-44a9-b572-f2ccdf2ddc9b/w1600.webp",
+     "path": "622259e99ed0490d5f3a9a3f31c3aea29db48c5bfdc748d304bd7cd5bf391efc-w1600.webp",
+     "width": 1600
+    },
+    "w480": {
+     "bytes": 4740,
+     "hash": "81dcc247fdff6a0a8919354b24d627aca423edc5844c9cdb8c3646b2d5a4048f",
+     "height": 320,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/55e8f61f-7137-44a9-b572-f2ccdf2ddc9b/w480.webp",
+     "path": "81dcc247fdff6a0a8919354b24d627aca423edc5844c9cdb8c3646b2d5a4048f-w480.webp",
+     "width": 480
+    },
+    "w960": {
+     "bytes": 10106,
+     "hash": "0edc90927d1454c2175f5d9c489fcd77cc3564de310436953f718e3dd177fa91",
+     "height": 640,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/55e8f61f-7137-44a9-b572-f2ccdf2ddc9b/w960.webp",
+     "path": "0edc90927d1454c2175f5d9c489fcd77cc3564de310436953f718e3dd177fa91-w960.webp",
+     "width": 960
+    }
+   },
+   "width": 1600
+  },
+  "62274913-1570-465f-b180-377dc40996a7": {
+   "alt": "Illustrated storefront with a green awning and a sign reading Creekside Coffee Roasters",
+   "attribution": "Original artwork created for the Lerner Works demonstration",
+   "decorative": false,
+   "hash": "8db5623466c8ac65e5acddbe492d5fcd3b23490628b7be9422e2b58bde72cfd6",
+   "height": 1067,
+   "id": "62274913-1570-465f-b180-377dc40996a7",
+   "license": "CC0-1.0 — original vector artwork generated for this demonstration",
+   "title": "Creekside Coffee Roasters storefront",
+   "variants": {
+    "w1600": {
+     "bytes": 16424,
+     "hash": "09f2639c64049c4723a6a2f6d2c3b4fc818fed0047dbd3f097d7f681c8aa2f12",
+     "height": 1067,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/62274913-1570-465f-b180-377dc40996a7/w1600.webp",
+     "path": "09f2639c64049c4723a6a2f6d2c3b4fc818fed0047dbd3f097d7f681c8aa2f12-w1600.webp",
+     "width": 1600
+    },
+    "w480": {
+     "bytes": 6124,
+     "hash": "d368e07220de98c5e0501eac830a8b203ee70c7c5b746189ef0f4dd3bf31fad5",
+     "height": 320,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/62274913-1570-465f-b180-377dc40996a7/w480.webp",
+     "path": "d368e07220de98c5e0501eac830a8b203ee70c7c5b746189ef0f4dd3bf31fad5-w480.webp",
+     "width": 480
+    },
+    "w960": {
+     "bytes": 10124,
+     "hash": "e0556670e79d193437a22604e0724daa5849cf8c7c0eb7df9cd93da3028616e5",
+     "height": 640,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/62274913-1570-465f-b180-377dc40996a7/w960.webp",
+     "path": "e0556670e79d193437a22604e0724daa5849cf8c7c0eb7df9cd93da3028616e5-w960.webp",
+     "width": 960
+    }
+   },
+   "width": 1600
+  },
+  "68518243-e68c-4f71-99d1-af09b51c5b96": {
+   "alt": "Illustrated dusk sky over layered mountain ridges and a dark meadow",
+   "attribution": "Original artwork created for the Lerner Works demonstration",
+   "decorative": false,
+   "hash": "1ca0018f6f99b4f03dca89859a9e7f570a3e25375724b5b11394c7b2a17064c5",
+   "height": 900,
+   "id": "68518243-e68c-4f71-99d1-af09b51c5b96",
+   "license": "CC0-1.0 — original vector artwork generated for this demonstration",
+   "title": "Lower meadows at dusk",
+   "variants": {
+    "w1600": {
+     "bytes": 12662,
+     "hash": "0a8572ccd2720ad9fba57b47ccb1e115baa92c1bc03609873a1450618319f694",
+     "height": 900,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/68518243-e68c-4f71-99d1-af09b51c5b96/w1600.webp",
+     "path": "0a8572ccd2720ad9fba57b47ccb1e115baa92c1bc03609873a1450618319f694-w1600.webp",
+     "width": 1600
+    },
+    "w480": {
+     "bytes": 2850,
+     "hash": "42bef8f6f21f63fc422faee95527debdf4fcdb907f8cbee87f6980b4862d6a1f",
+     "height": 270,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/68518243-e68c-4f71-99d1-af09b51c5b96/w480.webp",
+     "path": "42bef8f6f21f63fc422faee95527debdf4fcdb907f8cbee87f6980b4862d6a1f-w480.webp",
+     "width": 480
+    },
+    "w960": {
+     "bytes": 6408,
+     "hash": "2ea16d44a43c4050dd94944e160dd90086eec3af6c8bdbc9d9c4c16040a01565",
+     "height": 540,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/68518243-e68c-4f71-99d1-af09b51c5b96/w960.webp",
+     "path": "2ea16d44a43c4050dd94944e160dd90086eec3af6c8bdbc9d9c4c16040a01565-w960.webp",
+     "width": 960
+    }
+   },
+   "width": 1600
+  },
+  "6c9a0576-d30c-43ca-8de2-8e4bc8bd96a9": {
+   "alt": "Illustrated dusk sky over layered mountain ridges and a dark meadow",
+   "attribution": "Original artwork created for the Lerner Works demonstration",
+   "decorative": false,
+   "focal": {
+    "x": 0.5,
+    "y": 0.45
+   },
+   "hash": "e48b96a3327ea87254f6e96aa2024144ada834bca3202c6d13a3d2030d24e254",
+   "height": 900,
+   "id": "6c9a0576-d30c-43ca-8de2-8e4bc8bd96a9",
+   "license": "CC0-1.0 — original vector artwork generated for this demonstration",
+   "title": "Lower meadows at dusk, wide",
+   "variants": {
+    "w1600": {
+     "bytes": 12364,
+     "hash": "24e265b595f926d2000c00b231ef385544cf77ae077a3c61ae34f3b1ebe6fed4",
+     "height": 900,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/6c9a0576-d30c-43ca-8de2-8e4bc8bd96a9/w1600.webp",
+     "path": "24e265b595f926d2000c00b231ef385544cf77ae077a3c61ae34f3b1ebe6fed4-w1600.webp",
+     "width": 1600
+    },
+    "w480": {
+     "bytes": 2820,
+     "hash": "d28f330ddc40d1487a492578b9eef0091046507e3eccaa7bfdb935083d5c8afc",
+     "height": 270,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/6c9a0576-d30c-43ca-8de2-8e4bc8bd96a9/w480.webp",
+     "path": "d28f330ddc40d1487a492578b9eef0091046507e3eccaa7bfdb935083d5c8afc-w480.webp",
+     "width": 480
+    },
+    "w960": {
+     "bytes": 6386,
+     "hash": "e09678212dc3c67071320a87a00da5ee2e63a19ba4a5ceb82ed226826fdee89e",
+     "height": 540,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/6c9a0576-d30c-43ca-8de2-8e4bc8bd96a9/w960.webp",
+     "path": "e09678212dc3c67071320a87a00da5ee2e63a19ba4a5ceb82ed226826fdee89e-w960.webp",
+     "width": 960
+    }
+   },
+   "width": 1600
+  },
+  "751303a7-5e76-4b6f-bff2-b45f52d91b53": {
+   "alt": "Pine Hollow Trails Association (fictional)",
+   "attribution": "Original artwork created for the Lerner Works demonstration",
+   "decorative": false,
+   "hash": "a01a9770bf09ab939bb8b36428abe570d455f026df2dca81183f6d33517cf2c7",
+   "height": 320,
+   "id": "751303a7-5e76-4b6f-bff2-b45f52d91b53",
+   "license": "CC0-1.0 — original vector artwork generated for this demonstration",
+   "title": "Pine Hollow Trails Association mark",
+   "variants": {
+    "w480": {
+     "bytes": 13672,
+     "hash": "e7bb81b2f4f131ac1c114396f428c224cf93055132370aaea7eb8d9f6102e1ce",
+     "height": 160,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/751303a7-5e76-4b6f-bff2-b45f52d91b53/w480.webp",
+     "path": "e7bb81b2f4f131ac1c114396f428c224cf93055132370aaea7eb8d9f6102e1ce-w480.webp",
+     "width": 480
+    },
+    "w960": {
+     "bytes": 13128,
+     "hash": "5d0f43eb192bc103c5be911f81e616e8c6766ed93ee0e26be660fdcc2c682074",
+     "height": 320,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/751303a7-5e76-4b6f-bff2-b45f52d91b53/w960.webp",
+     "path": "5d0f43eb192bc103c5be911f81e616e8c6766ed93ee0e26be660fdcc2c682074-w960.webp",
+     "width": 960
+    }
+   },
+   "width": 960
+  },
+  "774d4097-6145-4a25-963f-7b63ed077a81": {
+   "alt": "",
+   "attribution": "Sample document written for the Lerner Works demonstration",
+   "decorative": false,
+   "hash": "23e891bc3341c01baa0f2788e5b674a89a324ac61bc3f128abcfbdaea9093253",
+   "height": 0,
+   "id": "774d4097-6145-4a25-963f-7b63ed077a81",
+   "kind": "document",
+   "license": "CC0-1.0 — original vector artwork generated for this demonstration",
+   "mime": "application/pdf",
+   "title": "Trail day sign-up form",
+   "variants": {
+    "file": {
+     "bytes": 1086,
+     "hash": "23e891bc3341c01baa0f2788e5b674a89a324ac61bc3f128abcfbdaea9093253",
+     "height": 0,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/774d4097-6145-4a25-963f-7b63ed077a81/original.pdf",
+     "path": "23e891bc3341c01baa0f2788e5b674a89a324ac61bc3f128abcfbdaea9093253.pdf",
+     "width": 0
+    }
+   },
+   "width": 0
+  },
+  "779d7213-9837-4cb6-9c90-bcccedd86c1b": {
+   "alt": "Old Depot Gallery cooperative (fictional)",
+   "attribution": "Original artwork created for the Lerner Works demonstration",
+   "decorative": false,
+   "hash": "ed305a64698a3b68bc9018953fb43c7c52ef27beec9357f507c04519ad4c6848",
+   "height": 320,
+   "id": "779d7213-9837-4cb6-9c90-bcccedd86c1b",
+   "license": "CC0-1.0 — original vector artwork generated for this demonstration",
+   "title": "Old Depot Gallery cooperative mark",
+   "variants": {
+    "w480": {
+     "bytes": 17810,
+     "hash": "9699e0763b4a32a59a1b963cf9cc6813756a7ca7cc86c71388321d71a155c3ec",
+     "height": 160,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/779d7213-9837-4cb6-9c90-bcccedd86c1b/w480.webp",
+     "path": "9699e0763b4a32a59a1b963cf9cc6813756a7ca7cc86c71388321d71a155c3ec-w480.webp",
+     "width": 480
+    },
+    "w960": {
+     "bytes": 17636,
+     "hash": "3b7550938dd3055bf7582544871ea0de495b9b752d2475096bf29c2002ecd864",
+     "height": 320,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/779d7213-9837-4cb6-9c90-bcccedd86c1b/w960.webp",
+     "path": "3b7550938dd3055bf7582544871ea0de495b9b752d2475096bf29c2002ecd864-w960.webp",
+     "width": 960
+    }
+   },
+   "width": 960
+  },
+  "781f7d85-edcf-4834-be95-f3257c9e734c": {
+   "alt": "Illustrated mountain valley at midday with a river and pine forest",
+   "attribution": "Original artwork created for the Lerner Works demonstration",
+   "decorative": false,
+   "focal": {
+    "x": 0.5,
+    "y": 0.42
+   },
+   "hash": "148bde8d06a19341ed3d1705b910df90997273696cfbef1b83652b509c3bc52c",
+   "height": 1067,
+   "id": "781f7d85-edcf-4834-be95-f3257c9e734c",
+   "license": "CC0-1.0 — original vector artwork generated for this demonstration",
+   "title": "Pine Hollow valley from Saddle Ridge",
+   "variants": {
+    "w1600": {
+     "bytes": 14376,
+     "hash": "2226d5a3857e91aa80d3b3ce77eb9988e8bf1e86bdb59967e2ba1c412ebddee8",
+     "height": 1067,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/781f7d85-edcf-4834-be95-f3257c9e734c/w1600.webp",
+     "path": "2226d5a3857e91aa80d3b3ce77eb9988e8bf1e86bdb59967e2ba1c412ebddee8-w1600.webp",
+     "width": 1600
+    },
+    "w480": {
+     "bytes": 3804,
+     "hash": "ac2272bbf19484d5d85be63770bbb62cc890d92563de98efc7513b7612aef328",
+     "height": 320,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/781f7d85-edcf-4834-be95-f3257c9e734c/w480.webp",
+     "path": "ac2272bbf19484d5d85be63770bbb62cc890d92563de98efc7513b7612aef328-w480.webp",
+     "width": 480
+    },
+    "w960": {
+     "bytes": 8028,
+     "hash": "7292085179904b8d5a3b9adca0b97fa60e5d028f63cd776785e84eb8c2b0ef15",
+     "height": 640,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/781f7d85-edcf-4834-be95-f3257c9e734c/w960.webp",
+     "path": "7292085179904b8d5a3b9adca0b97fa60e5d028f63cd776785e84eb8c2b0ef15-w960.webp",
+     "width": 960
+    }
+   },
+   "width": 1600
+  },
+  "7b059c0a-df9b-4e37-a028-d71b100760bc": {
+   "alt": "Illustrated white clapboard hall with a peaked roof beside a park",
+   "attribution": "Original artwork created for the Lerner Works demonstration",
+   "decorative": false,
+   "hash": "65bce3913005c92b276f8bae374e092fc4722c2cada537cbf8f80885686ab810",
+   "height": 1067,
+   "id": "7b059c0a-df9b-4e37-a028-d71b100760bc",
+   "license": "CC0-1.0 — original vector artwork generated for this demonstration",
+   "title": "Community Hall at Miner's Park",
+   "variants": {
+    "w1600": {
+     "bytes": 12798,
+     "hash": "a07799164b6703bfe9c2ed0cf747a33c9ff01b25fd2939e5edb17c66978c04e6",
+     "height": 1067,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/7b059c0a-df9b-4e37-a028-d71b100760bc/w1600.webp",
+     "path": "a07799164b6703bfe9c2ed0cf747a33c9ff01b25fd2939e5edb17c66978c04e6-w1600.webp",
+     "width": 1600
+    },
+    "w480": {
+     "bytes": 4612,
+     "hash": "e9bf3ec82adfbdd0a64b8493ebd7142b661395d34c762c7d4c3253e4f0413b08",
+     "height": 320,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/7b059c0a-df9b-4e37-a028-d71b100760bc/w480.webp",
+     "path": "e9bf3ec82adfbdd0a64b8493ebd7142b661395d34c762c7d4c3253e4f0413b08-w480.webp",
+     "width": 480
+    },
+    "w960": {
+     "bytes": 7932,
+     "hash": "afe473a384332ffbf03d017a783ffe4beae2099b7d6d38baeadee23dabdffb51",
+     "height": 640,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/7b059c0a-df9b-4e37-a028-d71b100760bc/w960.webp",
+     "path": "afe473a384332ffbf03d017a783ffe4beae2099b7d6d38baeadee23dabdffb51-w960.webp",
+     "width": 960
+    }
+   },
+   "width": 1600
+  },
+  "84471f77-bd2d-410a-8621-0f3db9e601bd": {
+   "alt": "Illustrated valley at dawn with a stream reflecting a pale orange sky",
+   "attribution": "Original artwork created for the Lerner Works demonstration",
+   "decorative": false,
+   "hash": "6e3b35cb106e69754820ca16e5df8110b9434832ccbde8924dc7b3f6b60806ea",
+   "height": 1067,
+   "id": "84471f77-bd2d-410a-8621-0f3db9e601bd",
+   "license": "CC0-1.0 — original vector artwork generated for this demonstration",
+   "title": "Creek path at first light",
+   "variants": {
+    "w1600": {
+     "bytes": 13960,
+     "hash": "aca45dae1a6a6fc27476f62da86642cd3d73ea6b418c7fe3fc08d04f5971ae86",
+     "height": 1067,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/84471f77-bd2d-410a-8621-0f3db9e601bd/w1600.webp",
+     "path": "aca45dae1a6a6fc27476f62da86642cd3d73ea6b418c7fe3fc08d04f5971ae86-w1600.webp",
+     "width": 1600
+    },
+    "w480": {
+     "bytes": 3690,
+     "hash": "cba8a10bb86ad8a3eec005542fc2f685717d6dacc27e1459fd78c03ac2e770b8",
+     "height": 320,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/84471f77-bd2d-410a-8621-0f3db9e601bd/w480.webp",
+     "path": "cba8a10bb86ad8a3eec005542fc2f685717d6dacc27e1459fd78c03ac2e770b8-w480.webp",
+     "width": 480
+    },
+    "w960": {
+     "bytes": 7486,
+     "hash": "305e27958b5af229592ad9066501752f5543052a97667bb2d28a00a7612ec2c7",
+     "height": 640,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/84471f77-bd2d-410a-8621-0f3db9e601bd/w960.webp",
+     "path": "305e27958b5af229592ad9066501752f5543052a97667bb2d28a00a7612ec2c7-w960.webp",
+     "width": 960
+    }
+   },
+   "width": 1600
+  },
+  "8c0a9f0f-d588-457f-8524-b4de2ca94dae": {
+   "alt": "Poster reading Summer Concert on the Green in green type on a warm background",
+   "attribution": "Original artwork created for the Lerner Works demonstration",
+   "decorative": false,
+   "hash": "2c9d0b5d1fd74da8141b2bcbd9bf0216084779ea5f19f702cfc9ab6cf9eed74f",
+   "height": 900,
+   "id": "8c0a9f0f-d588-457f-8524-b4de2ca94dae",
+   "license": "CC0-1.0 — original vector artwork generated for this demonstration",
+   "title": "Summer concert poster",
+   "variants": {
+    "w1600": {
+     "bytes": 19404,
+     "hash": "8b1f09b5750f6cbc4a5b73d8445088a0629fd522e77230e5e94cf078b5fdfea1",
+     "height": 900,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/8c0a9f0f-d588-457f-8524-b4de2ca94dae/w1600.webp",
+     "path": "8b1f09b5750f6cbc4a5b73d8445088a0629fd522e77230e5e94cf078b5fdfea1-w1600.webp",
+     "width": 1600
+    },
+    "w480": {
+     "bytes": 5822,
+     "hash": "cf2ffa0926422d52154bcd578524045ea3fffbc63903bf5c7795dcc44c2fb52a",
+     "height": 270,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/8c0a9f0f-d588-457f-8524-b4de2ca94dae/w480.webp",
+     "path": "cf2ffa0926422d52154bcd578524045ea3fffbc63903bf5c7795dcc44c2fb52a-w480.webp",
+     "width": 480
+    },
+    "w960": {
+     "bytes": 11432,
+     "hash": "7c95f6e0b9584d0d988bcecd5a3029c280dab77eaade9bf74dda0b39bf960463",
+     "height": 540,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/8c0a9f0f-d588-457f-8524-b4de2ca94dae/w960.webp",
+     "path": "7c95f6e0b9584d0d988bcecd5a3029c280dab77eaade9bf74dda0b39bf960463-w960.webp",
+     "width": 960
+    }
+   },
+   "width": 1600
+  },
+  "93d1060c-970b-4d6f-8665-ea98b3fd8191": {
+   "alt": "",
+   "attribution": "Sample document written for the Lerner Works demonstration",
+   "decorative": false,
+   "hash": "0edabbd851c25bbc965c7e5692d6174dfa067e608fe6e5cf7060bd88654176fe",
+   "height": 0,
+   "id": "93d1060c-970b-4d6f-8665-ea98b3fd8191",
+   "kind": "document",
+   "license": "CC0-1.0 — original vector artwork generated for this demonstration",
+   "mime": "application/pdf",
+   "title": "Aspen Street snow route map",
+   "variants": {
+    "file": {
+     "bytes": 1089,
+     "hash": "0edabbd851c25bbc965c7e5692d6174dfa067e608fe6e5cf7060bd88654176fe",
+     "height": 0,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/93d1060c-970b-4d6f-8665-ea98b3fd8191/original.pdf",
+     "path": "0edabbd851c25bbc965c7e5692d6174dfa067e608fe6e5cf7060bd88654176fe.pdf",
+     "width": 0
+    }
+   },
+   "width": 0
+  },
+  "9624b860-8857-4887-9d0c-1505503255e4": {
+   "alt": "Illustrated brick depot building with a framed picture drawn beside the sign",
+   "attribution": "Original artwork created for the Lerner Works demonstration",
+   "decorative": false,
+   "hash": "bd52a0659b2a8ba080eb0efeead812846d33a0ac631c2713166849e559ded09e",
+   "height": 1067,
+   "id": "9624b860-8857-4887-9d0c-1505503255e4",
+   "license": "CC0-1.0 — original vector artwork generated for this demonstration",
+   "title": "Old Depot Gallery",
+   "variants": {
+    "w1600": {
+     "bytes": 15958,
+     "hash": "e8e3ef29e7a86a2ee47a288638c6f58e495221dd1a2b0a06d13e39ba3cb06878",
+     "height": 1067,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/9624b860-8857-4887-9d0c-1505503255e4/w1600.webp",
+     "path": "e8e3ef29e7a86a2ee47a288638c6f58e495221dd1a2b0a06d13e39ba3cb06878-w1600.webp",
+     "width": 1600
+    },
+    "w480": {
+     "bytes": 6224,
+     "hash": "594298b21f671b2f1bdd7627b9b75933a9de5b33dbc6c5af8704b15cb1349347",
+     "height": 320,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/9624b860-8857-4887-9d0c-1505503255e4/w480.webp",
+     "path": "594298b21f671b2f1bdd7627b9b75933a9de5b33dbc6c5af8704b15cb1349347-w480.webp",
+     "width": 480
+    },
+    "w960": {
+     "bytes": 9994,
+     "hash": "bfb407002fd4521a2a5e0be581cef4c370c63f0383d3584d2853e338b81ea46d",
+     "height": 640,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/9624b860-8857-4887-9d0c-1505503255e4/w960.webp",
+     "path": "bfb407002fd4521a2a5e0be581cef4c370c63f0383d3584d2853e338b81ea46d-w960.webp",
+     "width": 960
+    }
+   },
+   "width": 1600
+  },
+  "98f69d9b-47c4-4876-bdf0-97c57123776a": {
+   "alt": "Illustrated garage-style bike shop with a bicycle drawn beside the sign",
+   "attribution": "Original artwork created for the Lerner Works demonstration",
+   "decorative": false,
+   "hash": "1526481dbbb3499146b8ce404e5104e264ba293e813d50d91c8827cd1decf344",
+   "height": 1067,
+   "id": "98f69d9b-47c4-4876-bdf0-97c57123776a",
+   "license": "CC0-1.0 — original vector artwork generated for this demonstration",
+   "title": "Foothill Bike Repair",
+   "variants": {
+    "w1600": {
+     "bytes": 15392,
+     "hash": "e71c38feee00d82a7085d43a5d9e9504ce9dc040252c5d0626da517b965e0ff8",
+     "height": 1067,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/98f69d9b-47c4-4876-bdf0-97c57123776a/w1600.webp",
+     "path": "e71c38feee00d82a7085d43a5d9e9504ce9dc040252c5d0626da517b965e0ff8-w1600.webp",
+     "width": 1600
+    },
+    "w480": {
+     "bytes": 5756,
+     "hash": "c4d20defcd9fed82f1a24b2a7dc54b07d2149bce1d3bc3b9a6576d1672462268",
+     "height": 320,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/98f69d9b-47c4-4876-bdf0-97c57123776a/w480.webp",
+     "path": "c4d20defcd9fed82f1a24b2a7dc54b07d2149bce1d3bc3b9a6576d1672462268-w480.webp",
+     "width": 480
+    },
+    "w960": {
+     "bytes": 9406,
+     "hash": "2e0a478da08faeecbbc73204f75cc97ad40739dd573ee50e3908f11c15b88043",
+     "height": 640,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/98f69d9b-47c4-4876-bdf0-97c57123776a/w960.webp",
+     "path": "2e0a478da08faeecbbc73204f75cc97ad40739dd573ee50e3908f11c15b88043-w960.webp",
+     "width": 960
+    }
+   },
+   "width": 1600
+  },
+  "9fb9852f-6f90-4318-bcad-ff70456ee351": {
+   "alt": "Illustrated bookshop with a blue awning and a stack of books on the sign",
+   "attribution": "Original artwork created for the Lerner Works demonstration",
+   "decorative": false,
+   "hash": "09b581225f253fab23dcd0ee1c9d8b4b6a144eb6a62764bc8820d3e60c1bbbb5",
+   "height": 1067,
+   "id": "9fb9852f-6f90-4318-bcad-ff70456ee351",
+   "license": "CC0-1.0 — original vector artwork generated for this demonstration",
+   "title": "Aspen Street Books",
+   "variants": {
+    "w1600": {
+     "bytes": 16340,
+     "hash": "568d23ff9dc70d9fa0a2a170966df36378dd5d0263149376cfe7f2d72b365cac",
+     "height": 1067,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/9fb9852f-6f90-4318-bcad-ff70456ee351/w1600.webp",
+     "path": "568d23ff9dc70d9fa0a2a170966df36378dd5d0263149376cfe7f2d72b365cac-w1600.webp",
+     "width": 1600
+    },
+    "w480": {
+     "bytes": 6298,
+     "hash": "47b0550466e967265673c50660dd0b403c67ea5df922e5274a3a8c41e3d63f65",
+     "height": 320,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/9fb9852f-6f90-4318-bcad-ff70456ee351/w480.webp",
+     "path": "47b0550466e967265673c50660dd0b403c67ea5df922e5274a3a8c41e3d63f65-w480.webp",
+     "width": 480
+    },
+    "w960": {
+     "bytes": 10300,
+     "hash": "d01859a9341aa94c0ce818d11bdd71261d4b59e63a19f3911ecb7b979898a3e8",
+     "height": 640,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/9fb9852f-6f90-4318-bcad-ff70456ee351/w960.webp",
+     "path": "d01859a9341aa94c0ce818d11bdd71261d4b59e63a19f3911ecb7b979898a3e8-w960.webp",
+     "width": 960
+    }
+   },
+   "width": 1600
+  },
+  "a50ee7cd-6a89-4bcf-a5b6-de22b1d97f3e": {
+   "alt": "Pine Hollow Guide",
+   "attribution": "Original artwork created for the Lerner Works demonstration",
+   "decorative": false,
+   "hash": "ae5030e66afa6cbf310ecb494d13e4b4a12c1cd4c05591bb7e3554b168e6fcb3",
+   "height": 320,
+   "id": "a50ee7cd-6a89-4bcf-a5b6-de22b1d97f3e",
+   "license": "CC0-1.0 — original vector artwork generated for this demonstration",
+   "title": "Pine Hollow Guide logo",
+   "variants": {
+    "w480": {
+     "bytes": 12150,
+     "hash": "99c041c304221ba1e3410abbf72407cb30ad9b4e2e7684ac23297012b8b37be6",
+     "height": 160,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/a50ee7cd-6a89-4bcf-a5b6-de22b1d97f3e/w480.webp",
+     "path": "99c041c304221ba1e3410abbf72407cb30ad9b4e2e7684ac23297012b8b37be6-w480.webp",
+     "width": 480
+    },
+    "w960": {
+     "bytes": 11288,
+     "hash": "95f52e229aa1c287c81808ed685aba540bb708252fe345d1f1619afc4eabdb88",
+     "height": 320,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/a50ee7cd-6a89-4bcf-a5b6-de22b1d97f3e/w960.webp",
+     "path": "95f52e229aa1c287c81808ed685aba540bb708252fe345d1f1619afc4eabdb88-w960.webp",
+     "width": 960
+    }
+   },
+   "width": 960
+  },
+  "b1656b20-c096-4110-8f85-dfdf4106dad9": {
+   "alt": "Stylised portrait of June Hollis, the guide's fictional editor",
+   "attribution": "Original artwork created for the Lerner Works demonstration",
+   "decorative": false,
+   "hash": "dd303959b6944ef86a0ec69ffebaf21911aca8c74af058ce567a55443603add2",
+   "height": 800,
+   "id": "b1656b20-c096-4110-8f85-dfdf4106dad9",
+   "license": "CC0-1.0 — original vector artwork generated for this demonstration",
+   "title": "June Hollis",
+   "variants": {
+    "w480": {
+     "bytes": 5916,
+     "hash": "17cab11802d49bc3494af815499ade0aad54e6e8b3c1183d9baca618f88480fd",
+     "height": 480,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/b1656b20-c096-4110-8f85-dfdf4106dad9/w480.webp",
+     "path": "17cab11802d49bc3494af815499ade0aad54e6e8b3c1183d9baca618f88480fd-w480.webp",
+     "width": 480
+    },
+    "w960": {
+     "bytes": 10006,
+     "hash": "6217728159c1b365817cac74679803e499ba44cd959e91d2760437c1ff540849",
+     "height": 800,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/b1656b20-c096-4110-8f85-dfdf4106dad9/w960.webp",
+     "path": "6217728159c1b365817cac74679803e499ba44cd959e91d2760437c1ff540849-w960.webp",
+     "width": 800
+    }
+   },
+   "width": 800
+  },
+  "c3c6b7c2-8a18-4126-82de-c261924a5ac4": {
+   "alt": "Town of Pine Hollow (fictional)",
+   "attribution": "Original artwork created for the Lerner Works demonstration",
+   "decorative": false,
+   "hash": "5a1a9d1bc9c8f3629a02df6a221325244d41ca715677470ef25b745707b7fa25",
+   "height": 320,
+   "id": "c3c6b7c2-8a18-4126-82de-c261924a5ac4",
+   "license": "CC0-1.0 — original vector artwork generated for this demonstration",
+   "title": "Town of Pine Hollow mark",
+   "variants": {
+    "w480": {
+     "bytes": 12598,
+     "hash": "3708e59a14f1b0c2a8050834c60cc70bc3285f70ede98ed82ef5279a47958fff",
+     "height": 160,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/c3c6b7c2-8a18-4126-82de-c261924a5ac4/w480.webp",
+     "path": "3708e59a14f1b0c2a8050834c60cc70bc3285f70ede98ed82ef5279a47958fff-w480.webp",
+     "width": 480
+    },
+    "w960": {
+     "bytes": 11310,
+     "hash": "d2a0d1a3b155e233e21de4ea9e0fbf67562468e7619215c477670e38012cc9c1",
+     "height": 320,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/c3c6b7c2-8a18-4126-82de-c261924a5ac4/w960.webp",
+     "path": "d2a0d1a3b155e233e21de4ea9e0fbf67562468e7619215c477670e38012cc9c1-w960.webp",
+     "width": 960
+    }
+   },
+   "width": 960
+  },
+  "d60327f1-c8e3-4a18-aa3f-4f6860055fc3": {
+   "alt": "Illustrated mountain ridgeline at dawn with pine trees in the foreground",
+   "attribution": "Original artwork created for the Lerner Works demonstration",
+   "decorative": false,
+   "hash": "11b902f8cef4f23ceea1f9af716b186a03751df97a112102c01723d23f90a83e",
+   "height": 1067,
+   "id": "d60327f1-c8e3-4a18-aa3f-4f6860055fc3",
+   "license": "CC0-1.0 — original vector artwork generated for this demonstration",
+   "title": "Larkspur Loop at sunrise",
+   "variants": {
+    "w1600": {
+     "bytes": 13530,
+     "hash": "b07e5227e11bec27ce624305824f0309355f02dd2df83a42092407419d4f3251",
+     "height": 1067,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/d60327f1-c8e3-4a18-aa3f-4f6860055fc3/w1600.webp",
+     "path": "b07e5227e11bec27ce624305824f0309355f02dd2df83a42092407419d4f3251-w1600.webp",
+     "width": 1600
+    },
+    "w480": {
+     "bytes": 3420,
+     "hash": "5bad6a5efaaf1355116b3df3211808d84f11b8dc4c7d21492803b4dc07697c92",
+     "height": 320,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/d60327f1-c8e3-4a18-aa3f-4f6860055fc3/w480.webp",
+     "path": "5bad6a5efaaf1355116b3df3211808d84f11b8dc4c7d21492803b4dc07697c92-w480.webp",
+     "width": 480
+    },
+    "w960": {
+     "bytes": 7260,
+     "hash": "2352b64a1df068a3dc4c39af5a8cb060c5f892dd588846b6fc8df6f287997644",
+     "height": 640,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/d60327f1-c8e3-4a18-aa3f-4f6860055fc3/w960.webp",
+     "path": "2352b64a1df068a3dc4c39af5a8cb060c5f892dd588846b6fc8df6f287997644-w960.webp",
+     "width": 960
+    }
+   },
+   "width": 1600
+  },
+  "d7d5b9f8-48a8-4a48-9bd5-a929c2423c4d": {
+   "alt": "Illustrated general store with a dark green awning and a hardware sign",
+   "attribution": "Original artwork created for the Lerner Works demonstration",
+   "decorative": false,
+   "hash": "d00848cb5d551af8debf4c5830294294432daa2dfc6da10ff75eb737296752d1",
+   "height": 1067,
+   "id": "d7d5b9f8-48a8-4a48-9bd5-a929c2423c4d",
+   "license": "CC0-1.0 — original vector artwork generated for this demonstration",
+   "title": "Hollow Mercantile storefront",
+   "variants": {
+    "w1600": {
+     "bytes": 15822,
+     "hash": "9a241fc10b945826a3af12cb8e62328740685e30f13f978be8d5de9b9555bd9e",
+     "height": 1067,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/d7d5b9f8-48a8-4a48-9bd5-a929c2423c4d/w1600.webp",
+     "path": "9a241fc10b945826a3af12cb8e62328740685e30f13f978be8d5de9b9555bd9e-w1600.webp",
+     "width": 1600
+    },
+    "w480": {
+     "bytes": 6026,
+     "hash": "90468c690670fcda4703b313752945325cf3f19797a83c884f2254e989017b16",
+     "height": 320,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/d7d5b9f8-48a8-4a48-9bd5-a929c2423c4d/w480.webp",
+     "path": "90468c690670fcda4703b313752945325cf3f19797a83c884f2254e989017b16-w480.webp",
+     "width": 480
+    },
+    "w960": {
+     "bytes": 9724,
+     "hash": "25496af161bf789b1ca5f98b649dbb7820c7c4e4cd1bf74046e9b056d6dd04e2",
+     "height": 640,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/d7d5b9f8-48a8-4a48-9bd5-a929c2423c4d/w960.webp",
+     "path": "25496af161bf789b1ca5f98b649dbb7820c7c4e4cd1bf74046e9b056d6dd04e2-w960.webp",
+     "width": 960
+    }
+   },
+   "width": 1600
+  },
+  "dc4f3912-cb5d-4a71-b322-da05bb089e67": {
+   "alt": "Stylised portrait of Ravi Sethi, the guide's fictional photographer",
+   "attribution": "Original artwork created for the Lerner Works demonstration",
+   "decorative": false,
+   "hash": "0dd8e8267512d9b724ced86ac1d5fea179f63cce2485e0b2c86caf2fa8c9e99c",
+   "height": 800,
+   "id": "dc4f3912-cb5d-4a71-b322-da05bb089e67",
+   "license": "CC0-1.0 — original vector artwork generated for this demonstration",
+   "title": "Ravi Sethi",
+   "variants": {
+    "w480": {
+     "bytes": 6124,
+     "hash": "f57baed419817efa6f9e873bf1cec3ac9f9af5f7b488be62a6197dedf7ccb6bf",
+     "height": 480,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/dc4f3912-cb5d-4a71-b322-da05bb089e67/w480.webp",
+     "path": "f57baed419817efa6f9e873bf1cec3ac9f9af5f7b488be62a6197dedf7ccb6bf-w480.webp",
+     "width": 480
+    },
+    "w960": {
+     "bytes": 9956,
+     "hash": "dec33e06498244305ffdf0893ea3a69670fa3db0f73fafcb4cb11d4a2ab2c90d",
+     "height": 800,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/dc4f3912-cb5d-4a71-b322-da05bb089e67/w960.webp",
+     "path": "dec33e06498244305ffdf0893ea3a69670fa3db0f73fafcb4cb11d4a2ab2c90d-w960.webp",
+     "width": 800
+    }
+   },
+   "width": 800
+  },
+  "e6832dba-6f4c-4d0d-be17-745291edc50c": {
+   "alt": "Illustrated stone library building with a row of book spines drawn beside the sign",
+   "attribution": "Original artwork created for the Lerner Works demonstration",
+   "decorative": false,
+   "hash": "143248b0d1df93c263397dc3484e6e6f895290ef7c1a274d35cf3d75c036a471",
+   "height": 1067,
+   "id": "e6832dba-6f4c-4d0d-be17-745291edc50c",
+   "license": "CC0-1.0 — original vector artwork generated for this demonstration",
+   "title": "Pine Hollow Public Library",
+   "variants": {
+    "w1600": {
+     "bytes": 13598,
+     "hash": "7a76af4d72f522b55916db7093735769ce5c4ee8405b0e626fb0e422e20f317e",
+     "height": 1067,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/e6832dba-6f4c-4d0d-be17-745291edc50c/w1600.webp",
+     "path": "7a76af4d72f522b55916db7093735769ce5c4ee8405b0e626fb0e422e20f317e-w1600.webp",
+     "width": 1600
+    },
+    "w480": {
+     "bytes": 5112,
+     "hash": "4abeb7f5b32733fa50a9871c580461b9fa4ca378ff5422f6122d05403fb50ebe",
+     "height": 320,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/e6832dba-6f4c-4d0d-be17-745291edc50c/w480.webp",
+     "path": "4abeb7f5b32733fa50a9871c580461b9fa4ca378ff5422f6122d05403fb50ebe-w480.webp",
+     "width": 480
+    },
+    "w960": {
+     "bytes": 8186,
+     "hash": "1e13d941d7f5c019eac556e8087f51b6bf5004e42e6d816505c27aa424c31de1",
+     "height": 640,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/e6832dba-6f4c-4d0d-be17-745291edc50c/w960.webp",
+     "path": "1e13d941d7f5c019eac556e8087f51b6bf5004e42e6d816505c27aa424c31de1-w960.webp",
+     "width": 960
+    }
+   },
+   "width": 1600
+  },
+  "ecc6710f-5246-4b7e-b2e0-add94bc351c6": {
+   "alt": "Stylised portrait of Dev Okafor, a fictional resident",
+   "attribution": "Original artwork created for the Lerner Works demonstration",
+   "decorative": false,
+   "hash": "c7fcbb80bc1f28d5e61a8d7287c2c48c03276783af474aa1a4c6c6597a6938b4",
+   "height": 800,
+   "id": "ecc6710f-5246-4b7e-b2e0-add94bc351c6",
+   "license": "CC0-1.0 — original vector artwork generated for this demonstration",
+   "title": "Dev Okafor",
+   "variants": {
+    "w480": {
+     "bytes": 5418,
+     "hash": "bb8884b4c0622993019c034ac6c25d5c357324106f5e96b2da96ee84f537cf49",
+     "height": 480,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/ecc6710f-5246-4b7e-b2e0-add94bc351c6/w480.webp",
+     "path": "bb8884b4c0622993019c034ac6c25d5c357324106f5e96b2da96ee84f537cf49-w480.webp",
+     "width": 480
+    },
+    "w960": {
+     "bytes": 9086,
+     "hash": "3351f9537ea45df4736bf73fa97fb51caa9489e0ab0ac7d8407a41bfaaf0a952",
+     "height": 800,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/ecc6710f-5246-4b7e-b2e0-add94bc351c6/w960.webp",
+     "path": "3351f9537ea45df4736bf73fa97fb51caa9489e0ab0ac7d8407a41bfaaf0a952-w960.webp",
+     "width": 800
+    }
+   },
+   "width": 800
+  },
+  "fd902d2c-eea2-4d0a-90ef-3d9510dff374": {
+   "alt": "Pine Hollow Growers' Circle (fictional)",
+   "attribution": "Original artwork created for the Lerner Works demonstration",
+   "decorative": false,
+   "hash": "edbcfdc329618c60bcce0dc108fbe48e81421bdef32fc2f1ab29aa2dc6445202",
+   "height": 320,
+   "id": "fd902d2c-eea2-4d0a-90ef-3d9510dff374",
+   "license": "CC0-1.0 — original vector artwork generated for this demonstration",
+   "title": "Growers' Circle mark",
+   "variants": {
+    "w480": {
+     "bytes": 12664,
+     "hash": "cfd55c6d43fa9cc13535f17a34a639ca8217caf3444795dbe6c1c752b0342156",
+     "height": 160,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/fd902d2c-eea2-4d0a-90ef-3d9510dff374/w480.webp",
+     "path": "cfd55c6d43fa9cc13535f17a34a639ca8217caf3444795dbe6c1c752b0342156-w480.webp",
+     "width": 480
+    },
+    "w960": {
+     "bytes": 12100,
+     "hash": "20782e639fd2adb46dc1e1d184e2ff1914a35d754a021b1118048f69ce6ef511",
+     "height": 320,
+     "key": "515b1ce7-5b50-40c0-9f66-92bf6c00361a/25c3d4f9-10a0-485c-a16b-3b31ae91a97e/fd902d2c-eea2-4d0a-90ef-3d9510dff374/w960.webp",
+     "path": "20782e639fd2adb46dc1e1d184e2ff1914a35d754a021b1118048f69ce6ef511-w960.webp",
+     "width": 960
+    }
+   },
+   "width": 960
+  }
+ },
+ "redirects": [],
+ "routes": [
+  {
+   "itemId": "004fca5a-b8fe-405a-a61b-666ab08b67a5",
+   "kind": "page",
+   "path": "/"
+  },
+  {
+   "itemId": "569d9cdc-7ca7-4f39-acac-f4d0b7fd10b7",
+   "kind": "page",
+   "path": "/about"
+  },
+  {
+   "kind": "index",
+   "module": "articles",
+   "path": "/articles"
+  },
+  {
+   "itemId": "14e92b57-1809-44ae-a0e1-c62b056412b5",
+   "kind": "article",
+   "path": "/articles/a-morning-at-creekside-coffee-roasters"
+  },
+  {
+   "itemId": "793a4989-5a4b-46be-8d1a-29f9bbe6e15b",
+   "kind": "article",
+   "path": "/articles/how-pine-hollow-keeps-its-trailheads-open"
+  },
+  {
+   "itemId": "7577bedc-815a-491a-a863-08c290430ac0",
+   "kind": "article",
+   "path": "/articles/where-to-watch-the-elk-this-fall"
+  },
+  {
+   "itemId": "dd5ba52e-a975-48d4-afe8-e7ef4c7390f4",
+   "kind": "page",
+   "path": "/contact"
+  },
+  {
+   "kind": "index",
+   "module": "events",
+   "path": "/events"
+  },
+  {
+   "itemId": "3aa312bf-751b-4f04-9b31-b735b8dc5a68",
+   "kind": "event",
+   "path": "/events/autumn-reading-night"
+  },
+  {
+   "itemId": "87e53986-b0c1-4913-9172-1f3c853db5a4",
+   "kind": "event",
+   "path": "/events/depot-gallery-opening-winter-light"
+  },
+  {
+   "itemId": "f8116377-c1e1-4397-8742-ed5406d721db",
+   "kind": "event",
+   "path": "/events/harvest-market-on-aspen-street"
+  },
+  {
+   "itemId": "83d25523-7524-49f0-89cd-e80e7d44da99",
+   "kind": "event",
+   "path": "/events/larkspur-loop-volunteer-trail-day"
+  },
+  {
+   "itemId": "76c0162e-92ff-40b1-a5b5-9bd31f8907ba",
+   "kind": "event",
+   "path": "/events/mill-pond-cleanup"
+  },
+  {
+   "itemId": "8041740b-9798-404b-ac78-de0291c0390a",
+   "kind": "event",
+   "path": "/events/star-party-at-timber-falls"
+  },
+  {
+   "itemId": "e802f45d-e572-4b09-8954-1f0b98357432",
+   "kind": "event",
+   "path": "/events/summer-concert-on-the-green"
+  },
+  {
+   "kind": "index",
+   "module": "links",
+   "path": "/links"
+  },
+  {
+   "itemId": "e23046ef-5754-47e1-aab3-fac279ba8914",
+   "kind": "link",
+   "path": "/links/county-road-conditions"
+  },
+  {
+   "itemId": "2bfa0493-d927-4de7-90e2-ca34534bea57",
+   "kind": "link",
+   "path": "/links/library-catalogue"
+  },
+  {
+   "itemId": "b78b5632-16af-44cb-b6ca-20528292433c",
+   "kind": "link",
+   "path": "/links/pine-hollow-trails-association"
+  },
+  {
+   "kind": "index",
+   "module": "places",
+   "path": "/places"
+  },
+  {
+   "itemId": "0f1db498-46d8-4e0a-b6d8-f54c67d5a584",
+   "kind": "place",
+   "path": "/places/aspen-street-books"
+  },
+  {
+   "itemId": "424b84bb-561d-4346-9b1b-83b34672ac39",
+   "kind": "place",
+   "path": "/places/community-hall-miners-park"
+  },
+  {
+   "itemId": "8a1bd0f7-4ed1-429e-9d52-2d4005c1b1c1",
+   "kind": "place",
+   "path": "/places/creekside-coffee-roasters"
+  },
+  {
+   "itemId": "81d3b5cb-1f45-4cad-a7cf-4e0f9594c0b2",
+   "kind": "place",
+   "path": "/places/foothill-bike-repair"
+  },
+  {
+   "itemId": "3444b244-7dc7-4e97-9d40-7ebaf97ad120",
+   "kind": "place",
+   "path": "/places/hollow-bakery-provisions"
+  },
+  {
+   "itemId": "ebf1bf00-3501-493c-a35f-898c13ae62af",
+   "kind": "place",
+   "path": "/places/hollow-mercantile"
+  },
+  {
+   "itemId": "3344575b-ea7b-4e7a-ad22-83dee06d4715",
+   "kind": "place",
+   "path": "/places/larkspur-loop-trailhead"
+  },
+  {
+   "itemId": "7efb6a45-8241-413d-9c4a-d2e377bde8ab",
+   "kind": "place",
+   "path": "/places/mill-pond-park"
+  },
+  {
+   "itemId": "2b4d0ae8-62f9-44f7-9afe-29919321690d",
+   "kind": "place",
+   "path": "/places/old-depot-gallery"
+  },
+  {
+   "itemId": "74895ae5-129b-4c29-a7c4-ac5f37255b3d",
+   "kind": "place",
+   "path": "/places/pine-hollow-public-library"
+  },
+  {
+   "itemId": "c2e674b3-fbad-46cb-870e-d542b9dac760",
+   "kind": "place",
+   "path": "/places/ridge-house-tavern"
+  },
+  {
+   "itemId": "30ea4ddb-6ce1-4e53-a65f-e5b4b12a2e6d",
+   "kind": "place",
+   "path": "/places/timber-falls-overlook"
+  },
+  {
+   "kind": "search",
+   "path": "/search"
+  }
+ ],
+ "schemaVersion": 6,
+ "site": {
+  "contact": {
+   "address": "PO Box 212, Pine Hollow, CO (fictional)",
+   "email": "hello@pinehollowguide.example",
+   "phone": "(303) 555-0148"
+  },
+  "id": "25c3d4f9-10a0-485c-a16b-3b31ae91a97e",
+  "key": "pine-hollow",
+  "mode": "demo",
+  "name": "Pine Hollow Guide",
+  "preset": "community_guide",
+  "timeZone": "America/Denver"
+ }
+}

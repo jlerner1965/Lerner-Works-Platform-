@@ -3,12 +3,12 @@
 import type { EditorContext, Issues, Payload } from "@/components/admin/editor/types";
 import { TextInput, TextArea, SelectInput, Checkbox, MultiSelect, Fieldset } from "@/components/admin/editor/inputs";
 import { BodyEditor } from "@/components/admin/editor/body-editor";
-import { MediaPicker } from "@/components/admin/editor/media-picker";
-import { SectionsEditor } from "@/components/admin/editor/sections-editor";
+import { MediaPicker, DocumentPicker } from "@/components/admin/editor/media-picker";
+import { SectionsEditor, ItemList } from "@/components/admin/editor/sections-editor";
 import { AddressFields } from "@/components/admin/editor/address-fields";
 import { WeeklyHoursEditor, ExceptionsEditor, emptyWeek } from "@/components/admin/editor/hours-editor";
 import type { PageSection } from "@/modules/page";
-import type { Address, HoursException, WeeklyHours } from "@/modules/common";
+import type { Address, Attachment, HoursException, WeeklyHours } from "@/modules/common";
 import type { Block } from "@/lib/richtext";
 import type { ContentKind } from "@/modules/registry";
 import { themeCapabilities } from "@/themes/capabilities";
@@ -124,6 +124,16 @@ export function KindFields(props: FieldsProps) {
           <TextArea label="Inquiry prompt" value={s("inquiryPrompt")} onChange={(v) => set({ inquiryPrompt: v })} rows={2} hint="Optional sentence inviting an inquiry, shown on the service page." />
         </Fieldset>
       );
+    case "link":
+      return (
+        <Fieldset legend="Link details" description="A link to another website: the card and the button open it directly, without passing on where the visitor came from. The title, summary and picture above are this site's own words about it.">
+          <TextInput label="Web address" value={s("url")} onChange={(v) => set({ url: v })} required error={issues.url} placeholder="https://" hint="The full https:// address of the other website." />
+          <div className="grid gap-x-3 sm:grid-cols-2">
+            <TextInput label="Category" value={s("category")} onChange={(v) => set({ category: v })} error={issues.category} hint="Groups the links page; reuse existing names for consistency." suggestions={ctx.linkCategories} />
+            <TextInput label="Button label" value={s("ctaLabel")} onChange={(v) => set({ ctaLabel: v })} error={issues.ctaLabel} hint="On the link's own page; empty reads “Visit <the other site>”." />
+          </div>
+        </Fieldset>
+      );
   }
 }
 
@@ -148,6 +158,24 @@ export function CommonFields({ payload, set, ctx, issues, kind }: { payload: Pay
       {showBody ? (
         <Fieldset legend="Body">
           <BodyEditor blocks={(payload.body as Block[]) ?? []} onChange={(body) => set({ body })} error={issues.body} />
+        </Fieldset>
+      ) : null}
+      {showBody ? (
+        <Fieldset legend="Downloads" description="Documents (PDF) from Media listed under the text with their type and size, served from the published site like pictures. Pages list documents with a Downloads section instead.">
+          <ItemList
+            items={((payload.attachments as Attachment[] | undefined) ?? [])}
+            onChange={(attachments) => set({ attachments })}
+            empty="No documents attached."
+            addLabel="Attach a document"
+            max={20}
+            blank={() => ({ assetId: "", label: "" })}
+            render={(item, update, i) => (
+              <div className="grid gap-2 sm:grid-cols-2">
+                <DocumentPicker label="Document" value={item.assetId || null} onChange={(v) => update({ ...item, assetId: v ?? "" })} assets={ctx.assets} siteId={ctx.siteId} error={issues[`attachments.${i}.assetId`]} />
+                <TextInput label="Link text (optional)" value={item.label} onChange={(v) => update({ ...item, label: v })} hint="The document's title when empty." error={issues[`attachments.${i}.label`]} />
+              </div>
+            )}
+          />
         </Fieldset>
       ) : null}
       <Fieldset legend="Metadata and provenance">

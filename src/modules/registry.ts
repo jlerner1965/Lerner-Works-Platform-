@@ -5,9 +5,10 @@ import { eventPayloadSchema } from "@/modules/event";
 import { articlePayloadSchema } from "@/modules/article";
 import { storePayloadSchema } from "@/modules/store";
 import { servicePayloadSchema } from "@/modules/service";
+import { linkPayloadSchema } from "@/modules/link";
 import type { ModuleKey } from "@/modules/site-config";
 
-export const contentKinds = ["page", "place", "event", "article", "store", "service"] as const;
+export const contentKinds = ["page", "place", "event", "article", "store", "service", "link"] as const;
 export type ContentKind = (typeof contentKinds)[number];
 
 export interface KindDefinition {
@@ -29,6 +30,8 @@ export const kindRegistry: Record<ContentKind, KindDefinition> = {
   article: { kind: "article", label: "Article", plural: "Articles", routeBase: "/articles", module: "articles", schema: articlePayloadSchema, presets: ["community_guide"] },
   store: { kind: "store", label: "Store", plural: "Stores", routeBase: "/locations", module: "stores", schema: storePayloadSchema, presets: ["location_business"] },
   service: { kind: "service", label: "Service", plural: "Services", routeBase: "/services", module: "services", schema: servicePayloadSchema, presets: ["location_business"] },
+  /** A link to another website as content (B5-2), for both presets. */
+  link: { kind: "link", label: "Link", plural: "Links", routeBase: "/links", module: "links", schema: linkPayloadSchema, presets: ["community_guide", "location_business"] },
 };
 
 export function isContentKind(value: string): value is ContentKind {
@@ -48,4 +51,5 @@ export const moduleIndexRoutes: Array<{ module: ModuleKey; path: string; label: 
   { module: "articles", path: "/articles", label: "Articles" },
   { module: "stores", path: "/locations", label: "Locations" },
   { module: "services", path: "/services", label: "Services" },
+  { module: "links", path: "/links", label: "Links" },
 ];

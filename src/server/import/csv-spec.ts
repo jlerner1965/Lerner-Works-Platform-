@@ -13,7 +13,7 @@ const hoursColumns: ColumnSpec[] = ["mon", "tue", "wed", "thu", "fri", "sat", "s
   example: d === "sun" ? "closed" : "09:00-18:00",
 }));
 
-export const importableKinds = ["store", "service", "place", "event", "article"] as const satisfies readonly ContentKind[];
+export const importableKinds = ["store", "service", "place", "event", "article", "link"] as const satisfies readonly ContentKind[];
 export type ImportableKind = (typeof importableKinds)[number];
 
 const common: ColumnSpec[] = [
@@ -26,10 +26,11 @@ const common: ColumnSpec[] = [
 /** The longer text of an item: paragraphs separated by a blank line, "## " for a heading, "- " for a list item (site-building programme B2). */
 const bodyColumn: ColumnSpec = { key: "body", description: 'The page text. Separate paragraphs with a blank line; start a line with "## " for a heading and with "- " for a list item. No HTML.', example: "" };
 
-/** Featured image from the onboarding package's images folder (empty in a plain CSV import). */
+/** Featured image from the onboarding package's images folder, and documents from its documents folder (both empty in a plain CSV import). */
 const imageColumns: ColumnSpec[] = [
   { key: "image", description: "File name of the featured image in the onboarding package's images folder (for example storefront.jpg). Leave empty in a CSV import without a package.", example: "" },
   { key: "image_alt", description: "Alternative text for that image, used when images.csv does not give one: what the picture shows, for people who cannot see it.", example: "" },
+  { key: "attachments", description: "PDF files in the onboarding package's documents folder, separated by \";\" (for example menu.pdf;price-list.pdf), listed as downloads under the text. Leave empty in a CSV import without a package.", example: "" },
 ];
 
 export const csvSpecs: Record<ImportableKind, ColumnSpec[]> = {
@@ -90,6 +91,16 @@ export const csvSpecs: Record<ImportableKind, ColumnSpec[]> = {
     { key: "author_name", required: true, description: "The author, or the organization when nobody is named.", example: "Pine Hollow Guide" },
     { key: "published_on", required: true, description: "Original publication date, YYYY-MM-DD.", example: "2026-09-01" },
     { key: "updated_on", description: "Date of the last update, YYYY-MM-DD, if any.", example: "" },
+    bodyColumn,
+    ...imageColumns,
+  ],
+  link: [
+    ...common,
+    { key: "url", required: true, description: "The full https:// address of the other website; the card and the button open it.", example: "https://www.example.org/trail-maps" },
+    { key: "category", description: "Grouping on the links page (for example Partners, Town services).", example: "Town services" },
+    { key: "cta_label", description: "The button's words on the link's own page; empty reads \"Visit <the other site>\".", example: "Open the trail maps" },
+    { key: "source_url", description: "Where the details were verified, if not the address itself.", example: "" },
+    { key: "last_verified_on", description: "YYYY-MM-DD.", example: "2026-09-01" },
     bodyColumn,
     ...imageColumns,
   ],

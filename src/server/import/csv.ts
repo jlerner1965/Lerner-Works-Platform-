@@ -76,15 +76,16 @@ function instantFromCell(raw: string, timeZone: string): string | null {
   return null;
 }
 
-/** Converts one CSV row into a content payload for the kind. The featured image, if any, is named by file for the onboarding package to resolve. */
-export function rowToPayload(kind: ImportableKind, row: Record<string, string>, mapping: Mapping, site: { timeZone: string }, services: Map<string, string>): { payload?: Record<string, unknown>; errors: string[]; image: string; imageAlt: string } {
+/** Converts one CSV row into a content payload for the kind. The featured image and the attachments, if any, are named by file for the onboarding package to resolve. */
+export function rowToPayload(kind: ImportableKind, row: Record<string, string>, mapping: Mapping, site: { timeZone: string }, services: Map<string, string>): { payload?: Record<string, unknown>; errors: string[]; image: string; imageAlt: string; attachments: string[] } {
   const get = (key: string) => (mapping[key] ? (row[mapping[key]!] ?? "").trim() : "");
   const errors: string[] = [];
   const title = get("title");
   const slug = get("slug") ? slugify(get("slug")) : slugify(title);
   const image = get("image");
   const imageAlt = get("image_alt");
-  const base = { schemaVersion: 1, title, slug, summary: get("summary"), body: parseStructuredText(get("body")), featuredImageAssetId: null, metaTitle: "", metaDescription: "", indexable: true, sourceUrl: get("source_url"), lastVerifiedOn: get("last_verified_on"), attribution: "" };
+  const attachments = [...new Set(get("attachments").split(";").map((s) => s.trim()).filter(Boolean))];
+  const base = { schemaVersion: 1, title, slug, summary: get("summary"), body: parseStructuredText(get("body")), featuredImageAssetId: null, attachments: [], metaTitle: "", metaDescription: "", indexable: true, sourceUrl: get("source_url"), lastVerifiedOn: get("last_verified_on"), attribution: "" };
   if (!title) errors.push("title is required");
   if (!slug) errors.push("slug could not be derived from the title");
   const address = { line1: get("address_line1"), line2: get("address_line2"), locality: get("locality"), region: get("region"), postalCode: get("postal_code"), approved: false };
@@ -99,28 +100,33 @@ export function rowToPayload(kind: ImportableKind, row: Record<string, string>, 
       else serviceIds.push(id);
     }
     const status = get("status") || "open";
-    return { payload: { ...base, address, phone: get("phone"), timeZone: tz, weeklyHours: hours.value, exceptions: [], serviceItemIds: serviceIds, status, statusNote: get("status_note") }, errors, image, imageAlt };
+    return { payload: { ...base, address, phone: get("phone"), timeZone: tz, weeklyHours: hours.value, exceptions: [], serviceItemIds: serviceIds, status, statusNote: get("status_note") }, errors, image, imageAlt, attachments };
   }
   if (kind === "service") {
-    return { payload: { ...base, inquiryPrompt: get("inquiry_prompt") }, errors, image, imageAlt };
+    return { payload: { ...base, inquiryPrompt: get("inquiry_prompt") }, errors, image, imageAlt, attachments };
   }
   if (kind === "place") {
     const hours = hoursFromRow(get);
     if (hours.error) errors.push(hours.error);
-    return { payload: { ...base, category: get("category"), address, areaDescription: get("area_description"), website: get("website"), phone: get("phone"), hours: hours.value, nextAction: { label: "", path: "" } }, errors, image, imageAlt };
+    return { payload: { ...base, category: get("category"), address, areaDescription: get("area_description"), website: get("website"), phone: get("phone"), hours: hours.value, nextAction: { label: "", path: "" } }, errors, image, imageAlt, attachments };
   }
   if (kind === "article") {
     const publishedOn = get("published_on");
     if (!/^\d{4}-\d{2}-\d{2}$/.test(publishedOn)) errors.push("published_on: use YYYY-MM-DD");
     const updatedOn = get("updated_on");
     if (updatedOn && !/^\d{4}-\d{2}-\d{2}$/.test(updatedOn)) errors.push("updated_on: use YYYY-MM-DD");
-    return { payload: { ...base, authorName: get("author_name"), publishedOn, updatedOn }, errors, image, imageAlt };
+    return { payload: { ...base, authorName: get("author_name"), publishedOn, updatedOn }, errors, image, imageAlt, attachments };
+  }
+  if (kind === "link") {
+    const url = get("url");
+    if (!/^https:\/\/[^\s/]+\S*$/i.test(url)) errors.push("url: use the full https:// address of the other website");
+    return { payload: { ...base, url, category: get("category"), ctaLabel: get("cta_label") }, errors, image, imageAlt, attachments };
   }
   const startsAt = instantFromCell(get("starts_at"), tz);
   const endsAt = instantFromCell(get("ends_at"), tz);
   if (!startsAt) errors.push("starts_at: use YYYY-MM-DD HH:MM or an ISO instant");
   if (!endsAt) errors.push("ends_at: use YYYY-MM-DD HH:MM or an ISO instant");
-  return { payload: { ...base, startsAt: startsAt ?? "", endsAt: endsAt ?? "", timeZone: tz, venueItemId: null, venueText: get("venue_text"), organizerName: get("organizer_name"), organizerUrl: get("organizer_url"), status: get("status") || "scheduled", eventUrl: get("event_url"), admission: get("admission") }, errors, image, imageAlt };
+  return { payload: { ...base, startsAt: startsAt ?? "", endsAt: endsAt ?? "", timeZone: tz, venueItemId: null, venueText: get("venue_text"), organizerName: get("organizer_name"), organizerUrl: get("organizer_url"), status: get("status") || "scheduled", eventUrl: get("event_url"), admission: get("admission") }, errors, image, imageAlt, attachments };
 }
 
 export interface DryRunRow {
@@ -132,6 +138,8 @@ export interface DryRunRow {
   /** Featured image file named by the row (onboarding package), resolved to an asset when applied. */
   image?: string;
   imageAlt?: string;
+  /** Document files named by the row (onboarding package), listed as downloads once applied (B5). */
+  attachments?: string[];
 }
 
 export interface DryRunResult {
@@ -148,6 +156,8 @@ function stable(v: unknown): string {
 export interface DryRunOptions {
   /** File names available in the onboarding package's images folder; absent for a plain CSV import, where an image column must stay empty. */
   imageFiles?: Set<string>;
+  /** File names available in the onboarding package's documents folder (B5); absent for a plain CSV import, where the attachments column must stay empty. */
+  documentFiles?: Set<string>;
   /** Services the same package imports before the stores (slug → placeholder), so store rows may refer to them. */
   pendingServices?: Set<string>;
 }
@@ -179,6 +189,13 @@ export async function dryRun(db: Db, site: SiteRow, kind: ImportableKind, parsed
       if (!opts.imageFiles) errors.push("image: images come with the onboarding package; leave the column empty in a CSV import");
       else if (!opts.imageFiles.has(conv.image)) errors.push(`image: no file named "${conv.image}" in the package's images folder`);
     }
+    for (const name of conv.attachments) {
+      if (!opts.documentFiles) {
+        errors.push("attachments: documents come with the onboarding package; leave the column empty in a CSV import");
+        break;
+      }
+      if (!opts.documentFiles.has(name)) errors.push(`attachments: no file named "${name}" in the package's documents folder`);
+    }
     let normalized: Record<string, unknown> | null = null;
     if (conv.payload && errors.length === 0) {
       try {
@@ -196,14 +213,14 @@ export async function dryRun(db: Db, site: SiteRow, kind: ImportableKind, parsed
       if (slugOwner !== undefined && slugOwner !== externalId) errors.push(`slug "${normalized.slug}" is already used by another item`);
     }
     const title = conv.payload ? String(conv.payload.title ?? "") : "";
-    const imageFields = conv.image ? { image: conv.image, ...(conv.imageAlt ? { imageAlt: conv.imageAlt } : {}) } : {};
+    const imageFields = { ...(conv.image ? { image: conv.image, ...(conv.imageAlt ? { imageAlt: conv.imageAlt } : {}) } : {}), ...(conv.attachments.length ? { attachments: conv.attachments } : {}) };
     if (errors.length) {
       result.rows.push({ row: rowNo, externalId, title, action: "error", errors, ...imageFields });
       result.counts.error++;
       return;
     }
     const current = existing.get(externalId);
-    if (current && !conv.image && stable(current) === stable(normalized)) {
+    if (current && !conv.image && conv.attachments.length === 0 && stable(current) === stable(normalized)) {
       result.rows.push({ row: rowNo, externalId, title, action: "skip", errors: [] });
       result.counts.skip++;
       return;
@@ -220,6 +237,8 @@ export interface ApplyOptions {
   approve?: boolean;
   /** Asset ids of the package's images by file name (onboarding), for rows that name a featured image. */
   imageAssets?: Map<string, string>;
+  /** Asset ids of the package's documents by file name (onboarding, B5), for rows that list attachments. */
+  documentAssets?: Map<string, string>;
   /** Ids of the services the package imported, by slug, for store rows that refer to them. */
   serviceIds?: Map<string, string>;
 }
@@ -242,6 +261,14 @@ export async function applyImport(db: Db, site: SiteRow, kind: ImportableKind, u
       const assetId = opts.imageAssets?.get(row.image);
       if (!assetId) throw new Error(`image "${row.image}" was not imported; nothing was written`);
       payload = { ...payload, featuredImageAssetId: assetId };
+    }
+    if (row.attachments?.length) {
+      const attachments = row.attachments.map((name) => {
+        const assetId = opts.documentAssets?.get(name);
+        if (!assetId) throw new Error(`document "${name}" was not imported; nothing was written`);
+        return { assetId, label: "" };
+      });
+      payload = { ...payload, attachments };
     }
     if (kind === "store" && Array.isArray(payload.serviceItemIds)) {
       payload = { ...payload, serviceItemIds: (payload.serviceItemIds as string[]).map((id) => (id.startsWith("pending:") ? opts.serviceIds?.get(id.slice(8)) : id)).filter((id): id is string => Boolean(id)) };

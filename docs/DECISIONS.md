@@ -364,3 +364,32 @@ promises); the settings sheet's opening picture had no effect on a home that ope
 alone (it now becomes a picture hero when the composition offers one); and colours that would
 fail the publication gate's contrast pairings passed the dry run (the dry run now refuses
 them, naming the pairing).
+
+## D-024 · 2026-09-27 · Documents are media, links are content, the workbook is read in code
+
+The owner's review of B4 asked for PDFs beside the pictures, pages that are links to other
+websites, and Excel instead of CSV in the onboarding package (site-building phase B5).
+Decided: (1) A document is a media asset of kind `document` (`media_assets.kind`; the public
+copies of D-005 unchanged): PDF only, checked by signature and trailer, 25 MB, one derivative
+pointing at the private original and copied at publication to `<sha256>.pdf` like a
+picture's derivatives, served inline with `X-Content-Type-Options: nosniff` and a
+`Content-Disposition` name from the title. Nothing else is accepted (no Office files, no
+archives): PDFs are what clients have and a browser renders them without a plug-in, and SVG
+and HTML stay refused (D-006). A document is referred to as `document:<id>` wherever a link
+target is typed (rich text, buttons, section links) and as an attachment (an id and a label)
+on any item; the manifest collects documents with the pictures, and the validator refuses a
+picture where a document is needed and the reverse, so a release never serves the wrong
+kind. (2) A link to another website is a content kind (`link`, both presets), not a
+navigation entry: the owner asked for content with a picture and text, which is an item with
+a revision history, a category, a place in collections, in search and on an index, and the
+review policy; the navigation's external links (D0) stay for the header. The address is
+https only, every card and button that opens it carries `rel="noreferrer"`, and the item's
+own page exists so that search and sharing have somewhere to land. The `/links` index and
+its navigation entry appear once a link is published (D-021 applied to a route). (3) The
+workbook is read and written by a small OOXML subset in `src/server/import/xlsx.ts` over the
+zip library the package already uses, not by a spreadsheet dependency: shared and inline
+strings, rich runs, dates by cell style, numbers, booleans and formulas by their cached
+result, with limits on size, rows and columns. A workbook is converted to the package's CSV
+files before the dry run (`src/server/import/workbook.ts`), so the import reads one shape and
+a client may still send CSV files; a sheet given both ways is refused. The template is the
+workbook, and the proof packages carry it.

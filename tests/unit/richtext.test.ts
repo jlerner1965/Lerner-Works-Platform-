@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseStructuredText, serializeStructuredText, parseInline, collectLinkTargets, blocksToPlainText, bodySchema } from "@/lib/richtext";
+import { parseStructuredText, serializeStructuredText, parseInline, collectLinkTargets, collectDocumentAssetIds, blocksToPlainText, bodySchema } from "@/lib/richtext";
 
 describe("structured text", () => {
   it("parses paragraphs, headings, lists, quotes and images", () => {
@@ -26,6 +26,16 @@ describe("structured text", () => {
   it("accepts only safe link targets", () => {
     expect(parseInline("[a](/x) [b](https://e.example) [c](http://insecure) [d](item:123e4567-e89b-12d3-a456-426614174000)").filter((n) => n.type === "link").map((n) => n.target)).toEqual(["/x", "https://e.example", "item:123e4567-e89b-12d3-a456-426614174000"]);
     expect(collectLinkTargets(parseStructuredText("see [a](/x)\n\n- [b](https://y.example)"))).toEqual(["/x", "https://y.example"]);
+  });
+  it("links to documents in the media library (B5) from text and buttons, and collects them for the release", () => {
+    const D = "123e4567-e89b-12d3-a456-426614174000";
+    const blocks = parseStructuredText(`Read [the report](document:${D}) today.\n\n!button Download the map | document:${D.toUpperCase()}\n\n[bad](document:not-an-id)`);
+    expect(blocks[0]).toEqual({ type: "paragraph", text: `Read [the report](document:${D}) today.` });
+    expect(parseInline(`Read [the report](document:${D})`).find((n) => n.type === "link")?.target).toBe(`document:${D}`);
+    expect(blocks[1]).toEqual({ type: "button", label: "Download the map", target: `document:${D.toUpperCase()}` });
+    expect(parseInline("[bad](document:not-an-id)").every((n) => n.type === "text")).toBe(true);
+    expect(collectDocumentAssetIds(blocks)).toEqual([D, D]);
+    expect(bodySchema.safeParse(blocks).success).toBe(true);
   });
   it("renders plain text for indexing", () => {
     expect(blocksToPlainText(parseStructuredText("## H\n\nHello [w](/x) world\n\n- i"))).toBe("H Hello w world i");

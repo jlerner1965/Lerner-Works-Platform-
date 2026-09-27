@@ -18,6 +18,8 @@ export function rangeAthleticsFixture(now: Date): FixtureSite {
         ...common({ title: "Run and hike shoe fitting", slug: "shoe-fitting", summary: "A 20-minute fitting on the in-store treadmill with staff who look at how you land, not just what size you wear." }),
         body: [p("Bring the socks you actually run or hike in, and the insoles if you use them. Staff watch you walk and jog, measure both feet, and pull three or four options before you try anything on. There is no charge for the fitting and no obligation to buy."), list("Book ahead on weekends", "Wide and narrow sizes stocked in Longmont", "Trail and road shoes, hiking boots")],
         inquiryPrompt: "Want a fitting at a specific store or time? Ask and we will confirm availability.",
+        // A sample document listed as a download under the service (B5-1).
+        attachments: [{ assetId: "@doc-fitting-guide", label: "" }],
       },
       image: { key: "svc-shoe", title: "Shoe fitting", alt: "Flat illustration of a running shoe in navy with an orange sole stripe", scene: { type: "icon", icon: "shoe", bg: "#ffffff", fg: "#12213a", accent: "#bf4a0d" } },
     },
@@ -111,6 +113,31 @@ export function rangeAthleticsFixture(now: Date): FixtureSite {
     },
   ];
 
+  // Links to other websites (B5-2): the clubs and resources the stores send people to.
+  const links: FixtureItem[] = [
+    {
+      externalId: "link-trail-runners",
+      kind: "link",
+      payload: {
+        ...common({ title: "Front Range Trail Runners", slug: "front-range-trail-runners", summary: "The club whose Saturday runs leave from the Boulder store's lot: calendar, pace groups and the shoe-demo mornings we host together.", lastVerifiedOn: dateKey(now, -4, TZ) }),
+        featuredImageAssetId: "@front-range",
+        url: "https://frontrangetrailrunners.example",
+        category: "Clubs",
+        ctaLabel: "See the run calendar",
+      },
+    },
+    {
+      externalId: "link-snow-safety",
+      kind: "link",
+      payload: {
+        ...common({ title: "Backcountry snow safety evenings", slug: "backcountry-snow-safety", summary: "The avalanche awareness evenings the tuning bench sends every new backcountry customer to, run by a fictional non-profit. Free; register on their site.", lastVerifiedOn: dateKey(now, -4, TZ) }),
+        url: "https://snowsafety.example/evenings",
+        category: "Safety",
+        ctaLabel: "Find an evening",
+      },
+    },
+  ];
+
   const pages: FixtureItem[] = [
     {
       externalId: "page-home",
@@ -150,6 +177,8 @@ export function rangeAthleticsFixture(now: Date): FixtureSite {
             { assetId: "@mark-summit", label: "", path: "" },
             { assetId: "@mark-cycle", label: "", path: "" },
           ] },
+          // Cards that open other websites (B5-2), filled from the published links.
+          { id: "s-links", type: "content_collection", heading: "Clubs and resources", kind: "link", mode: "latest", itemIds: [], limit: 2, variant: "cards", columns: 2 },
           { id: "s-contact", type: "cta_banner", heading: "Questions? Ask a store", text: "Each store answers its own inquiries. Choose the store on the contact page and you will hear back from the people who work there.", ctaLabel: "Contact us", ctaPath: "/contact", appearance: { background: "accent", align: "center" } },
         ],
       }),
@@ -178,6 +207,11 @@ export function rangeAthleticsFixture(now: Date): FixtureSite {
             { assetId: "@longmont-storefront", caption: "Longmont: the flagship on Foothills Way" },
             { assetId: "@boulder-storefront", caption: "Boulder: downtown on Walnut Street" },
             { assetId: "@fort-collins-storefront", caption: "Fort Collins: closed while the floor is replaced" },
+          ] },
+          // Documents from the media library listed as downloads (B5-1): sample PDFs written by the fixture generator.
+          { id: "s-downloads", type: "downloads", variant: "grid", heading: "Forms and guides", items: [
+            { assetId: "@doc-fitting-guide", label: "", note: "What to bring to a shoe fitting." },
+            { assetId: "@doc-team-order-form", label: "Team order form", note: "For coaches ordering for a squad." },
           ] },
         ],
       }),
@@ -250,7 +284,12 @@ export function rangeAthleticsFixture(now: Date): FixtureSite {
       { key: "mark-summit", title: "Summit Company mark", alt: "Summit Company (fictional brand)", scene: { type: "logo", lines: ["Summit", "COMPANY"], fg: "#3e4a5f", accent: "#bf4a0d", emblem: "sun" } },
       { key: "mark-cycle", title: "Boulder Cycle Works mark", alt: "Boulder Cycle Works (fictional brand)", scene: { type: "logo", lines: ["Boulder", "CYCLE WORKS"], fg: "#12213a", accent: "#bf4a0d", emblem: "ring" } },
     ],
-    items: [...pages, ...services, ...stores, draft, pendingReview],
+    // Sample documents (B5-1): one-page PDFs written by the fixture generator, never real records.
+    documents: [
+      { key: "doc-fitting-guide", title: "Shoe fitting: what to bring", spec: { title: "Shoe fitting: what to bring", lines: ["Range Athletics (fictional demonstration)", "", "- The socks you run or hike in", "- Your insoles, if you use them", "- Your current shoes, worn", "", "Allow twenty minutes. There is no charge and no obligation to buy."] } },
+      { key: "doc-team-order-form", title: "Team order form", spec: { title: "Team order form", lines: ["Range Athletics (fictional demonstration)", "", "Team: ______________________________", "Coach: _____________________________", "Sizes and quantities on the reverse.", "", "Orders placed by the first of the month ship by the twentieth."] } },
+    ],
+    items: [...pages, ...services, ...stores, ...links, draft, pendingReview],
     secondRelease: {
       note: `Longmont adds an inventory-count closure on ${inventoryDay}`,
       apply: (items) => items.map((it) => (it.externalId === "store-longmont" ? { ...it, payload: { ...it.payload, exceptions: [...(it.payload.exceptions as unknown[]), { date: inventoryDay, label: "Inventory count", closed: false, intervals: [iv("13:00", "20:00")] }], lastVerifiedOn: dateKey(now, 0, TZ) } } : it)),
