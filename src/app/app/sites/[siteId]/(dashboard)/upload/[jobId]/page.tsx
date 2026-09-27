@@ -17,6 +17,7 @@ const LEFT_OUT_REASONS: Record<string, string> = {
   "unsafe-name": "name a web address cannot carry",
   "outside-root": "outside the site's folder",
   dependencies: "dependencies",
+  config: "read as the site's hosting configuration",
 };
 
 /** A checked upload (B7, B8): what the archive holds, what was left out, what is wrong with it, and the button that publishes it. */

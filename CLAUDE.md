@@ -1,6 +1,8 @@
 # Lerner Works Platform — working notes for Claude Code
 
-The full specification is `docs/Lerner-Works-Platform-Build-Guide.md`. Read it before changing
+Read `docs/LESSONS.md` first: the mistakes of this project and the rule each one leaves
+behind, including the paths not to walk again. The full specification is
+`docs/Lerner-Works-Platform-Build-Guide.md`. Read it before changing
 architecture. Resume from `docs/PROGRESS.md`. The design flexibility programme (phases D0–D3)
 is planned in `docs/DESIGN-PLAN.md`; D0, D1 and D2 (theme catalogue, design preview,
 delegation) are shipped. Themes are
@@ -59,7 +61,12 @@ finds the site in its build folder (`archive.ts`); Publish from GitHub
 (`src/server/uploaded/github.ts`, `sources.ts`: `site_sources`, the archive fetched server-side
 at the branch head, the commit on the release) with an organization's token for private
 repositories sealed by `src/server/secrets/crypto.ts` and reachable only through SQL functions
-(`organization_secrets`). Neither path builds a site. Client privileges (D-028): a Supabase
+(`organization_secrets`). Neither path builds a site; for a generator site the repository's
+CI builds and pushes (B9, D-029): a deploy token per site (`site_deploy_tokens`,
+`src/server/uploaded/deploy.ts`) authorises `/api/deploy/begin`, `part` and `complete`
+(`deploy-route.ts`, the B8 parts protocol, publishing through `publish-job.ts`), with
+`public/deploy.sh` as the CI step, and the site's own `_redirects` and `_headers` are read
+into the release (`site-config.ts`) and applied by the file handler. Client privileges (D-028): a Supabase
 project grants the client roles everything on new tables and functions in `public` by
 default and the local database does not, so every migration that creates a table or a
 function states its grants after `revoke … from public, anon, authenticated`

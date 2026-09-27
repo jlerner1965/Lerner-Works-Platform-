@@ -43,6 +43,20 @@ function previewDomain(): string | null {
 
 const hostTypes = new Map<string, { type: string | null; until: number }>();
 
+/**
+ * The platform's own response headers, on its pages and on structured customer sites. An
+ * uploaded site's files do not get them here: their handler sets the same defaults and the
+ * site's own `_headers` may override them (B9), which a header set in next.config.ts would
+ * not allow.
+ */
+function withPlatformHeaders(res: NextResponse): NextResponse {
+  res.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  res.headers.set("X-Frame-Options", "SAMEORIGIN");
+  // Only meaningful once the application is served over https (hosted environments).
+  if ((process.env.APP_URL ?? "").startsWith("https://")) res.headers.set("Strict-Transport-Security", "max-age=63072000; includeSubDomains");
+  return res;
+}
+
 /** The kind of site a customer hostname serves, from the application's public lookup, remembered for a minute. */
 async function siteTypeForHost(host: string): Promise<string | null> {
   const now = Date.now();
@@ -64,20 +78,29 @@ async function siteTypeForHost(host: string): Promise<string | null> {
 export async function proxy(request: NextRequest) {
   const host = normalize(request.headers.get("host"));
   const appHost = normalize(process.env.APP_HOST ?? "localhost:3000");
-  if (!host) return new NextResponse("Not found", { status: 404 });
+  if (!host) return withPlatformHeaders(new NextResponse("Not found", { status: 404 }));
   const pathname = request.nextUrl.pathname;
   const headers = new Headers(request.headers);
   headers.delete(HOST_ROUTING_HEADER);
   headers.delete(UPLOADED_ROUTING_HEADER);
   headers.delete(PATH_HEADER);
   headers.delete(PUBLIC_SITE_HEADER);
+  // The platform's own pages and structured sites have no trailing slashes (Next's redirect is
+  // off in next.config.ts so that uploaded sites keep theirs). A plain URL, not a clone of
+  // nextUrl: NextURL remembers the request's trailing slash and puts it back when serialised.
+  const trimmed = () => {
+    const target = new URL(request.url);
+    target.pathname = pathname.replace(/\/+$/, "");
+    return withPlatformHeaders(NextResponse.redirect(target, 308));
+  };
   if (host === appHost || LOOPBACK.has(host)) {
     // Internal routes must not be reachable by path on the application host.
-    if (pathname.startsWith("/host/") || pathname.startsWith("/uploaded/")) return new NextResponse("Not found", { status: 404 });
+    if (pathname.startsWith("/host/") || pathname.startsWith("/uploaded/")) return withPlatformHeaders(new NextResponse("Not found", { status: 404 }));
+    if (pathname.length > 1 && pathname.endsWith("/")) return trimmed();
     const demo = DEMO_PATH.exec(pathname);
     if (demo) headers.set(PUBLIC_SITE_HEADER, `demo:${demo[1]}`);
     if (pathname.startsWith("/app")) headers.set(PATH_HEADER, pathname);
-    return NextResponse.next({ request: { headers } });
+    return withPlatformHeaders(NextResponse.next({ request: { headers } }));
   }
   const url = request.nextUrl.clone();
   const suffix = pathname === "/" ? "" : pathname;
@@ -87,7 +110,7 @@ export async function proxy(request: NextRequest) {
   const preview = previewDomain();
   if (preview && host.endsWith(`.${preview}`)) {
     const key = host.slice(0, host.length - preview.length - 1);
-    if (!/^[a-z0-9-]{1,60}$/.test(key)) return new NextResponse("Not found", { status: 404 });
+    if (!/^[a-z0-9-]{1,60}$/.test(key)) return withPlatformHeaders(new NextResponse("Not found", { status: 404 }));
     url.pathname = uploadedPath("preview", key);
     headers.set(UPLOADED_ROUTING_HEADER, "1");
     return NextResponse.rewrite(url, { request: { headers } });
@@ -97,10 +120,11 @@ export async function proxy(request: NextRequest) {
     headers.set(UPLOADED_ROUTING_HEADER, "1");
     return NextResponse.rewrite(url, { request: { headers } });
   }
+  if (pathname.length > 1 && pathname.endsWith("/")) return trimmed();
   url.pathname = `/host/${host}${suffix}`;
   headers.set(HOST_ROUTING_HEADER, "1");
   headers.set(PUBLIC_SITE_HEADER, `host:${host}`);
-  return NextResponse.rewrite(url, { request: { headers } });
+  return withPlatformHeaders(NextResponse.rewrite(url, { request: { headers } }));
 }
 
 export const config = {

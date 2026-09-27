@@ -1,0 +1,43 @@
+B9 (push to deploy, decision D-029) on the production project, 2026-09-27. Project
+lerner-works-platform-production (fvpooyxkuvltjzjbevxf), applied through the Supabase
+Management API by `pnpm db:migrate --project-ref fvpooyxkuvltjzjbevxf`, ahead of the merge
+(the deployed B7 code touches none of the new objects).
+
+Release gate (`pnpm verify`, started 06:33 UTC): GATE PASSED in 909 s (setup check 2 s, lint
+22 s, typecheck 18 s, unit 7 s, integration 85 s, browser 746 s, production build 29 s); 188
+unit tests in 26 files, 92 integration tests in 24 files, 45 browser tests against a
+production build. A two-line change made while the browser step ran (the workflow step shown
+with a new token names the platform address when it is not production; the script's comment
+on that default) was re-checked on the final code with typecheck, lint, the unit tests and
+the uploaded-sites browser spec (4 passed in 2.2 min on the dev server, then the same 4
+against a production build to record the screenshots without the development overlay).
+
+1. pnpm db:migrate --project-ref fvpooyxkuvltjzjbevxf                 06:35:22Z .. 06:35:24Z
+     applied 20260927000700_push_to_deploy.sql
+   Applied 1 migration(s); 18 already applied.
+
+   Read-only verification afterwards (D-028):
+   table          site_deploy_tokens: id, organization_id, site_id, token_hash, label,
+                  created_by, created_at, last_used_at, revoked_at; row-level security on
+   policies       site_deploy_tokens_insert (INSERT), site_deploy_tokens_select (SELECT),
+                  site_deploy_tokens_update (UPDATE)
+   table privs    anon select false; authenticated: select on the whole table false, insert
+                  true, delete false, update on the whole table false
+   column privs   authenticated reads token_hash false, reads label true, updates revoked_at
+                  true, updates label false; anon reads label false
+   table acl      {postgres=arwdDxtm/postgres, service_role=arwdDxtm/postgres, authenticated=a/postgres}
+                  (the column grants are held per column and do not show in the table ACL)
+   default privs  role postgres in schema public: tables {postgres, service_role}, sequences
+                  {postgres, service_role}, functions {postgres, service_role}; neither anon
+                  nor authenticated (supabase_admin's own entries, for objects it creates
+                  itself, keep the client roles and are not ours)
+   functions      purge_abandoned_uploads, purge_old_inquiries, purge_rate_limit_events,
+                  purge_stale_upload_checks: anon false, authenticated false (unchanged);
+                  delete_organization_secret, get_site_secret, set_organization_secret:
+                  anon false, authenticated true (as granted)
+   recorded       20260927000700_push_to_deploy.sql at 2026-09-27 06:35:24.479481+00
+
+   Nothing on the hosting side changes for B9: /api/deploy/complete declares maxDuration 300
+   (the Pro plan allows it) and the parts stay under the request-body limit as in B8. The
+   check on a deployed site (a token created on the Upload page, the workflow step run by the
+   owner's CI, the release listed with its commit) waits for the owner's first run.

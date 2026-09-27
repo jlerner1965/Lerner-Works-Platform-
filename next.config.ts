@@ -7,6 +7,10 @@ const nextConfig: NextConfig = {
   // Local browser tests reach the dev server at 127.0.0.1 while APP_URL uses localhost.
   allowedDevOrigins: ["127.0.0.1", "localhost"],
   poweredByHeader: false,
+  // An uploaded site's addresses are its own: `/events/` must serve its `/events/index.html`
+  // without a hop to `/events` (B9; generators such as Astro emit trailing slashes). The proxy
+  // normalises trailing slashes for the platform's pages and structured sites instead.
+  skipTrailingSlashRedirect: true,
   serverExternalPackages: ["postgres", "sharp"],
   // Public media is served from our own asset routes as pre-sized derivatives; the
   // built-in optimizer is not used, so plain <img> elements with explicit sizes are intended.
@@ -49,16 +53,12 @@ const nextConfig: NextConfig = {
         ],
       },
       {
+        // Every response. The platform's frame, referrer and transport-security headers are set
+        // by the proxy (src/proxy.ts) on its own pages and on structured customer sites, not here:
+        // headers from this file are applied to an uploaded site's files as well and would
+        // override the site's own _headers (B9).
         source: "/:path*",
-        headers: [
-          { key: "X-Content-Type-Options", value: "nosniff" },
-          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-          { key: "X-Frame-Options", value: "SAMEORIGIN" },
-          // Only meaningful once the application is served over https (hosted environments).
-          ...((process.env.APP_URL ?? "").startsWith("https://")
-            ? [{ key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" }]
-            : []),
-        ],
+        headers: [{ key: "X-Content-Type-Options", value: "nosniff" }],
       },
     ];
   },

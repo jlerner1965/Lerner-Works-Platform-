@@ -6,10 +6,7 @@ import { z } from "zod";
 import { requireUser } from "@/server/auth/session";
 import { withUser, describeDbError } from "@/server/data/db";
 import { loadSiteContext } from "@/server/data/access";
-import { getStorage } from "@/server/media/storage";
-import { publishUploadedSite, type UploadJobSummary } from "@/server/uploaded/publish";
-import { archiveKey } from "@/server/uploaded/intake";
-import { markSourcePublished } from "@/server/uploaded/sources";
+import { publishCheckedJob } from "@/server/uploaded/publish-job";
 
 export interface PublishUploadState {
   error?: string;
@@ -28,27 +25,10 @@ export async function publishUploadAction(_prev: PublishUploadState, formData: F
   try {
     const outcome = await withUser(user.id, async (db) => {
       const ctx = await loadSiteContext(db, siteId);
-      if (!ctx?.capabilities.canPublish) return { error: "Only owners and publishers publish a site." };
-      if (ctx.site.siteType !== "uploaded") return { error: "This site is not an uploaded site." };
-      const jobs = await db<{ id: string; filename: string | null; state: string; packageType: string; summary: UploadJobSummary | null }[]>`select id, filename, state::text, package_type, dry_run_result as summary from public.import_jobs where id = ${jobId} and site_id = ${siteId}`;
-      const job = jobs[0];
-      if (!job || job.packageType !== "uploaded_site") return { error: "The upload was not found." };
-      if (job.state !== "dry_run") return { error: job.state === "completed" ? "This upload was already published." : "This upload cannot be published; upload the ZIP again." };
-      const key = archiveKey(ctx.site.organizationId, siteId, jobId);
-      const bytes = await getStorage().getPrivate(key);
-      if (!bytes) return { error: "The uploaded ZIP is no longer stored; upload it again." };
-      const github = job.summary?.github ?? null;
-      const result = await publishUploadedSite(user.id, ctx.site, bytes, { filename: job.filename ?? "site.zip", reason, idempotencyKey: `upload:${jobId}`, root: job.summary?.root ?? null, github });
-      if (!result.ok) {
-        await db`update public.import_jobs set state = 'failed', result = ${db.json({ errors: result.errors })}, completed_at = now() where id = ${jobId}`;
-        return { error: result.errors.join(" ") };
-      }
-      await db`update public.import_jobs set state = 'completed', result = ${db.json({ releaseId: result.release.releaseId, version: result.release.version, files: result.release.files, totalBytes: result.release.totalBytes })}, completed_at = now() where id = ${jobId}`;
-      if (github) await markSourcePublished(db, siteId, github, result.release.releaseId);
-      await getStorage().deletePrivatePrefix(key).catch(() => undefined);
-      return { version: result.release.version };
+      if (!ctx) return { ok: false as const, error: "The site was not found." };
+      return publishCheckedJob(db, ctx, user.id, jobId, { reason });
     });
-    if ("error" in outcome) return { error: outcome.error };
+    if (!outcome.ok) return { error: outcome.error };
     version = outcome.version;
   } catch (err) {
     return { error: describeDbError(err).message };

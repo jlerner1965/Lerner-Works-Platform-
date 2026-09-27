@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { withUser, type Db } from "@/server/data/db";
 import { getStorage } from "@/server/media/storage";
-import { inspectSiteArchive, publicNameFor, toUploadedSnapshot, type ArchiveInspection, type GithubSourceRef, type UploadedSnapshot } from "./archive";
+import { inspectSiteArchive, publicNameFor, toUploadedSnapshot, type ArchiveInspection, type DeploySourceRef, type GithubSourceRef, type UploadedSnapshot } from "./archive";
 
 /**
  * Publishing an uploaded site (B7): the ZIP is inspected, every file is copied to public
@@ -50,16 +50,19 @@ export async function publishUploadedSite(
   userId: string,
   site: { id: string; siteType: "structured" | "uploaded" },
   bytes: Uint8Array,
-  opts: { filename: string; reason: string | null; idempotencyKey: string; root?: string | null; github?: GithubSourceRef | null },
+  opts: { filename: string; reason: string | null; idempotencyKey: string; root?: string | null; github?: GithubSourceRef | null; deploy?: DeploySourceRef | null },
+  /** The caller's transaction, when it has one; otherwise one is opened for the release. */
+  db?: Db,
 ): Promise<PublishUploadResult> {
   if (site.siteType !== "uploaded") return { ok: false, errors: ["This site is not an uploaded site."], inspection: null };
   const inspection = inspectSiteArchive(bytes, { root: opts.root ?? null });
   if (inspection.errors.length) return { ok: false, errors: inspection.errors, inspection };
   await copyToPublicStore(inspection);
-  const snapshot: UploadedSnapshot = toUploadedSnapshot(inspection, { filename: opts.filename, archiveBytes: bytes.byteLength, github: opts.github ?? null });
+  const snapshot: UploadedSnapshot = toUploadedSnapshot(inspection, { filename: opts.filename, archiveBytes: bytes.byteLength, github: opts.github ?? null, deploy: opts.deploy ?? null });
   const snapshotHash = createHash("sha256").update(stableJson(snapshot)).digest("hex");
-  const rows = await withUser(userId, (db) => db<{ releaseId: string; version: number; outcome: string }[]>`
-    select release_id, version, outcome from public.publish_uploaded_release(${site.id}, ${db.json(snapshot as never)}, ${snapshotHash}, ${opts.reason}, ${opts.idempotencyKey})`);
+  const publish = (tx: Db) => tx<{ releaseId: string; version: number; outcome: string }[]>`
+    select release_id, version, outcome from public.publish_uploaded_release(${site.id}, ${tx.json(snapshot as never)}, ${snapshotHash}, ${opts.reason}, ${opts.idempotencyKey})`;
+  const rows = db ? await publish(db) : await withUser(userId, publish);
   const row = rows[0];
   if (!row) return { ok: false, errors: ["Publishing returned no result."], inspection };
   return {
@@ -103,6 +106,8 @@ export function inspectionSummary(inspection: ArchiveInspection, source: { filen
     warnings: inspection.warnings,
     errors: inspection.errors,
     leftOut: inspection.leftOut.slice(0, 200),
+    redirects: inspection.redirects.length,
+    headerRules: inspection.headerRules.length,
     github: source.github ?? null,
     listing: inspection.files.slice(0, 300).map((f) => ({ path: f.path, bytes: f.bytes, type: f.type })),
   };

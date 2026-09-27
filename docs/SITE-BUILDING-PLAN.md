@@ -233,6 +233,23 @@ fail the bar.
   `20260927000500_large_uploads_github.sql`. What neither path does: build a site (React,
   Next, Astro, Vite); that stays a separate decision.
 
+### B9 · Push to deploy
+
+- The owner tried Publish from GitHub on `jlerner1965/insidethetowns` and got the check's
+  "has to be built first". Their sites are Astro projects; B8's GitHub path can never publish
+  one of them, a mistake recorded in `docs/LESSONS.md` (1). The owner's words: make the
+  platform useful without taking hours, or write down the mistakes so no session walks the
+  same paths again. Both were done.
+- Status: built and verified in the repository on 2026-09-27 (decision D-029). A deploy token
+  per site lets the repository's own CI hand the built folder to the platform through
+  `public/deploy.sh`, five lines in the workflow after the build; the platform checks and
+  publishes it as the next release with the commit recorded, under the name of the person
+  who created the token, whose rights the token shares. The site's own `_redirects` and
+  `_headers` come with it. UP-08 and UP-09 PASS in `docs/ACCEPTANCE.md`; migration
+  `20260927000700_push_to_deploy.sql`. The owner's part for Inside the Towns: one *Uploaded*
+  site per town, one token each as a repository secret, the matrix step from
+  `docs/UPLOADED-SITES.md` in `ci.yml`, and the scheduled rebuild pointed at the same job.
+
 ## 4 Acceptance rows
 
 | ID | Scenario | Expected |
