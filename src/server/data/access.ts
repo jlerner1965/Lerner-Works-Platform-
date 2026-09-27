@@ -27,6 +27,8 @@ export interface SiteRow {
   timeZone: string;
   mode: "demo" | "live";
   status: "active" | "archived";
+  /** Built here from a preset (structured), or built anywhere and uploaded as a ZIP (B7). */
+  siteType: "structured" | "uploaded";
   contactEmail: string | null;
   contactPhone: string | null;
   contactAddress: string | null;

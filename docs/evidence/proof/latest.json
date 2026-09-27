@@ -1,13 +1,13 @@
 {
   "measure": "B4 proof: two client sites built end to end through the dashboard from their onboarding packages, counted per task and timed (scripted), then captured under every composition of the preset",
-  "recordedAt": "2026-09-27T02:48:16.002Z",
+  "recordedAt": "2026-09-27T03:33:07.227Z",
   "note": "Screens, fields and actions are what a person does; the time is the script's, which types instantly and never reads. A person's own timing uses the same packages (pnpm proof:package) on production.",
   "capturesIn": ".data/proof-captures",
   "sites": [
     {
       "key": "cedar-bend",
       "name": "Cedar Bend Guide",
-      "siteId": "a358f187-54f5-4010-82a6-477b942c6fb1",
+      "siteId": "f8f559ed-18f5-40e9-879c-2f4361cb578a",
       "composition": "magazine",
       "tasks": [
         {
@@ -15,56 +15,56 @@
           "screens": 2,
           "fields": 2,
           "actions": 1,
-          "ms": 521
+          "ms": 510
         },
         {
           "task": "Import the package (brand, contact details, 19 places, 7 events, 6 articles, 50 pictures, the home and About text)",
           "screens": 2,
           "fields": 1,
           "actions": 3,
-          "ms": 26350
+          "ms": 23889
         },
         {
           "task": "Choose the composition",
           "screens": 1,
           "fields": 1,
           "actions": 2,
-          "ms": 391
+          "ms": 1145
         },
         {
           "task": "Compose the home page (collage hero, two picture rows, a photo band, two quotations, the editors, the members)",
           "screens": 2,
           "fields": 53,
           "actions": 22,
-          "ms": 5850
+          "ms": 5138
         },
         {
           "task": "Compose the About page (offset hero, gallery with the lightbox)",
           "screens": 2,
           "fields": 20,
           "actions": 10,
-          "ms": 1794
+          "ms": 1775
         },
         {
           "task": "Add an event from the list",
           "screens": 2,
           "fields": 6,
           "actions": 3,
-          "ms": 702
+          "ms": 674
         },
         {
           "task": "Publish",
           "screens": 1,
           "fields": 0,
           "actions": 2,
-          "ms": 1301
+          "ms": 1266
         }
       ],
       "totals": {
         "screens": 12,
         "fields": 83,
         "actions": 43,
-        "ms": 36909
+        "ms": 34397
       },
       "captures": {
         "magazine": [
@@ -347,7 +347,7 @@
     {
       "key": "bookcliff",
       "name": "Bookcliff Farm Markets",
-      "siteId": "652eb5fd-a366-4fc4-9651-c711af226aab",
+      "siteId": "11df6c7e-f4c2-4a7c-a420-b97ae5948bd1",
       "composition": "storefront",
       "tasks": [
         {
@@ -355,42 +355,42 @@
           "screens": 2,
           "fields": 3,
           "actions": 1,
-          "ms": 495
+          "ms": 441
         },
         {
           "task": "Import the package (brand, contact details, 5 services, 3 markets, 30 pictures, the home and About text)",
           "screens": 2,
           "fields": 1,
           "actions": 3,
-          "ms": 13542
+          "ms": 12711
         },
         {
           "task": "Choose the composition",
           "screens": 1,
           "fields": 1,
           "actions": 2,
-          "ms": 1011
+          "ms": 316
         },
         {
           "task": "Compose the home page (two picture rows, a photo band, two quotations, the people, the members)",
           "screens": 2,
           "fields": 47,
           "actions": 18,
-          "ms": 3916
+          "ms": 3503
         },
         {
           "task": "Publish",
           "screens": 1,
           "fields": 0,
           "actions": 2,
-          "ms": 486
+          "ms": 596
         }
       ],
       "totals": {
         "screens": 8,
         "fields": 52,
         "actions": 26,
-        "ms": 19450
+        "ms": 17567
       },
       "captures": {
         "storefront": [

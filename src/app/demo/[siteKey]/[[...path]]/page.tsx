@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { resolveDemoRelease, resolveRoute, normalizePublicPath } from "@/server/publishing/public-site";
 import { makeRenderContext, queryRecord, publicMetadata } from "@/server/publishing/render";
-import { getConfig } from "@/server/config";
+import { getConfig, previewOrigin } from "@/server/config";
 import { getTheme } from "@/themes";
+import { resolveUploadedPreview } from "@/server/uploaded/serve";
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +23,13 @@ export default async function DemoSitePage({ params, searchParams }: { params: P
   const { siteKey, path } = await params;
   const query = queryRecord(await searchParams);
   const release = await resolveDemoRelease(siteKey);
-  if (!release) notFound();
+  if (!release) {
+    // An uploaded site (B7) is previewed on a hostname of its own, never on the dashboard's origin.
+    const uploaded = await resolveUploadedPreview(siteKey);
+    const origin = uploaded ? previewOrigin(siteKey) : null;
+    if (origin) redirect(`${origin}${normalizePublicPath(path) === "/" ? "" : normalizePublicPath(path)}`);
+    notFound();
+  }
   const currentPath = normalizePublicPath(path);
   const route = resolveRoute(release.snapshot, currentPath);
   const basePath = `/demo/${siteKey}`;

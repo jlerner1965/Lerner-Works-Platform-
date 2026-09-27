@@ -8,6 +8,8 @@ const schema = z.object({
   APP_ENV: z.enum(["local", "staging", "production"]).default("local"),
   APP_URL: z.string().url().default("http://localhost:3000"),
   APP_HOST: z.string().min(1).default("localhost:3000"),
+  /** Hostname under which uploaded sites are previewed as `<site key>.<PREVIEW_DOMAIN>` (B7); locally `preview.localhost`. Unset on a hosted runtime means no previews until it is. */
+  PREVIEW_DOMAIN: optionalText,
   DATABASE_URL: z.string().min(1),
   DATABASE_ADMIN_URL: optionalText,
   AUTH_PROVIDER: z.enum(["local", "supabase"]).default("local"),
@@ -92,8 +94,21 @@ export function getConfig(): AppConfig {
       throw new Error(`Hosted configuration (APP_ENV=${cfg.APP_ENV}) is incomplete: ${problems.join("; ")}. See docs/LAUNCH-CHECKLIST.md.`);
     }
   }
-  cached = { ...cfg, isLocal, jobTriggerSecret };
+  const previewDomain = (cfg.PREVIEW_DOMAIN ?? (isLocal ? "preview.localhost" : "")).toLowerCase().replace(/:\d+$/, "");
+  if (previewDomain && !/^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/.test(previewDomain)) {
+    throw new Error("PREVIEW_DOMAIN must be a hostname such as preview.example.com (no scheme, no port).");
+  }
+  cached = { ...cfg, PREVIEW_DOMAIN: previewDomain || undefined, isLocal, jobTriggerSecret };
   return cached;
+}
+
+/** The preview address of an uploaded site (B7), or null where no preview hostname is configured. */
+export function previewOrigin(siteKey: string): string | null {
+  const cfg = getConfig();
+  if (!cfg.PREVIEW_DOMAIN) return null;
+  const app = new URL(cfg.APP_URL);
+  const port = app.port ? `:${app.port}` : "";
+  return `${app.protocol}//${siteKey}.${cfg.PREVIEW_DOMAIN}${port}`;
 }
 
 /** Test hook: forget the cached configuration so a changed environment is re-read. */

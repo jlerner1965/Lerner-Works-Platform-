@@ -13,6 +13,7 @@ import { capabilitiesFor } from "@/themes/capabilities";
 import { typographyPresets } from "@/themes/fonts";
 import { loadDemoContentAction } from "@/server/actions/demo";
 import { fixtureForSite } from "@/server/demo/load";
+import { UploadedOverview } from "./uploaded-overview";
 
 export const dynamic = "force-dynamic";
 
@@ -21,13 +22,15 @@ export const dynamic = "force-dynamic";
  * with their live state, a setup checklist of actual missing data, and the site's facts.
  * Counts are real; nothing here is invented.
  */
-export default async function SiteOverviewPage({ params, searchParams }: { params: Promise<{ siteId: string }>; searchParams: Promise<{ demo?: string; demoError?: string; created?: string }> }) {
+export default async function SiteOverviewPage({ params, searchParams }: { params: Promise<{ siteId: string }>; searchParams: Promise<{ demo?: string; demoError?: string; created?: string; published?: string }> }) {
   const { siteId } = await params;
   const sp = await searchParams;
   const user = await requireUser(`/app/sites/${siteId}`);
   const ctx = await getSiteContext(user.id, siteId);
   if (!ctx) notFound();
   const { site, capabilities: cap } = ctx;
+  // An uploaded site (B7) has no content, look or publish tasks: its overview is the release, the addresses and the inbox.
+  if (site.siteType === "uploaded") return <UploadedOverview ctx={ctx} userId={user.id} notices={{ created: sp.created, published: sp.published }} />;
 
   const data = await withUser(user.id, async (db) => {
     const [stats] = await db<{ items: number; unpublished: number; waitingReviews: number; newInquiries: number; latestReleaseVersion: number | null; latestReleaseAt: Date | null }[]>`

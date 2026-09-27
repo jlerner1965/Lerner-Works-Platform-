@@ -197,6 +197,19 @@ fail the bar.
   features. The bar is re-judged on the first real client site hosted this way; the step after
   it, once that site is live, is letting a hand-built page pull in the platform's live pieces
   (hours, events, a form) through markers the publish step expands into plain HTML.
+- B7 status: built and verified in the repository on 2026-09-27 (decision D-026). A site is
+  created as *Uploaded* (no preset, no starter pages); its dashboard is Upload, Inbox,
+  Settings, Team and the activity log; a ZIP is checked before anything changes (what a static
+  host can serve, safe paths, `index.html` at the top, the limits) and published as the next
+  immutable release, restorable like any other; the site answers on its preview hostname
+  (`<key>.<PREVIEW_DOMAIN>`, never the dashboard's origin, never indexed) and on its live
+  domain with clean addresses, its own 404 page, content-hash ETags and a minute at the CDN;
+  its own contact form posts to `/_lw/inquiry` and lands in the inbox; a sample site is there
+  to try. UP-01 to UP-04 PASS in `docs/ACCEPTANCE.md`; the owner's guide is
+  `docs/UPLOADED-SITES.md`; migration `20260927000400_uploaded_sites.sql`. On production the
+  preview needs `PREVIEW_DOMAIN` and the wildcard hostname on the Vercel project, which wait
+  for the owner's go; the programme is done when one real client site is live this way, its
+  form delivering, and the owner has restored a release once.
 
 ## 4 Acceptance rows
 

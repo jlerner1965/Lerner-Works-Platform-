@@ -13,7 +13,7 @@ export default async function NewSitePage() {
   if (orgs.length === 0) notFound();
   return (
     <>
-      <PageHeader title="Create site" description="Creates database records from a preset: a site, its first configuration revision and empty starter pages. No source code is changed. A new site contains empty states, not demonstration content." />
+      <PageHeader title="Create site" description="Creates the site's records: an uploaded site waits for its ZIP; a site built here gets its first configuration and empty starter pages from the preset. No source code is changed, and nothing is invented." />
       <CreateSiteForm organizations={orgs.map((o) => ({ id: o.id, name: o.name }))} presets={Object.values(presets).map((p) => ({ key: p.key, label: p.label, description: p.description, defaultTimeZone: p.defaultTimeZone }))} />
     </>
   );

@@ -416,3 +416,33 @@ that the organization's audit trail, including the deletion, remains in the data
 operator; the last organization a person owns is refused, because only an existing owner can
 create the next one (the onboarding rule of `create_organization`). (6) There is no undo: the
 dashboard says so and points at the site package export first.
+
+## D-026 · 2026-09-27 · Uploaded sites: a finished site hosted as a release, previewed on a hostname of its own
+
+The owner's verdict on the bar (SB-09) was that the structured platform is too complicated
+and too constrained for the sites they build: they want to build a site anywhere and upload
+it (phase B7). Decided, reversing D-006 and D-017 for this kind of site only: (1) A site has a
+type. An uploaded site's release is a manifest of files (schema series 101 of
+`releases.schema_version`), not content: the same table, the same immutability, the same
+restore. Structured sites keep everything they have and gain nothing. (2) The ZIP is what a
+static host serves: HTML, CSS, JavaScript, images, fonts, documents and media, by extension;
+server-side files are refused, hidden files skipped, an index page at the root required, a
+zipped folder's name dropped; 64 MB, 2,000 files, 25 MB a file. (3) Files are stored under
+their content hash in the public store and the manifest maps the site's paths to them;
+serving resolves a page without its extension, a folder's index and the site's own 404 page,
+with the hash as the ETag and a minute at the CDN, so a new upload is visible within a minute
+and unchanged files are not transferred again. (4) An uploaded site's JavaScript never runs
+on the dashboard's origin: previews live on `<key>.<PREVIEW_DOMAIN>`, a hostname of their own
+(a wildcard under the platform domain, which the Vercel-managed zone allows), and the demo
+route redirects there; without a preview hostname there is no preview, never one on the
+application host. (5) The proxy routes a customer hostname by asking the application which
+kind of site it serves, through a public read function, remembered per instance for a minute;
+the file handler answers only requests the proxy marked. (6) The contact form is the site's
+own HTML posting to `/_lw/inquiry` on the site's address, read as a form post, stored by the
+same function with the same limits and honeypot as the platform's forms, and answered with a
+redirect back into the site carrying the receipt; a faulty post gets a plain page naming what
+to correct. (7) Publication is one SQL function that inserts and activates, idempotent by
+key; the files are copied before it runs, so a storage failure leaves no release that cannot
+be served. (8) The dashboard of an uploaded site is Upload (with the releases and restore),
+Inbox, Settings (details, domains, publishing mode), Team and the activity log; the structured
+sections answer 404 for it.

@@ -41,6 +41,17 @@ too complicated, not enough easy customization like being able to upload zip"; S
 `docs/ACCEPTANCE.md`); the direction decided with them is B7, uploaded sites (a site built
 anywhere, uploaded as a ZIP, hosted as an immutable release on the client's domain with the
 inquiry inbox and previews on a hostname of their own), the structured sites kept as they are.
+B7 is built (D-026): `sites.site_type`; the ZIP read by `src/server/uploaded/archive.ts`
+(what a static host serves, limits, an index page), published by
+`src/server/uploaded/publish.ts` (files under content hashes in the public store, then
+`public.publish_uploaded_release`, schema series 101), served by `src/server/uploaded/serve.ts`
+through `/uploaded/<preview|host>/<target>/files/…` which only the proxy reaches (preview
+hostnames `<key>.<PREVIEW_DOMAIN>`; live hosts routed by `/api/public/site-type`); the site's
+own form posts to `/_lw/inquiry`, which the proxy maps to `…/<target>/inquiry` (a route folder
+starting with `_` is private to Next.js and never routed, so the segment itself cannot be
+`_lw`); the dashboard of an uploaded site is Upload, Inbox, Settings, Team
+and the activity log (`src/server/data/site-nav.ts`, the layout guard); the owner's guide is
+`docs/UPLOADED-SITES.md`.
 Public themes use only the derived brand tokens, design variables and font variables described
 in `docs/DESIGN-TOKENS.md` (a unit test rejects literal colours in `src/themes`). A theme or
 renderer change must keep every frozen release in `tests/fixtures/releases/` rendering as

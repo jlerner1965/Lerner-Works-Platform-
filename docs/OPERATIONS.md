@@ -358,6 +358,47 @@ and then accepts at `/invite/<token>`; that path is unverified in this environme
   `public.record_removal_leftovers` (migration `20260927000300_removal.sql`); the service is
   `src/server/data/removal.ts`.
 
+## Uploaded sites (site-building programme B7)
+
+- Create site → "Uploaded". The site has no pages of its own here: its pages arrive in a ZIP.
+  Upload (sidebar) takes the ZIP, checks it (what it holds, what is refused, what is missing;
+  nothing changes until it is published) and shows the check on a job page; "Publish as
+  release vN" copies the files to the public store under their content hashes and activates
+  the release in one step. Releases are listed on the Upload page with restore, like any
+  release. "Download the sample site" gives a first ZIP to try the flow with. The owner's
+  guide is `docs/UPLOADED-SITES.md`.
+- What a ZIP may hold: HTML, CSS, JavaScript, JSON, XML, text, images (PNG, JPEG, GIF, WebP,
+  AVIF, SVG, ICO), fonts, PDF, video and audio (`src/server/uploaded/archive.ts`);
+  `index.html` at the top, or inside one folder whose name is dropped; `404.html` for missing
+  addresses; up to 64 MB, 2,000 files, 25 MB a file. Server-side files (PHP and the like) and
+  unknown types are refused, hidden files are skipped, a form that does not post to the
+  platform is pointed out.
+- Addresses: `/about` serves `about.html` or `about/index.html`, `/` serves `index.html`. Each
+  file carries its type, its content hash as the ETag and `nosniff`; on the live domain
+  `Cache-Control: public, max-age=0, s-maxage=60, must-revalidate` (a new upload is visible
+  within a minute); previews are `no-store` and `noindex`, and their `robots.txt` disallows
+  everything.
+- Previews: `http(s)://<site key>.<PREVIEW_DOMAIN>/`, a hostname of its own, never the
+  dashboard's origin (an uploaded script must not reach the session there). Locally
+  `PREVIEW_DOMAIN` defaults to `preview.localhost` (browsers resolve `*.localhost` to this
+  machine; Node does not, so the browser tests open previews in the browser). Hosted, set
+  `PREVIEW_DOMAIN` (for example `preview.lernerworksplatform.dev`) and add the wildcard
+  hostname `*.<PREVIEW_DOMAIN>` to the Vercel project (the zone is Vercel-managed). Without it
+  there is no preview; the live domain still serves. `/demo/<key>` of an uploaded site
+  redirects to its preview.
+- Live: Settings → Domains as for any site, then Settings → Publishing → live. The proxy asks
+  `/api/public/site-type?host=` which kind of site a hostname serves and routes an uploaded
+  site's requests to the file handler (`/uploaded/host/<hostname>/files/…`, marked with a
+  header no client can set) and its form to `/uploaded/host/<hostname>/inquiry`; the answer is
+  cached per instance for a minute.
+- The contact form: the snippet on the site's overview posts to `/_lw/inquiry` on the site's
+  own address (form-encoded); the inquiry is stored with the same limits, rate limits and
+  honeypot as the platform's forms, delivered to the recipients, and the visitor is redirected
+  to the page named in `next` with `?sent=<receipt>`; an invalid post answers a plain page
+  naming the fields to correct.
+- Removal (B6) takes an uploaded site's public files with it unless another site's release
+  carries the same bytes.
+
 ## Backups and restore rehearsal
 
 Site export is portability, not disaster recovery.

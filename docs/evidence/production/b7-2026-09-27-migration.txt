@@ -1,0 +1,32 @@
+B7 (uploaded sites) migration on the production project, 2026-09-27
+Project: lerner-works-platform-production (fvpooyxkuvltjzjbevxf), applied through the Supabase
+Management API by `pnpm db:migrate --project-ref fvpooyxkuvltjzjbevxf`, ahead of the merge of
+the branch (the deployed B5 code keeps working: its eight-argument create_site call resolves
+through the new default parameter, and nothing else it runs changed).
+
+Release gate on the final code before the migration: GATE PASSED in 843 s (setup check 1 s,
+lint 18 s, typecheck 16 s, unit 6 s, integration 77 s, browser 702 s, production build 23 s);
+170 unit tests in 22 files, 85 integration tests in 22 files, 42 browser tests.
+
+pnpm db:migrate --project-ref fvpooyxkuvltjzjbevxf            03:38:19Z .. 03:38:21Z
+  Migrating hosted project fvpooyxkuvltjzjbevxf through the Supabase Management API
+    applied 20260927000400_uploaded_sites.sql
+  Applied 1 migration(s); 15 already applied.
+
+Read-only verification afterwards (Management API query endpoint):
+enum values        [{"v":"{structured,uploaded}"}]
+sites.site_type    [{"column_name":"site_type","udt_name":"site_type","column_default":"'structured'::site_type","is_nullable":"NO"}]
+functions          create_site(p_org uuid, p_key text, p_name text, p_preset site_preset, p_time_zone text, p_mode site_mode, p_contact jsonb, p_config jsonb, p_site_type site_type)
+                   delete_site(p_site uuid, p_confirm_key text)
+                   get_host_site_type(p_host text)
+                   publish_uploaded_release(p_site uuid, p_snapshot jsonb, p_snapshot_hash text, p_reason text, p_idempotency_key text)
+import_jobs check  CHECK ((package_type = ANY (ARRAY['csv'::text, 'site_package'::text, 'onboarding'::text, 'uploaded_site'::text])))
+execute privilege  anon on get_host_site_type(text): true; authenticated on publish_uploaded_release(...): true
+recorded           20260927000400_uploaded_sites.sql at 2026-09-27 03:38:21.623288+00
+
+Not done here, and needing the owner's go because they touch the platform's own domain:
+PREVIEW_DOMAIN=preview.lernerworksplatform.dev on the production target and the wildcard
+hostname *.preview.lernerworksplatform.dev on the Vercel project (docs/LAUNCH-CHECKLIST.md
+section 7). Until then an uploaded site on production has no preview and serves only on its
+live domain. The live checks of the dashboard path (create an uploaded site, upload the sample
+ZIP, publish, the form into the inbox, restore) follow the deployment of the merged branch.

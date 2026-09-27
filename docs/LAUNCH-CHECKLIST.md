@@ -85,6 +85,7 @@ From `.env.example`; required outside local (the application refuses to start ot
 | `SUPABASE_STORAGE_PRIVATE_BUCKET`, `SUPABASE_STORAGE_PUBLIC_BUCKET` | `private`, `public-assets` |
 | `CRON_SECRET` (or `JOB_TRIGGER_SECRET`) | 32+ random characters; Vercel Cron sends it as a bearer token |
 | `VERCEL_API_TOKEN`, `VERCEL_PROJECT_ID`, `VERCEL_TEAM_ID` | for domain registration and verification |
+| `PREVIEW_DOMAIN` (optional) | `preview.<platform domain>`, for example `preview.lernerworksplatform.dev`; an uploaded site's preview answers on `https://<site key>.<PREVIEW_DOMAIN>/` and needs the wildcard hostname `*.<PREVIEW_DOMAIN>` added to the Vercel project (section 7). Unset, uploaded sites have no preview and serve only on their live domain |
 
 `vercel.json` schedules `/api/jobs/deliver` every 5 minutes and `/api/jobs/retention`
 daily. Build command `pnpm build`, install `pnpm install --frozen-lockfile`, Node 22.
@@ -173,6 +174,13 @@ Only after all seven pass can the release be labelled **hosted staging verified*
       with a throwaway hostname; first owner and organization "Lerner Works" created with
       `pnpm bootstrap:owner --project-ref … --confirm-hosted` (password discarded; the owner
       sets one through "Forgot your password?").
+- [ ] Uploaded sites (B7): set `PREVIEW_DOMAIN` (for example `preview.lernerworksplatform.dev`)
+      on the production target and add the wildcard hostname `*.<PREVIEW_DOMAIN>` to the Vercel
+      project (the zone is Vercel-managed, so the record is created with it); redeploy; open
+      `https://<site key>.<PREVIEW_DOMAIN>/` of a published uploaded site and confirm the page,
+      the `X-Robots-Tag: noindex, nofollow` header and a `robots.txt` that disallows everything.
+      Until then uploaded sites have no preview and serve only on their live domain. Needs the
+      owner's go, like every change to the platform's own domain.
 - [ ] Create the customer organization and site; load **approved real content** (never the
       demonstration seed); publish; add the customer's hostname; complete verification with the
       customer's DNS provider; activate; go live. One pilot at a time.
@@ -183,13 +191,16 @@ Only after all seven pass can the release be labelled **hosted staging verified*
 
 Host routing consults only the `Host` header; Vercel forwards the requested customer
 hostname as `Host` for every domain attached to the project. `X-Forwarded-Host` is ignored.
-The dashboard is served only on `APP_HOST`; every other hostname is resolved through the
-verified domain registry or answered with a neutral 404. Two paths are exempt and answer on
-every hostname: `/healthz` and the job endpoints under `/api/jobs/`, because Vercel Cron
-calls them on the deployment's generated `*.vercel.app` URL, not on `APP_HOST`. For the same
-reason Deployment Protection must leave production deployment URLs open ("Only Preview
-Deployments"): under Standard Protection the cron request is answered with a sign-in
-redirect, which cron jobs do not follow, and nothing is logged.
+The dashboard is served only on `APP_HOST`; a hostname under `PREVIEW_DOMAIN` is the preview
+of an uploaded site (`<site key>.<PREVIEW_DOMAIN>`); every other hostname is resolved through
+the verified domain registry, as an uploaded site's files or a structured site's pages, or
+answered with a neutral 404. Three paths are exempt and answer on every hostname: `/healthz`,
+the job endpoints under `/api/jobs/`, because Vercel Cron calls them on the deployment's
+generated `*.vercel.app` URL, not on `APP_HOST`, and the public lookup under `/api/public/`
+(`site-type?host=`), which the proxy itself calls to learn which kind of site a customer
+hostname serves. For the same reason Deployment Protection must leave production deployment
+URLs open ("Only Preview Deployments"): under Standard Protection the cron request is answered
+with a sign-in redirect, which cron jobs do not follow, and nothing is logged.
 
 ## 9. What remains outside this repository
 

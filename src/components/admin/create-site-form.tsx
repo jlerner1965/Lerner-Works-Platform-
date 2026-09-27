@@ -9,6 +9,7 @@ export function CreateSiteForm({ organizations, presets }: { organizations: Arra
   const [state, action, pending] = useActionState<CreateSiteState, FormData>(createSiteAction, {});
   const v = state.values ?? {};
   const [org, setOrg] = useState(v.organizationId ?? organizations[0]?.id ?? "new");
+  const [siteType, setSiteType] = useState<"structured" | "uploaded">(v.siteType === "uploaded" ? "uploaded" : "structured");
   const [name, setName] = useState(v.name ?? "");
   const [key, setKey] = useState(v.key ?? "");
   const [keyTouched, setKeyTouched] = useState(Boolean(v.key));
@@ -16,6 +17,17 @@ export function CreateSiteForm({ organizations, presets }: { organizations: Arra
   return (
     <form action={action} className="max-w-2xl space-y-6">
       {state.error ? <Alert tone="danger" role="alert">{state.error}</Alert> : null}
+      <fieldset className="rounded border border-line bg-surface p-4">
+        <legend className="px-1 text-sm font-semibold">How the site is built</legend>
+        <label className="mb-2 flex items-start gap-2 text-sm">
+          <input type="radio" name="siteType" value="uploaded" checked={siteType === "uploaded"} onChange={() => setSiteType("uploaded")} className="mt-1" />
+          <span><span className="font-medium">Uploaded</span><br /><span className="text-ink-muted">Built anywhere you like, zipped and uploaded here. The platform hosts it on its domain with releases you can restore, and its contact form lands in the inbox.</span></span>
+        </label>
+        <label className="flex items-start gap-2 text-sm">
+          <input type="radio" name="siteType" value="structured" checked={siteType === "structured"} onChange={() => setSiteType("structured")} className="mt-1" />
+          <span><span className="font-medium">Built here</span><br /><span className="text-ink-muted">Pages, places, events, stores and services edited in this dashboard and rendered by one of the platform&apos;s compositions.</span></span>
+        </label>
+      </fieldset>
       <fieldset className="rounded border border-line bg-surface p-4">
         <legend className="px-1 text-sm font-semibold">Organization</legend>
         <Field label="Organization" htmlFor="organizationId" required error={e.organizationId}>
@@ -30,16 +42,21 @@ export function CreateSiteForm({ organizations, presets }: { organizations: Arra
           </Field>
         ) : null}
       </fieldset>
-      <fieldset className="rounded border border-line bg-surface p-4">
-        <legend className="px-1 text-sm font-semibold">Preset</legend>
-        {presets.map((p) => (
-          <label key={p.key} className="mb-2 flex items-start gap-2 text-sm">
-            <input type="radio" name="preset" value={p.key} defaultChecked={(v.preset ?? presets[0]?.key) === p.key} className="mt-1" />
-            <span><span className="font-medium">{p.label}</span><br /><span className="text-ink-muted">{p.description}</span></span>
-          </label>
-        ))}
-        {e.preset ? <p className="text-sm text-danger">{e.preset}</p> : null}
-      </fieldset>
+      {siteType === "structured" ? (
+        <fieldset className="rounded border border-line bg-surface p-4">
+          <legend className="px-1 text-sm font-semibold">Preset</legend>
+          {presets.map((p) => (
+            <label key={p.key} className="mb-2 flex items-start gap-2 text-sm">
+              <input type="radio" name="preset" value={p.key} defaultChecked={(v.preset ?? presets[0]?.key) === p.key} className="mt-1" />
+              <span><span className="font-medium">{p.label}</span><br /><span className="text-ink-muted">{p.description}</span></span>
+            </label>
+          ))}
+          {e.preset ? <p className="text-sm text-danger">{e.preset}</p> : null}
+        </fieldset>
+      ) : (
+        // An uploaded site keeps the contact fields and the brand record of the first preset; nothing of it is rendered.
+        <input type="hidden" name="preset" value={presets[0]?.key ?? "community_guide"} />
+      )}
       <fieldset className="rounded border border-line bg-surface p-4">
         <legend className="px-1 text-sm font-semibold">Identity</legend>
         <Field label="Site name" htmlFor="name" required error={e.name}>
