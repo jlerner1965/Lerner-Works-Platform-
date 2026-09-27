@@ -23,15 +23,20 @@ export interface CreateSiteInput {
   timeZone: string;
   mode: "demo" | "live";
   contact: { email?: string; phone?: string; address?: string; inquiryRecipients?: string[] };
+  /** Structured (built here from the preset) or uploaded (built anywhere, uploaded as a ZIP; no starter pages). */
+  siteType?: "structured" | "uploaded";
 }
 
 /**
  * Creates a site from a preset: the site record, its first configuration revision, and the
  * preset's initial pages. Creates records only; no source code or repository is touched.
+ * An uploaded site (B7) gets the record and the configuration, and no pages: its pages arrive
+ * in the ZIP.
  */
 export async function createSiteFromPreset(userId: string, input: CreateSiteInput): Promise<{ siteId: string }> {
   const preset = presets[input.preset];
   const config = siteConfigSchema.parse(preset.config({ siteName: input.name }));
+  const siteType = input.siteType ?? "structured";
   return withUser(userId, async (db) => {
     const [row] = await db<{ createSite: string }[]>`
       select public.create_site(${input.organizationId}, ${input.key}, ${input.name}, ${input.preset}, ${input.timeZone}, ${input.mode},
@@ -40,9 +45,10 @@ export async function createSiteFromPreset(userId: string, input: CreateSiteInpu
           phone: input.contact.phone ?? "",
           address: input.contact.address ?? "",
           inquiryRecipients: input.contact.inquiryRecipients ?? [],
-        })}, ${db.json(config as never)}) as create_site`;
+        })}, ${db.json(config as never)}, ${siteType}::public.site_type) as create_site`;
     if (!row) throw new Error("create_site returned nothing");
     const siteId = row.createSite;
+    if (siteType === "uploaded") return { siteId };
     // The creator is an organization owner; unless the site requires review, its starter pages are approved on creation (B1).
     const [policy] = await db<{ reviewRequired: boolean }[]>`select review_required from public.sites where id = ${siteId}`;
     for (const page of preset.initialPages({ siteName: input.name })) {

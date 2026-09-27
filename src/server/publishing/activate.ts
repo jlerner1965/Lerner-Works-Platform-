@@ -5,6 +5,10 @@ import { validateManifest, type ValidationResult } from "@/server/publishing/val
 import { toSnapshotMedia, type BuiltManifest, type MediaAssetRow } from "@/server/publishing/manifest";
 import { SUPPORTED_SNAPSHOT_SCHEMA_VERSIONS, type ReleaseSnapshot } from "@/server/publishing/snapshot";
 import { publicAssetContentType } from "@/server/media/content-types";
+import { UPLOADED_SCHEMA_VERSION } from "@/server/uploaded/archive";
+
+/** Every release format the running application can serve: the structured snapshots and the uploaded-site manifests (B7). */
+export const RESTORABLE_SCHEMA_VERSIONS = [...SUPPORTED_SNAPSHOT_SCHEMA_VERSIONS, UPLOADED_SCHEMA_VERSION];
 
 export type ActivationResult =
   | { outcome: "activated" | "already_activated"; releaseId: string }
@@ -104,7 +108,7 @@ export type RestoreResult = { outcome: "restored" | "already_restored" | "alread
 export async function restoreRelease(userId: string, releaseId: string, idempotencyKey: string, reason: string): Promise<RestoreResult> {
   try {
     const rows = await withUser(userId, (db) => db<{ releaseId: string | null; outcome: string }[]>`
-      select release_id, outcome from public.restore_release(${releaseId}, ${idempotencyKey}, ${reason}, ${SUPPORTED_SNAPSHOT_SCHEMA_VERSIONS})`);
+      select release_id, outcome from public.restore_release(${releaseId}, ${idempotencyKey}, ${reason}, ${RESTORABLE_SCHEMA_VERSIONS})`);
     const row = rows[0];
     if (!row || !row.releaseId) return { outcome: "error", message: "Restore returned no result." };
     return { outcome: row.outcome as "restored" | "already_restored" | "already_active", releaseId: row.releaseId };

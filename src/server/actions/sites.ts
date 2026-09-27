@@ -18,6 +18,8 @@ export interface CreateSiteState {
 const schema = z.object({
   organizationId: z.uuid().or(z.literal("new")),
   newOrganizationName: z.string().trim().max(120).default(""),
+  /** Built here from a preset, or built anywhere and uploaded as a ZIP (B7). */
+  siteType: z.enum(["structured", "uploaded"]).default("structured"),
   preset: z.string().refine(isPresetKey, "Choose a preset."),
   name: z.string().trim().min(1, "Enter a site name.").max(120),
   key: z.string().trim().min(1, "Enter an internal key.").max(60),
@@ -59,6 +61,7 @@ export async function createSiteAction(_prev: CreateSiteState, formData: FormDat
       timeZone: d.timeZone,
       mode: d.mode,
       contact: { email: d.contactEmail, phone: d.contactPhone, address: d.contactAddress, inquiryRecipients: recipients },
+      siteType: d.siteType,
     });
     siteId = result.siteId;
   } catch (err) {

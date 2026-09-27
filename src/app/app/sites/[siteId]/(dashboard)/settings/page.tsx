@@ -52,6 +52,9 @@ export default async function SettingsPage({ params }: { params: Promise<{ siteI
   const { config } = data.config;
   const hidden = { siteId, baseRevisionId: data.config.id };
   const site = ctx.site;
+  // An uploaded site (B7) carries its pages in the ZIP: metadata, modules, listing pages and navigation are not its.
+  const structured = site.siteType === "structured";
+  const visibleSections = structured ? sections : sections.filter((s) => s.id === "site-details" || s.id === "domains" || s.id === "publishing" || s.id === "remove");
   const cfg = getConfig();
   const providerConfigured = getDomainProvider() !== null;
   const canonical = data.domains.find((d) => d.isCanonical && d.status === "active" && d.verifiedAt);
@@ -64,10 +67,10 @@ export default async function SettingsPage({ params }: { params: Promise<{ siteI
       <PageHeader
         eyebrow={ctx.organization.name}
         title="Settings"
-        description={`Configuration revision ${data.config.version} (saved ${formatDateTime(data.config.createdAt, site.timeZone)}). Every save creates a new immutable configuration revision; the public site changes when you publish. Brand, composition and design options are on the Look page.`}
+        description={structured ? `Configuration revision ${data.config.version} (saved ${formatDateTime(data.config.createdAt, site.timeZone)}). Every save creates a new immutable configuration revision; the public site changes when you publish. Brand, composition and design options are on the Look page.` : "The site's details and inquiry recipients, its domains and its publishing mode. What the site looks like comes from the ZIP you upload."}
       />
       <nav aria-label="Settings sections" className="mb-4 flex flex-wrap gap-x-4 gap-y-1 text-sm">
-        {sections.map((s) => <a key={s.id} href={`#${s.id}`} className="text-action underline">{s.label}</a>)}
+        {visibleSections.map((s) => <a key={s.id} href={`#${s.id}`} className="text-action underline">{s.label}</a>)}
       </nav>
       <div className="grid gap-4 lg:grid-cols-2">
         <div id="site-details">
@@ -85,6 +88,8 @@ export default async function SettingsPage({ params }: { params: Promise<{ siteI
             </SettingsSection>
           </Card>
         </div>
+        {structured ? (
+        <>
         <div id="metadata">
           <Card title="Metadata">
             <SettingsSection action={saveMetadataAction} hidden={hidden}>
@@ -183,6 +188,8 @@ export default async function SettingsPage({ params }: { params: Promise<{ siteI
             </SettingsSection>
           </Card>
         </div>
+        </>
+        ) : null}
         <div id="domains">
           <Card title="Domains">
             <p className="mb-2 text-sm text-ink-muted">A hostname is registered here, then with the hosting provider, verified by the provider, and activated by an owner. Only active domains of a live site are served; aliases redirect to the canonical domain. No DNS value is inferred here: the records shown come from the provider.</p>
@@ -216,7 +223,7 @@ export default async function SettingsPage({ params }: { params: Promise<{ siteI
             ) : (
               <p className="text-sm">Mode: <Badge tone={site.mode === "live" ? "success" : "warning"}>{site.mode}</Badge> Only organization owners change the publishing mode.</p>
             )}
-            <div className="mt-4 border-t border-line pt-3">
+            {structured ? <div className="mt-4 border-t border-line pt-3">
               <p className="font-medium">Review policy</p>
               {ctx.capabilities.isOwner ? (
                 <SettingsSection action={setReviewPolicyAction} hidden={{ siteId }} submitLabel="Save review policy">
@@ -229,7 +236,7 @@ export default async function SettingsPage({ params }: { params: Promise<{ siteI
               ) : (
                 <p className="text-sm">Review: <Badge tone="neutral">{site.reviewRequired ? "required for every revision" : "not required; publishers' saves are approved on save"}</Badge> Only organization owners change the review policy.</p>
               )}
-            </div>
+            </div> : null}
           </Card>
         </div>
         {ctx.capabilities.isOwner && data.counts ? (

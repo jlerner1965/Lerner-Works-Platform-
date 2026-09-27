@@ -3,8 +3,8 @@ import { siteNavSections } from "@/server/data/site-nav";
 import { computeCapabilities, type SiteContext, type SiteRow } from "@/server/data/access";
 
 /** Site-building programme B1 (SB-03): the sidebar is grouped by task and hides what a role cannot use. */
-function context(preset: SiteRow["preset"], orgRole: "owner" | null, siteRole: "editor" | "reviewer" | "publisher" | null): SiteContext {
-  const site = { id: "11111111-1111-4111-8111-111111111111", organizationId: "o", key: "k", name: "Cedar Bend", preset, timeZone: "America/Denver", mode: "demo", status: "active", contactEmail: null, contactPhone: null, contactAddress: null, inquiryRecipients: [], currentConfigRevisionId: null, activeReleaseId: null, designDelegated: false, reviewRequired: false, demoContentLoadedAt: null, createdAt: new Date(), updatedAt: new Date() } as SiteRow;
+function context(preset: SiteRow["preset"], orgRole: "owner" | null, siteRole: "editor" | "reviewer" | "publisher" | null, siteType: SiteRow["siteType"] = "structured"): SiteContext {
+  const site = { id: "11111111-1111-4111-8111-111111111111", organizationId: "o", key: "k", name: "Cedar Bend", preset, timeZone: "America/Denver", mode: "demo", status: "active", siteType, contactEmail: null, contactPhone: null, contactAddress: null, inquiryRecipients: [], currentConfigRevisionId: null, activeReleaseId: null, designDelegated: false, reviewRequired: false, demoContentLoadedAt: null, createdAt: new Date(), updatedAt: new Date() } as SiteRow;
   return { site, organization: { id: "o", name: "Org" }, capabilities: computeCapabilities(orgRole, siteRole) };
 }
 
@@ -43,5 +43,21 @@ describe("sidebar grouped by task", () => {
     const groups = labels(context("location_business", null, "publisher"));
     expect(groups.find((g) => g.title === "Site" && g.items.includes("Publish"))?.items).toEqual(["Look", "Publish", "Inbox", "Settings"]);
     expect(groups.find((g) => g.title === "Manage")?.items).toEqual(["Import & export", "Activity log"]);
+  });
+});
+
+describe("the sidebar of an uploaded site (B7)", () => {
+  it("offers Upload, Inbox, Settings, Team and the activity log, and none of the content, look or publish tasks", () => {
+    expect(labels(context("community_guide", "owner", null, "uploaded"))).toEqual([
+      { title: "Cedar Bend", items: ["Overview"] },
+      { title: "Site", items: ["Upload", "Inbox", "Settings"] },
+      { title: "Manage", items: ["Team", "Activity log"] },
+    ]);
+    expect(labels(context("community_guide", null, "publisher", "uploaded"))).toEqual([
+      { title: "Cedar Bend", items: ["Overview"] },
+      { title: "Site", items: ["Upload", "Inbox", "Settings"] },
+      { title: "Manage", items: ["Activity log"] },
+    ]);
+    expect(labels(context("community_guide", null, "editor", "uploaded"))).toEqual([{ title: "Cedar Bend", items: ["Overview"] }]);
   });
 });
