@@ -436,6 +436,26 @@ and then accepts at `/invite/<token>`; that path is unverified in this environme
   unreadable ("paste it again"); the audit trail carries `organization.secret_set` and
   `organization.secret_removed`.
 
+## Push to deploy (site-building programme B9, D-029)
+
+- A deploy token per site (`site_deploy_tokens`, hash only; `src/server/uploaded/deploy.ts`)
+  is created and revoked on the Upload page by people who may publish the site, shown once as
+  `lwd_…`. The endpoints `/api/deploy/begin`, `/api/deploy/part` and `/api/deploy/complete`
+  take it as `Authorization: Bearer` and run as the person who created it (the release carries
+  their name; a person who loses the right to publish takes their tokens' power with them, 403;
+  a revoked or unknown token is 401). They are the B8 parts protocol; `complete` checks in one
+  transaction and publishes in a second, so a refused site (422 with the reasons) leaves its
+  check on the Upload page. `public/deploy.sh` is the CI step (bash, curl, zip, jq); it reads
+  `LW_DEPLOY_TOKEN`, optionally `LW_URL` and `LW_ROOT`, and passes `GITHUB_SHA` and
+  `GITHUB_REF_NAME` along, which land in the release note and in `source.deploy`.
+- `_redirects` and `_headers` (Netlify format) are read at inspection
+  (`src/server/uploaded/site-config.ts`) into the release manifest and applied by the file
+  handler: exact paths and `/prefix/*` splats with `:splat`; statuses 200 (rewrite), 301, 302,
+  307, 308 and 404; header names from an allowlist, values without line breaks; a preview keeps
+  `no-store` and `noindex`. Lines not understood are listed on the check page.
+- Tokens are resolved through the elevated connection (`resolveDeployToken`), never through
+  the client roles; `last_used_at` is touched on every request.
+
 ## Client privileges on the hosted project (D-028)
 
 A Supabase project grants `anon`, `authenticated` and `service_role` every privilege on new
@@ -457,7 +477,9 @@ select defaclrole::regrole, defaclnamespace::regnamespace, defaclobjtype, defacl
   from pg_default_acl where defaclnamespace = 'public'::regnamespace;
 ```
 
-The last must list no entry for role `postgres`. The functions the retention job calls
+The entries for role `postgres` must name no client role: on the hosted project they read
+`{postgres=…,service_role=…}` for tables, sequences and functions (`supabase_admin`'s own
+entries, for objects it creates itself, are not ours). The functions the retention job calls
 (`purge_*`) are callable only by the elevated connection.
 
 ## Backups and restore rehearsal

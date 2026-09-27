@@ -191,11 +191,20 @@ Only after all seven pass can the release be labelled **hosted staging verified*
       (`docs/evidence/production/b7-2026-09-27-live-checks.txt`); the check on a published
       site waits for the first uploaded site, which the owner creates in the dashboard.
 - [x] Client privileges (D-028): `20260927000600_hosted_grants_hardening.sql` applied to the
-      production project on 2026-09-27 at 05:32 UTC; no default privileges of `postgres` remain
-      in `public`, the purge functions are callable only by the elevated connection, the
-      sealed token column is not readable by the client role. After every later migration
-      that adds a table or a function, run the read-only verification in `docs/OPERATIONS.md`
-      ("Client privileges on the hosted project").
+      production project on 2026-09-27 at 05:32 UTC; the default privileges of `postgres` in
+      `public` name no client role (only `postgres` and `service_role`), the purge functions
+      are callable only by the elevated connection, the sealed token column is not readable
+      by the client role. After every later migration that adds a table or a function, run
+      the read-only verification in `docs/OPERATIONS.md` ("Client privileges on the hosted
+      project").
+- [x] Push to deploy (B9, D-029): `20260927000700_push_to_deploy.sql` applied to the
+      production project on 2026-09-27 at 06:35 UTC, ahead of the merge, and verified
+      read-only (`docs/evidence/production/b9-2026-09-27-migration.txt`): `site_deploy_tokens`
+      under row-level security, the client role inserting, reading every column but
+      `token_hash` and updating `revoked_at` only, `anon` nothing. The hosting side needs no
+      change: `/api/deploy/complete` declares `maxDuration = 300`, within the Pro plan's
+      limit, and the parts stay under the request-body limit as in B8. The check on a
+      deployed site waits for the owner's first workflow run (`docs/UPLOADED-SITES.md`).
 - [ ] Create the customer organization and site; load **approved real content** (never the
       demonstration seed); publish; add the customer's hostname; complete verification with the
       customer's DNS provider; activate; go live. One pilot at a time.
@@ -216,6 +225,18 @@ generated `*.vercel.app` URL, not on `APP_HOST`, and the public lookup under `/a
 hostname serves. For the same reason Deployment Protection must leave production deployment
 URLs open ("Only Preview Deployments"): under Standard Protection the cron request is answered
 with a sign-in redirect, which cron jobs do not follow, and nothing is logged.
+
+Response headers: `next.config.ts` sets only `X-Content-Type-Options` for every response and
+the caching and robots headers of the dashboard, sign-in, demo and font paths. The platform's
+`Referrer-Policy`, `X-Frame-Options` and `Strict-Transport-Security` (with an https `APP_URL`)
+come from the proxy on its own pages and on structured customer sites, because a header from
+the configuration file is applied to an uploaded site's files as well and would override the
+site's own `_headers` (B9). An uploaded site's files get the same defaults from their handler
+(`src/server/uploaded/serve.ts`), which the site's `_headers` may replace within the allowed
+names. Next's trailing-slash redirect is off (`skipTrailingSlashRedirect`): an uploaded site's
+addresses are served as they are (`/events/` serves its `events/index.html`), and the proxy
+answers a trailing slash on a platform page or a structured site with a 308 to the address
+without it.
 
 ## 9. What remains outside this repository
 

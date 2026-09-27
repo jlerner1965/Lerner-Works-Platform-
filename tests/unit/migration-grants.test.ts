@@ -22,7 +22,7 @@ describe("client privileges in the migrations", () => {
   it("every table created after the policies migration has an explicit revoke from anon and authenticated", () => {
     const later = files.filter((f) => f > POLICIES);
     const tables = later.flatMap((f) => [...read(f).matchAll(/create table (?:if not exists )?public\.([a-z_]+)/g)].map((m) => ({ file: f, table: m[1]! })));
-    expect(tables.map((t) => t.table)).toEqual(["app_sessions", "upload_sessions", "site_sources", "organization_secrets"]);
+    expect(tables.map((t) => t.table)).toEqual(expect.arrayContaining(["app_sessions", "upload_sessions", "site_sources", "organization_secrets", "site_deploy_tokens"]));
     const all = files.map(read).join("\n");
     for (const t of tables) {
       const statements = [...all.matchAll(new RegExp(`revoke all on (?:table )?public\\.${t.table} from [^;]+;`, "g"))].map((m) => m[0]);

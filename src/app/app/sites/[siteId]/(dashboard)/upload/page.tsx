@@ -4,9 +4,11 @@ import { randomUUID } from "node:crypto";
 import { requireUser } from "@/server/auth/session";
 import { getSiteContext } from "@/server/data/access";
 import { withUser } from "@/server/data/db";
-import { previewOrigin } from "@/server/config";
+import { getConfig, previewOrigin } from "@/server/config";
 import { listUploadedReleases } from "@/server/uploaded/publish";
 import { getSiteSource } from "@/server/uploaded/sources";
+import { listDeployTokens } from "@/server/uploaded/deploy";
+import { CreateDeployTokenForm, RevokeDeployTokenForm } from "@/components/admin/deploy-forms";
 import { MAX_ARCHIVE_BYTES, MAX_FILES } from "@/server/uploaded/archive";
 import { Alert, Badge, Card, EmptyState, PageHeader, formatDateTime } from "@/components/admin/ui";
 import { RestoreForm } from "@/components/admin/publishing-forms";
@@ -28,8 +30,10 @@ export default async function UploadPage({ params, searchParams }: { params: Pro
     const releases = await listUploadedReleases(db, siteId);
     const jobs = await db<Array<{ id: string; filename: string | null; state: string; createdAt: Date; rowCount: number | null }>>`select id, filename, state::text, created_at, row_count from public.import_jobs where site_id = ${siteId} and package_type = 'uploaded_site' order by created_at desc limit 10`;
     const source = await getSiteSource(db, siteId);
-    return { releases, jobs, source };
+    const tokens = await listDeployTokens(db, siteId);
+    return { releases, jobs, source, tokens };
   });
+  const appUrl = getConfig().APP_URL.replace(/\/$/, "");
   const preview = previewOrigin(site.key);
   const source = data.source;
   const short = (sha: string | null) => (sha ? sha.slice(0, 7) : null);
@@ -58,6 +62,25 @@ export default async function UploadPage({ params, searchParams }: { params: Pro
           <GithubSourceForm siteId={siteId} source={source ? { repository: source.repository, branch: source.branch, root: source.root } : null} />
         </Card>
       </div>
+      <Card title="Push to deploy" className="mt-4">
+        <p className="text-sm text-ink-muted">For a site that is built by a generator (Astro, Eleventy, Hugo…): the build already runs in the repository&apos;s CI. Give that CI a deploy token, add one step after the build, and every push publishes the built folder here as the next release. The platform does not build sites itself.</p>
+        <div className="mt-3">
+          <CreateDeployTokenForm siteId={siteId} appUrl={appUrl} folderHint="dist" />
+        </div>
+        {data.tokens.length ? (
+          <ul className="mt-3 divide-y divide-line text-sm">
+            {data.tokens.map((t) => (
+              <li key={t.id} className="flex flex-wrap items-center justify-between gap-2 py-1.5">
+                <span>
+                  <span className="font-medium">{t.label || "Deploy token"}</span>
+                  <span className="text-xs text-ink-subtle"> · created {formatDateTime(t.createdAt, site.timeZone)}{t.lastUsedAt ? ` · last used ${formatDateTime(t.lastUsedAt, site.timeZone)}` : " · never used"}</span>
+                </span>
+                {t.revokedAt ? <Badge tone="neutral">revoked</Badge> : <RevokeDeployTokenForm siteId={siteId} tokenId={t.id} />}
+              </li>
+            ))}
+          </ul>
+        ) : null}
+      </Card>
       <Card title="Where it shows" className="mt-4">
         <p className="text-sm">{preview ? <>Preview: <a className="text-action underline" href={`${preview}/`} target="_blank" rel="noreferrer">{preview}/</a> (never indexed by search engines).</> : "No preview hostname is configured on this deployment (PREVIEW_DOMAIN), so the site can be seen only on its live domain."}</p>
         <p className="mt-2 text-sm text-ink-muted">Live: the verified, activated domain in <Link href={`${base}/settings#domains`} className="text-action underline">Settings → Domains</Link>, once the site is switched live in Settings → Publishing.</p>

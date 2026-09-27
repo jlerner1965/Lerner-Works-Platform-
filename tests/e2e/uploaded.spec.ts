@@ -194,3 +194,51 @@ test("the site is fetched from GitHub, public and then private with the organiza
   await page.getByRole("button", { name: "Remove token" }).first().click();
   await expect(page.getByRole("status").first()).toContainText("The token was removed.");
 });
+
+test("a deploy token lets a CI push a built site, with its own redirects and headers honoured (UP-08, UP-09)", async ({ page }) => {
+  await signIn(page, emails.owner);
+  const preview = `http://${key}.preview.localhost:${PORT}`;
+
+  await page.goto(`/app/sites/${siteId}/upload`);
+  await page.getByLabel("Label (optional)").fill("GitHub Actions");
+  await page.getByRole("button", { name: "Create deploy token" }).click();
+  await expect(page.getByText("Token created; copy it now, it is not shown again")).toBeVisible();
+  const token = (await page.locator("code", { hasText: /^lwd_[0-9a-f]{40}$/ }).first().textContent())!.trim();
+  await expect(page.getByText("bash deploy.sh dist")).toBeVisible();
+  await shot(page, "b9-deploy-token");
+  expect((await page.request.get("/deploy.sh")).status()).toBe(200);
+
+  // The deploy as the script does it, against the real endpoints: begin, the parts, complete.
+  const files = unzipSync(await (await page.request.get(`/app/sites/${siteId}/upload/sample`)).body());
+  files["index.html"] = strToU8(strFromU8(files["index.html"]!).replace("Furniture made to be handed down.", "Deployed from CI."));
+  files["_redirects"] = strToU8("/compare/ /about/ 301\n");
+  files["_headers"] = strToU8("/*\n  X-Frame-Options: DENY\n");
+  const zip = Buffer.from(zipSync(files));
+  const auth = { Authorization: `Bearer ${token}` };
+  const opened = await (await page.request.post("/api/deploy/begin", { headers: { ...auth, "Content-Type": "application/json" }, data: { filename: "site.zip", size: zip.byteLength } })).json();
+  expect(opened.ok).toBe(true);
+  for (let i = 0; i < opened.parts; i++) {
+    const res = await page.request.put(`/api/deploy/part?session=${opened.session}&index=${i}`, { headers: { ...auth, "Content-Type": "application/octet-stream" }, data: zip.subarray(i * opened.partBytes, Math.min((i + 1) * opened.partBytes, zip.byteLength)) });
+    expect(res.status()).toBe(200);
+  }
+  const done = await (await page.request.post("/api/deploy/complete", { headers: { ...auth, "Content-Type": "application/json" }, data: { session: opened.session, commit: "0123456789abcdef0123456789abcdef01234567", ref: "main" } })).json();
+  expect(done.ok).toBe(true);
+  expect(done.preview).toBe(`${preview}/`);
+
+  // Preview hostnames resolve in the browser, not in Node, so these checks navigate.
+  const home = await page.goto(`${preview}/`);
+  await expect(page.getByRole("heading", { level: 1, name: "Deployed from CI." })).toBeVisible();
+  expect(home?.headers()["x-frame-options"]).toBe("DENY");
+  const landed = await page.goto(`${preview}/compare`);
+  expect(page.url()).toBe(`${preview}/about/`);
+  const hop = landed?.request().redirectedFrom();
+  expect(hop).toBeTruthy();
+  expect((await hop!.response())?.status()).toBe(301);
+  await page.goto(`/app/sites/${siteId}/upload`);
+  await expect(page.getByText(/Push to deploy \(GitHub Actions\): main @ 0123456/)).toBeVisible();
+  await expect(page.getByText(/last used/)).toBeVisible();
+  await shot(page, "b9-deployed-release");
+  await page.getByRole("button", { name: "Revoke" }).first().click();
+  await expect(page.getByText("revoked", { exact: true })).toBeVisible();
+  expect((await page.request.post("/api/deploy/begin", { headers: { ...auth, "Content-Type": "application/json" }, data: { filename: "site.zip", size: 10 } })).status()).toBe(401);
+});

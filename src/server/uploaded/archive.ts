@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { unzipSync } from "fflate";
+import { parseHeaders, parseRedirects, type UploadedHeaderRule, type UploadedRedirect } from "./site-config";
 
 /**
  * Uploaded sites (site-building programme B7, decision D-026; tolerant reading B8, D-027):
@@ -83,7 +84,7 @@ export interface ArchiveFile {
   data: Uint8Array;
 }
 
-export type LeftOutReason = "hidden" | "server-side" | "housekeeping" | "not-served" | "unsafe-name" | "outside-root" | "dependencies";
+export type LeftOutReason = "hidden" | "server-side" | "housekeeping" | "not-served" | "unsafe-name" | "outside-root" | "dependencies" | "config";
 
 export interface LeftOutFile {
   path: string;
@@ -100,6 +101,9 @@ export interface ArchiveInspection {
   rootDetected: boolean;
   /** Files the site does not serve, with why; the warnings summarise them. */
   leftOut: LeftOutFile[];
+  /** The site's own `_redirects` and `_headers` (B9), read into the manifest rather than served. */
+  redirects: UploadedRedirect[];
+  headerRules: UploadedHeaderRule[];
   hasIndex: boolean;
   hasNotFoundPage: boolean;
   warnings: string[];
@@ -163,7 +167,7 @@ function listSome(paths: string[], max = 5): string {
  * 2,000 files kept.
  */
 export function inspectSiteArchive(bytes: Uint8Array, options: ArchiveOptions = {}): ArchiveInspection {
-  const out: ArchiveInspection = { files: [], totalBytes: 0, strippedFolder: null, root: null, rootDetected: false, leftOut: [], hasIndex: false, hasNotFoundPage: false, warnings: [], errors: [] };
+  const out: ArchiveInspection = { files: [], totalBytes: 0, strippedFolder: null, root: null, rootDetected: false, leftOut: [], redirects: [], headerRules: [], hasIndex: false, hasNotFoundPage: false, warnings: [], errors: [] };
   if (bytes.byteLength > MAX_ARCHIVE_BYTES) {
     out.errors.push(`The ZIP is ${(bytes.byteLength / 1024 / 1024).toFixed(1)} MB; the limit is ${MAX_ARCHIVE_BYTES / 1024 / 1024} MB.`);
     return out;
@@ -246,7 +250,7 @@ export function inspectSiteArchive(bytes: Uint8Array, options: ArchiveOptions = 
   const leftOut = (path: string, reason: LeftOutReason) => out.leftOut.push({ path, reason });
   let dependencies = 0;
   let sourceFiles = 0;
-  let housekeepingSeen = false;
+  let packageJson = false;
   for (const f of normalised) {
     const segments = f.path.slice(1).split("/");
     const base = segments[segments.length - 1]!;
@@ -258,8 +262,23 @@ export function inspectSiteArchive(bytes: Uint8Array, options: ArchiveOptions = 
       leftOut(f.path, "hidden");
       continue;
     }
+    // The site's own hosting configuration, read rather than served (B9).
+    if (segments.length === 1 && (base === "_redirects" || base === "_headers")) {
+      const text = Buffer.from(f.data.subarray(0, 512 * 1024)).toString("utf8");
+      if (base === "_redirects") {
+        const parsed = parseRedirects(text);
+        out.redirects = parsed.redirects;
+        if (parsed.ignored.length) out.warnings.push(`In _redirects, ${parsed.ignored.length} line${parsed.ignored.length === 1 ? " is" : "s are"} not understood and ignored: ${listSome(parsed.ignored, 3)}.`);
+      } else {
+        const parsed = parseHeaders(text);
+        out.headerRules = parsed.rules;
+        if (parsed.ignored.length) out.warnings.push(`In _headers, ${parsed.ignored.length} line${parsed.ignored.length === 1 ? " is" : "s are"} not understood or not allowed and ignored: ${listSome(parsed.ignored, 3)}.`);
+      }
+      leftOut(f.path, "config");
+      continue;
+    }
     if (segments.length === 1 && HOUSEKEEPING.test(base)) {
-      housekeepingSeen = true;
+      if (/^package\.json$/i.test(base)) packageJson = true;
       leftOut(f.path, "housekeeping");
       continue;
     }
@@ -314,14 +333,18 @@ export function inspectSiteArchive(bytes: Uint8Array, options: ArchiveOptions = 
   const unsafe = group("unsafe-name");
   if (unsafe.length) out.warnings.push(`Left out, names a web address cannot carry: ${listSome(unsafe)}. Rename them to letters, digits, dots, dashes and underscores.`);
   if (dependencies) out.warnings.push(`Left out: ${dependencies.toLocaleString()} file${dependencies === 1 ? "" : "s"} under node_modules.`);
+  if (out.redirects.length || out.headerRules.length) {
+    const bits: string[] = [];
+    if (out.redirects.length) bits.push(`${out.redirects.length} redirect${out.redirects.length === 1 ? "" : "s"} from _redirects`);
+    if (out.headerRules.length) bits.push(`${out.headerRules.length} header rule${out.headerRules.length === 1 ? "" : "s"} from _headers`);
+    out.warnings.push(`Read ${bits.join(" and ")}; they apply on the live domain (previews keep their own caching and noindex).`);
+  }
+  const looksLikeSource = sourceFiles > 0 || packageJson;
+  const buildFirst = "No index.html at the top level, and this looks like a project that has to be built first (package.json, source files). Build it, then zip the output folder (often dist, build, out or public), or name that folder when uploading.";
   if (out.files.length === 0 && out.errors.length === 0) {
-    out.errors.push(out.leftOut.length ? "The ZIP holds no files a website serves; everything in it was left out (see the notes)." : "The ZIP holds no files a website serves.");
+    out.errors.push(looksLikeSource ? buildFirst : out.leftOut.length ? "The ZIP holds no files a website serves; everything in it was left out (see the notes)." : "The ZIP holds no files a website serves.");
   } else if (!out.hasIndex && out.errors.length === 0) {
-    out.errors.push(
-      housekeepingSeen || sourceFiles
-        ? "No index.html at the top level, and this looks like a project that has to be built first (package.json, source files). Build it, then zip the output folder (often dist, build, out or public), or name that folder when uploading."
-        : "No index.html at the top level of the ZIP: the site needs a home page there (a zipped folder is fine; its name is dropped).",
-    );
+    out.errors.push(looksLikeSource ? buildFirst : "No index.html at the top level of the ZIP: the site needs a home page there (a zipped folder is fine; its name is dropped).");
   }
   if (out.files.length && !out.hasNotFoundPage) out.warnings.push("No 404.html: visitors who mistype an address get a plain not-found page.");
   const formNote = out.files.filter((f) => f.type.startsWith("text/html")).some((f) => /<form\b/i.test(latin(f.data)) && !/_lw\/inquiry/i.test(latin(f.data)));
@@ -350,11 +373,21 @@ export interface GithubSourceRef {
   root: string | null;
 }
 
+/** Where a release's files came from when a CI handed them over with a deploy token (B9). */
+export interface DeploySourceRef {
+  label: string;
+  commit: string | null;
+  ref: string | null;
+}
+
 /** The release snapshot of an uploaded site: schema series 101 of `releases.schema_version`. */
 export interface UploadedSnapshot {
   schemaVersion: 1;
   kind: "uploaded";
   files: Record<string, UploadedSnapshotFile>;
+  /** The site's own `_redirects` and `_headers` (B9); absent on releases published before. */
+  redirects?: UploadedRedirect[];
+  headers?: UploadedHeaderRule[];
   source: {
     filename: string;
     archiveBytes: number;
@@ -364,15 +397,16 @@ export interface UploadedSnapshot {
     root?: string | null;
     leftOut?: number;
     github?: GithubSourceRef | null;
+    deploy?: DeploySourceRef | null;
   };
 }
 
 export const UPLOADED_SCHEMA_VERSION = 101;
 
-export function toUploadedSnapshot(inspection: ArchiveInspection, source: { filename: string; archiveBytes: number; github?: GithubSourceRef | null }): UploadedSnapshot {
+export function toUploadedSnapshot(inspection: ArchiveInspection, source: { filename: string; archiveBytes: number; github?: GithubSourceRef | null; deploy?: DeploySourceRef | null }): UploadedSnapshot {
   const files: Record<string, UploadedSnapshotFile> = {};
   for (const f of inspection.files) files[f.path] = { name: publicNameFor(f.sha256, f.path), bytes: f.bytes, type: f.type, sha256: f.sha256 };
-  return {
+  const snapshot: UploadedSnapshot = {
     schemaVersion: 1,
     kind: "uploaded",
     files,
@@ -385,8 +419,12 @@ export function toUploadedSnapshot(inspection: ArchiveInspection, source: { file
       root: inspection.root,
       leftOut: inspection.leftOut.length,
       github: source.github ?? null,
+      deploy: source.deploy ?? null,
     },
   };
+  if (inspection.redirects.length) snapshot.redirects = inspection.redirects;
+  if (inspection.headerRules.length) snapshot.headers = inspection.headerRules;
+  return snapshot;
 }
 
 export function isUploadedSnapshot(value: unknown): value is UploadedSnapshot {
@@ -405,7 +443,8 @@ export function resolveUploadedPath(snapshot: UploadedSnapshot, pathname: string
   }
   if (!p.startsWith("/")) p = `/${p}`;
   p = p.replace(/\/{2,}/g, "/");
-  const candidates = p.endsWith("/") ? [`${p}index.html`] : [p, `${p}.html`, `${p}/index.html`];
+  // A trailing slash means a folder's index, or the page of that name (B9: the site's addresses are its own).
+  const candidates = p.endsWith("/") ? [`${p}index.html`, ...(p.length > 1 ? [`${p.slice(0, -1)}.html`] : [])] : [p, `${p}.html`, `${p}/index.html`];
   for (const c of candidates) {
     const file = snapshot.files[c];
     if (file) return { path: c, file };

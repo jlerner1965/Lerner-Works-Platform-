@@ -167,6 +167,7 @@ describe("serving an uploaded site", () => {
     expect(resolveUploadedPath(snapshot, "/about.html")?.path).toBe("/about.html");
     expect(resolveUploadedPath(snapshot, "/work")?.path).toBe("/work/index.html");
     expect(resolveUploadedPath(snapshot, "/work/")?.path).toBe("/work/index.html");
+    expect(resolveUploadedPath(snapshot, "/about/")?.path).toBe("/about.html");
     expect(resolveUploadedPath(snapshot, "//css//site.css")?.path).toBe("/css/site.css");
     expect(resolveUploadedPath(snapshot, "/docs/guide.pdf")?.file.type).toBe("application/pdf");
     expect(resolveUploadedPath(snapshot, "/missing")).toBeNull();
@@ -212,5 +213,15 @@ describe("the proxy and uploaded sites", () => {
     const spoofed = await proxy(new NextRequest("http://localhost:3000/app/sites", { headers: { host: "localhost:3000", "x-lw-uploaded-routing": "1", "x-lw-path": "/nope" } }));
     expect(spoofed.headers.get("x-middleware-request-x-lw-uploaded-routing")).toBeNull();
     expect(spoofed.headers.get("x-middleware-request-x-lw-path")).toBe("/app/sites");
+    // The platform's own headers ride on its pages, not on an uploaded site's files (its handler sets them, its _headers may override).
+    expect(spoofed.headers.get("x-frame-options")).toBe("SAMEORIGIN");
+    expect(spoofed.headers.get("referrer-policy")).toBe("strict-origin-when-cross-origin");
+    expect(res.headers.get("x-frame-options")).toBeNull();
+    // Trailing slashes: the platform's pages are normalised by the proxy; an uploaded site keeps its own.
+    const slashed = await proxy(new NextRequest("http://localhost:3000/app/sites/", { headers: { host: "localhost:3000" } }));
+    expect(slashed.status).toBe(308);
+    expect(slashed.headers.get("location")).toBe("http://localhost:3000/app/sites");
+    const kept = await proxy(new NextRequest("http://harbor.preview.localhost:3000/events/", { headers: { host: "harbor.preview.localhost:3000" } }));
+    expect(rewriteOf(kept)).toBe("http://harbor.preview.localhost:3000/uploaded/preview/harbor/files/events/");
   });
 });

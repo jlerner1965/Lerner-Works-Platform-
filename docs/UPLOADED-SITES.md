@@ -4,7 +4,41 @@ For a site built anywhere else, by hand, with a design tool or with a generator,
 be hosted on its own domain with a working contact form, releases that can be rolled back,
 and a login for the client. Nothing in the HTML is changed by the platform.
 
-## Two ways in
+## Three ways in
+
+**Push to deploy, for a site a generator builds (Astro, Eleventy, Hugo…).** The repository's
+CI already builds the site; give it a deploy token and one step, and every push publishes the
+built folder here as the next release. Upload → *Push to deploy* → *Create deploy token*: the
+token is shown once. Add it to the repository as the secret `LW_DEPLOY_TOKEN` (Settings →
+Secrets and variables → Actions), then add this step to the job that builds the site, after
+the build:
+
+```yaml
+      - name: Publish to Lerner Works Platform
+        env:
+          LW_DEPLOY_TOKEN: ${{ secrets.LW_DEPLOY_TOKEN }}
+        run: curl -fsSO https://app.lernerworksplatform.dev/deploy.sh && bash deploy.sh dist
+```
+
+`dist` is the folder the build writes; name yours. The step zips it, sends it in parts,
+and the platform checks and publishes it; the log shows the version and the preview address.
+A refused site fails the step with the reasons. For a repository that builds several sites
+from one codebase with a matrix, one site and one token per matrix entry, the secret named
+after it:
+
+```yaml
+      - name: Publish to Lerner Works Platform
+        if: github.ref == 'refs/heads/main'
+        env:
+          LW_DEPLOY_TOKEN: ${{ secrets[format('LW_DEPLOY_TOKEN_{0}', matrix.town)] }}
+        run: curl -fsSO https://app.lernerworksplatform.dev/deploy.sh && bash deploy.sh dist
+```
+
+A site whose pages depend on the date (upcoming events, this weekend) is rebuilt on a
+schedule by running the same job from a `schedule:` trigger; each run publishes a fresh
+release. The site's own `_redirects` and `_headers` (Netlify format), if the build writes
+them, come along: the redirects answer on the live domain and the headers (content security
+policy, caching for hashed assets, and the like) are set on matching paths.
 
 **From GitHub.** Upload → *Publish from GitHub*: paste the repository (`owner/name` or its
 github.com address) and, if it is not the default branch, the branch; if the site sits in a
@@ -64,8 +98,10 @@ the few megabytes a single web request allows; a bar shows the progress.
   minute of caching at the edge. A page without its extension and a folder's `index.html`
   resolve; the site's own `404.html` answers missing addresses.
 - It does not touch the HTML: no injected scripts, no analytics, no templating. It does not
-  run server code and does not build the site (no static-site generator runs here; run it
-  before zipping, or commit its output to the repository).
+  run server code and does not build the site (no static-site generator runs here; the
+  repository's CI builds and pushes, or you build before zipping).
+- It honours the site's own `_redirects` and `_headers`; a preview keeps its own caching and
+  noindex whatever they say.
 - Checks never published are dropped after thirty days, and an upload that stops half way
   is cleaned up after a day.
 - The dashboard for such a site is Upload, Inbox, Settings (details, domains, publishing

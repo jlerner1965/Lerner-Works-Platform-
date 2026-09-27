@@ -518,3 +518,40 @@ its own file. Applied to the production project at 05:32 UTC and verified read-o
 **Consequences.** A hosted verification (`has_column_privilege`, `has_function_privilege`,
 `pg_default_acl`) belongs to every migration that adds a table or a function, in
 `docs/OPERATIONS.md`; the local database cannot stand in for it.
+
+## D-029 · 2026-09-27 · Push to deploy: a built site is handed over by the CI that built it
+
+**Context.** The owner's sites are Astro projects (`jlerner1965/insidethetowns`: one codebase,
+a site per town chosen by an environment variable, built by GitHub Actions on every push and
+deployed by Vercel, rebuilt twice a day because listings are date-dependent). There is no
+website in such a repository until the build runs, so Publish from GitHub (D-027) can never
+publish one of them, and the platform does not build sites (`docs/LESSONS.md`, 7).
+
+**Decision.** The route that works is the one the repository already walks: the CI builds,
+then hands the built folder to the platform. A deploy token per site (`site_deploy_tokens`:
+`lwd_` and forty hex characters, shown once, kept as a SHA-256 hash, revocable) authorises
+`/api/deploy/begin`, `/api/deploy/part` and `/api/deploy/complete`, the same parts protocol as
+the dashboard uploader (B8) with the token in place of a session. The token acts as the
+person who created it: the release carries their name, and the token stops working when
+they lose the right to publish the site (403) or revoke it (401). A clean check is published
+at once as the next release with the commit and branch the CI names (`source.deploy`, the
+release note "Push to deploy (label): branch @ commit"); a refused site answers 422 with the
+reasons and leaves its check on the Upload page. `public/deploy.sh` makes the CI step five
+lines: zip the folder, send it in parts, publish. Tokens are resolved through the elevated
+connection; the hash column is not granted to the client roles (D-028).
+
+A built site's own hosting configuration comes with it: `_redirects` and `_headers` in the
+Netlify format, which generators and the owner's build already write, are read at inspection
+into the release (`redirects`, `headers` on the manifest; schema series 101 unchanged, the
+fields optional) and applied by the file handler: a redirect answers before any file, a
+rewrite (200) serves another path, 404 the site's own page; headers from an allowlist
+(content security policy, transport security, frame options, referrer and permissions
+policies, cache control, CORS and cross-origin policies, robots, link, language, vary) are set
+on matching paths, later rules winning; the platform keeps Content-Type, Content-Length, ETag
+and nosniff, and a preview keeps its no-store and noindex whatever the site says.
+
+**Consequences.** For a generator site the owner's steps are: create the site as *Uploaded*,
+create a deploy token, add it as a repository secret, add the step after the build; a push
+publishes. Scheduled rebuilds run the same job on a schedule. What stays out: building on the
+platform, and per-site headers or redirects edited in the dashboard (the site's files carry
+them).

@@ -4,6 +4,7 @@ import { getStorage } from "@/server/media/storage";
 import { normalizeHost } from "@/server/publishing/public-site";
 import { handleInquirySubmission } from "@/server/inquiries/intake";
 import { isUploadedSnapshot, resolveUploadedPath, type UploadedSnapshot } from "./archive";
+import { applyHeaderRules, matchRedirect } from "./site-config";
 
 /**
  * Serving an uploaded site (B7). The proxy rewrites a preview hostname
@@ -70,15 +71,22 @@ function pathOf(params: UploadedRouteParams): string {
   return `/${(params.path ?? []).filter(Boolean).join("/")}`;
 }
 
-/** Headers every file of an uploaded site is served with. */
-export function uploadedFileHeaders(file: { type: string; sha256: string; bytes: number }, mode: "preview" | "live"): Headers {
+/**
+ * Headers every file of an uploaded site is served with: the platform's defaults (the same
+ * ones its own pages carry, which the Next configuration leaves to this handler for uploaded
+ * traffic), which the site's own `_headers` may override (B9), and the ones it may not.
+ */
+export function uploadedFileHeaders(file: { type: string; sha256: string; bytes: number }, mode: "preview" | "live", opts: { hsts?: boolean } = {}): Headers {
   const headers = new Headers({
     "Content-Type": file.type,
     "Content-Length": String(file.bytes),
     ETag: `"${file.sha256}"`,
     "X-Content-Type-Options": "nosniff",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "X-Frame-Options": "SAMEORIGIN",
     "Cache-Control": mode === "preview" ? "no-store" : "public, max-age=0, s-maxage=60, must-revalidate",
   });
+  if (opts.hsts) headers.set("Strict-Transport-Security", "max-age=63072000; includeSubDomains");
   if (mode === "preview") headers.set("X-Robots-Tag", "noindex, nofollow");
   return headers;
 }
@@ -99,11 +107,21 @@ export async function serveUploaded(request: Request, params: UploadedRouteParam
     return Response.redirect(`https://${release.canonicalHost}${pathname === "/" ? "" : pathname}`, 308);
   }
   if (release.mode === "preview" && pathname === "/robots.txt") return plain(200, "User-agent: *\nDisallow: /\n", { "X-Robots-Tag": "noindex, nofollow" });
-  const hit = resolveUploadedPath(release.snapshot, pathname);
+  // The site's own _redirects (B9): a redirect answers before any file, a rewrite serves another path, 404 the site's own page.
+  let lookup = pathname;
+  let forced404 = false;
+  const rule = matchRedirect(release.snapshot.redirects, pathname);
+  if (rule) {
+    if (rule.status === 200) lookup = rule.to;
+    else if (rule.status === 404) forced404 = true;
+    else return new Response(null, { status: rule.status, headers: { Location: rule.to, "Cache-Control": release.mode === "preview" ? "no-store" : "public, max-age=0, s-maxage=60, must-revalidate" } });
+  }
+  const hit = forced404 ? null : resolveUploadedPath(release.snapshot, lookup);
   const file = hit?.file ?? release.snapshot.files["/404.html"] ?? null;
   if (!file) return plain(404, "Not found");
   const status = hit ? 200 : 404;
-  const headers = uploadedFileHeaders(file, release.mode);
+  const headers = uploadedFileHeaders(file, release.mode, { hsts: release.mode === "live" && getConfig().APP_URL.startsWith("https://") });
+  applyHeaderRules(headers, release.snapshot.headers, pathname, release.mode);
   if (status === 200 && request.headers.get("if-none-match") === headers.get("ETag")) {
     headers.delete("Content-Length");
     return new Response(null, { status: 304, headers });
