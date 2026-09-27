@@ -1,6 +1,8 @@
 # Lerner Works Platform — working notes for Claude Code
 
-The full specification is `docs/Lerner-Works-Platform-Build-Guide.md`. Read it before changing
+Read `docs/LESSONS.md` first: the mistakes of this project and the rule each one leaves
+behind, including the paths not to walk again. The full specification is
+`docs/Lerner-Works-Platform-Build-Guide.md`. Read it before changing
 architecture. Resume from `docs/PROGRESS.md`. The design flexibility programme (phases D0–D3)
 is planned in `docs/DESIGN-PLAN.md`; D0, D1 and D2 (theme catalogue, design preview,
 delegation) are shipped. Themes are
