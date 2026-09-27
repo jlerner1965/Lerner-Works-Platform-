@@ -24,9 +24,17 @@ import_jobs check  CHECK ((package_type = ANY (ARRAY['csv'::text, 'site_package'
 execute privilege  anon on get_host_site_type(text): true; authenticated on publish_uploaded_release(...): true
 recorded           20260927000400_uploaded_sites.sql at 2026-09-27 03:38:21.623288+00
 
-Not done here, and needing the owner's go because they touch the platform's own domain:
-PREVIEW_DOMAIN=preview.lernerworksplatform.dev on the production target and the wildcard
-hostname *.preview.lernerworksplatform.dev on the Vercel project (docs/LAUNCH-CHECKLIST.md
-section 7). Until then an uploaded site on production has no preview and serves only on its
-live domain. The live checks of the dashboard path (create an uploaded site, upload the sample
-ZIP, publish, the form into the inbox, restore) follow the deployment of the merged branch.
+The Vercel side, done by the owner at 03:47 UTC (read back through the Vercel API, values not
+printed): project lerner-works-platform, domain *.preview.lernerworksplatform.dev verified on
+the production target (no branch), PREVIEW_DOMAIN set for production only (updated
+03:47:43Z), redeployment dpl_8Dn2ErAmX5gcrRy7b9WUQ8LWCu2P of 4b0d99d READY at 03:49:00Z with
+the wildcard among its aliases.
+
+State of production at that point: pull request #15 had merged the branch at ca1aeb3 (B6) at
+03:33 UTC, six minutes before the B7 commit was pushed, so the deployment runs B6. Probes at
+03:48Z: https://app.lernerworksplatform.dev/healthz 200 {"ok":true,"database":"reachable"};
+https://anything.preview.lernerworksplatform.dev/ 404 (the B6 proxy treats the hostname as an
+unknown customer domain; TLS and the alias work); its /robots.txt 404 "Not found". The B7
+commit was rebased onto the merge (d5125e9) and pushed; its pull request and merge are the
+owner's, then the live checks of the dashboard path (create an uploaded site, upload the
+sample ZIP, publish, the preview hostname, the form into the inbox, restore).

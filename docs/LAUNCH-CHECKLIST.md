@@ -174,13 +174,16 @@ Only after all seven pass can the release be labelled **hosted staging verified*
       with a throwaway hostname; first owner and organization "Lerner Works" created with
       `pnpm bootstrap:owner --project-ref … --confirm-hosted` (password discarded; the owner
       sets one through "Forgot your password?").
-- [ ] Uploaded sites (B7): set `PREVIEW_DOMAIN` (for example `preview.lernerworksplatform.dev`)
+- [x] Uploaded sites (B7): set `PREVIEW_DOMAIN` (for example `preview.lernerworksplatform.dev`)
       on the production target and add the wildcard hostname `*.<PREVIEW_DOMAIN>` to the Vercel
-      project (the zone is Vercel-managed, so the record is created with it); redeploy; open
-      `https://<site key>.<PREVIEW_DOMAIN>/` of a published uploaded site and confirm the page,
-      the `X-Robots-Tag: noindex, nofollow` header and a `robots.txt` that disallows everything.
-      Until then uploaded sites have no preview and serve only on their live domain. Needs the
-      owner's go, like every change to the platform's own domain.
+      project (the zone is Vercel-managed, so the record is created with it); redeploy. Done by
+      the owner on 2026-09-27 at 03:47 UTC: `*.preview.lernerworksplatform.dev` on the
+      production target, verified; `PREVIEW_DOMAIN` for production only; redeployed (READY
+      03:49 UTC). Needs the owner's go, like every change to the platform's own domain.
+- [ ] After the B7 code is deployed: open `https://<site key>.<PREVIEW_DOMAIN>/` of a
+      published uploaded site and confirm the page, the `X-Robots-Tag: noindex, nofollow`
+      header and a `robots.txt` that disallows everything. Until then uploaded sites have no
+      preview and serve only on their live domain.
 - [ ] Create the customer organization and site; load **approved real content** (never the
       demonstration seed); publish; add the customer's hostname; complete verification with the
       customer's DNS provider; activate; go live. One pilot at a time.
