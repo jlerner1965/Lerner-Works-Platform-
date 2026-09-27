@@ -1,42 +1,42 @@
 {
   "measure": "SB-06 walk-through: create a site from the community guide preset, brand it, add five places, publish",
-  "recordedAt": "2026-09-27T01:49:14.708Z",
-  "siteId": "3a7ec958-ccb0-444f-863c-ac94de3e72c1",
+  "recordedAt": "2026-09-27T02:51:32.209Z",
+  "siteId": "0c754f5a-c320-4e24-9973-ff0d8e69324c",
   "tasks": [
     {
       "task": "Create the site",
       "screens": 2,
       "fields": 2,
       "actions": 1,
-      "ms": 391
+      "ms": 424
     },
     {
       "task": "Brand the site",
       "screens": 1,
       "fields": 3,
       "actions": 2,
-      "ms": 377
+      "ms": 470
     },
     {
       "task": "Add five places",
       "screens": 10,
       "fields": 25,
       "actions": 15,
-      "ms": 3076
+      "ms": 3559
     },
     {
       "task": "Publish",
       "screens": 1,
       "fields": 0,
       "actions": 2,
-      "ms": 434
+      "ms": 422
     }
   ],
   "totals": {
     "screens": 14,
     "fields": 30,
     "actions": 20,
-    "ms": 4278
+    "ms": 4875
   },
   "publishedHome": {
     "emptyNotices": 0

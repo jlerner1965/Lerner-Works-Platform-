@@ -3,9 +3,15 @@
  * check. Use --skip-e2e or --skip-build to shorten local runs (the full gate runs everything).
  */
 import { spawnSync } from "node:child_process";
+import fs from "node:fs";
 
 const skipE2e = process.argv.includes("--skip-e2e");
 const skipBuild = process.argv.includes("--skip-build");
+
+// A `next dev` run against the e2e build directory (E2E_USE_BUILD=0) leaves route type files
+// under .next-e2e/dev that tsconfig includes; a torn one fails the typecheck although no source
+// changed. They belong to no gate step and are recreated by the next dev run, so they go first.
+fs.rmSync(".next-e2e/dev", { recursive: true, force: true });
 
 const steps: Array<{ name: string; args: string[]; required: boolean; skip?: boolean }> = [
   { name: "Setup check", args: ["setup:check"], required: true },

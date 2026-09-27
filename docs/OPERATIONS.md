@@ -333,6 +333,31 @@ and then accepts at `/invite/<token>`; that path is unverified in this environme
   documents folders then being empty). `pnpm proof:package` writes the proof packages with
   `content.xlsx`.
 
+## Removing a site or an organization (site-building programme B6)
+
+- A site: Settings → "Remove this site" (organization owners only). The card says what goes
+  (content items, releases, media files, inquiries, site memberships, domains, and every
+  published copy of its pictures and documents that no other site uses) and what stays (the
+  audit trail, in the organization's activity log and on the organizations page under
+  "Removed"). The owner types the site key; the button stays disabled until it matches. A site
+  that is live on a domain is refused until it is returned to demonstration mode and its
+  domains are disabled. There is no undo: export the site package first if anything might be
+  wanted again. The public address answers 404 at once.
+- An organization: Organizations → "Remove organization…" on its card (owners only) opens a
+  page listing its sites, which go with it, then the memberships and open invitations. The
+  owner types the organization name. Refused while a site of it is live on a domain, and when
+  it is the last organization the person owns (create the next one first, from Create site →
+  Create a new organization…). The organization row stays as a tombstone that nobody is a
+  member of, so its activity log remains in the database for the operator.
+- Storage: the files are removed right after the rows; anything that could not be removed is
+  written to the activity log as `site.storage_cleanup_failed` with the object keys, for the
+  operator to remove by hand (the `SUPABASE_STORAGE_*` buckets, or `.data/storage` locally),
+  and the organizations page notice says so.
+- The SQL functions are `public.delete_site(site, confirm_key)`,
+  `public.delete_organization(org, confirm_name, check_only)` and
+  `public.record_removal_leftovers` (migration `20260927000300_removal.sql`); the service is
+  `src/server/data/removal.ts`.
+
 ## Backups and restore rehearsal
 
 Site export is portability, not disaster recovery.

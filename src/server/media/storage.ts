@@ -16,6 +16,8 @@ export interface StorageProvider {
   putPublic(name: string, data: Uint8Array, contentType: string): Promise<void>;
   getPublic(name: string): Promise<Uint8Array | null>;
   existsPublic(name: string): Promise<boolean>;
+  /** Removes published copies by name (site removal, B6); a name that is already gone is not an error. */
+  deletePublic(names: string[]): Promise<void>;
   /** Public URL path for a published derivative (served by /assets/[name] locally). */
   publicUrl(name: string): string;
 }
@@ -82,6 +84,9 @@ class LocalDiskStorage implements StorageProvider {
     } catch {
       return false;
     }
+  }
+  async deletePublic(names: string[]): Promise<void> {
+    for (const name of names) await fs.rm(this.publicPath(name), { force: true });
   }
   publicUrl(name: string): string {
     assertSafeKey(name);

@@ -160,8 +160,43 @@ fail the bar.
   Excel's dates, numbers, booleans and formula results read as text; CSV files still accepted;
   the proof packages carry the workbook. SB-10, SB-11 and SB-12 PASS; migrations
   `20260927000100_media_documents.sql` and `20260927000200_content_kind_link.sql`; snapshot
-  schema version 6 with the ten earlier frozen releases rendering unchanged. On the branch;
-  the migrations go to production before the merge.
+  schema version 6 with the ten earlier frozen releases rendering unchanged. On `main` since
+  pull request #14, merged by the owner on 2026-09-27 (deployed 02:00 UTC); the two
+  migrations followed at 02:02 UTC through the Management API, so the dashboard ran about
+  two minutes without them (public pages read snapshots and were unaffected). Public live
+  checks in `docs/evidence/production/b5-2026-09-27-live-checks.txt`.
+
+### B6 · Removing a site or an organization
+
+- The owner asked for a way to delete test sites and organizations after the proof.
+- Status: built and verified in the repository on 2026-09-27 (decision D-025). Settings →
+  Remove this site (owners; the site key typed; refused while live on a domain; the rows in
+  one transaction with the audit event, the files after, the trail kept and the removed sites
+  listed on the organizations page); Organizations → Remove organization… (owners; the name
+  typed; the sites first, then memberships and invitations; the row kept as a tombstone with
+  its trail; the last organization owned refused). OPS-04 and OPS-05 PASS in
+  `docs/ACCEPTANCE.md`; migration `20260927000300_removal.sql`.
+
+### The owner's verdict on the bar, and B7
+
+- On 2026-09-27, after B5, the owner judged the platform against the bar of D-020 in their
+  own words: "this is not something I would use, way too complicated, not enough easy
+  customization like being able to upload zip". SB-09 is recorded as not met.
+- The finding: the platform's strength is the machinery under a site (hosting on the client's
+  domain, immutable releases with restore, the inquiry inbox and delivery, per-client access,
+  the audit trail); its weakness is the layer that decides how a site looks (typed sections,
+  compositions in code, enumerated design settings), which cannot match a hand-built design
+  and exposes editing machinery a one-person agency does not need day to day.
+- The direction decided with the owner: **B7 · Uploaded sites**. A site built anywhere
+  (hand-coded, a design tool, a generator) is zipped and uploaded; the upload becomes an
+  immutable release served on the client's domain with clean URLs, correct types and caching,
+  restorable like every release, with a contact form snippet that posts to the site's own
+  address and lands in the existing inbox, previews on a hostname of their own (never the
+  dashboard's origin), and a dashboard of four things: Upload, Releases, Domains, Inbox. The
+  structured sites stay for directories and multi-location businesses and get no new
+  features. The bar is re-judged on the first real client site hosted this way; the step after
+  it, once that site is live, is letting a hand-built page pull in the platform's live pieces
+  (hours, events, a form) through markers the publish step expands into plain HTML.
 
 ## 4 Acceptance rows
 

@@ -31,6 +31,16 @@ index and its navigation entry exist only once a link is published), and the onb
 workbook (`src/server/import/xlsx.ts` reads and writes an OOXML subset in code;
 `src/server/import/workbook.ts` turns a workbook into the package's CSV files before the dry
 run; the template and the proof packages carry `content.xlsx`); snapshot schema version 6.
+B6 is built (D-025): owners delete a site (Settings → Remove this site, the key typed) or an
+organization (Organizations → Remove organization…, the name typed) through
+`public.delete_site` and `public.delete_organization` (`src/server/data/removal.ts`); the rows
+go in one transaction with the audit event, the files after, a site live on a domain is
+refused, organizations are kept as tombstones with their trail. On 2026-09-27 the owner judged
+the structured platform against the bar and found it not met ("not something I would use, way
+too complicated, not enough easy customization like being able to upload zip"; SB-09 in
+`docs/ACCEPTANCE.md`); the direction decided with them is B7, uploaded sites (a site built
+anywhere, uploaded as a ZIP, hosted as an immutable release on the client's domain with the
+inquiry inbox and previews on a hostname of their own), the structured sites kept as they are.
 Public themes use only the derived brand tokens, design variables and font variables described
 in `docs/DESIGN-TOKENS.md` (a unit test rejects literal colours in `src/themes`). A theme or
 renderer change must keep every frozen release in `tests/fixtures/releases/` rendering as
