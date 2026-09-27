@@ -9,7 +9,17 @@ import { PublishUploadForm } from "@/components/admin/upload-forms";
 
 export const dynamic = "force-dynamic";
 
-/** A checked upload (B7): what the ZIP holds, what is wrong with it, and the button that publishes it. */
+const LEFT_OUT_REASONS: Record<string, string> = {
+  hidden: "hidden file",
+  "server-side": "server-side code",
+  housekeeping: "repository housekeeping",
+  "not-served": "not a kind of file a website serves",
+  "unsafe-name": "name a web address cannot carry",
+  "outside-root": "outside the site's folder",
+  dependencies: "dependencies",
+};
+
+/** A checked upload (B7, B8): what the archive holds, what was left out, what is wrong with it, and the button that publishes it. */
 export default async function UploadJobPage({ params }: { params: Promise<{ siteId: string; jobId: string }> }) {
   const { siteId, jobId } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(jobId)) notFound();
@@ -28,12 +38,14 @@ export default async function UploadJobPage({ params }: { params: Promise<{ site
   const s = job.summary;
   const errors = s?.errors?.length ? s.errors : (job.result?.errors ?? []);
   const mb = (n: number) => (n / 1024 / 1024).toFixed(n < 1024 * 1024 ? 2 : 1);
+  const leftOut = s?.leftOut ?? [];
+  const origin = s?.github ? `${s.github.repository} @ ${s.github.branch}, commit ${s.github.commit.slice(0, 7)}` : (job.filename ?? "upload");
   return (
     <>
       <PageHeader
         eyebrow={site.name}
-        title={job.state === "completed" ? `Published as release v${job.result?.version ?? "?"}` : errors.length ? "This upload cannot be published" : "Upload checked"}
-        description={`${job.filename ?? "upload"}, ${formatDateTime(job.createdAt, site.timeZone)}${s ? `: ${s.files} file${s.files === 1 ? "" : "s"}, ${mb(s.totalBytes)} MB unpacked` : ""}.`}
+        title={job.state === "completed" ? `Published as release v${job.result?.version ?? "?"}` : errors.length ? "This upload cannot be published" : job.state === "cancelled" ? "This check has expired" : "Upload checked"}
+        description={`${origin}, ${formatDateTime(job.createdAt, site.timeZone)}${s ? `: ${s.files} file${s.files === 1 ? "" : "s"}, ${mb(s.totalBytes)} MB unpacked` : ""}.`}
       />
       {errors.length ? (
         <div className="mb-4">
@@ -43,14 +55,17 @@ export default async function UploadJobPage({ params }: { params: Promise<{ site
         </div>
       ) : null}
       {job.state === "completed" ? <div className="mb-4"><Alert tone="success">This upload is published as release v{job.result?.version}. <Link href={base} className="underline">Back to the overview</Link>.</Alert></div> : null}
+      {job.state === "cancelled" ? <div className="mb-4"><Alert tone="info">This check was never published and its archive has been removed. Upload or fetch the site again to publish it.</Alert></div> : null}
       <div className="grid gap-4 lg:grid-cols-2">
-        <Card title="What the ZIP holds">
+        <Card title={s?.github ? "What the repository holds" : "What the ZIP holds"}>
           {s ? (
             <>
               <ul className="space-y-1 text-sm">
+                {s.github ? <li>From GitHub: {s.github.repository}, branch {s.github.branch}, commit <code>{s.github.commit.slice(0, 7)}</code>{s.github.root ? <>, folder <code>{s.github.root}</code></> : null}.</li> : null}
                 <li>{s.files} file{s.files === 1 ? "" : "s"}, {mb(s.totalBytes)} MB unpacked ({mb(s.archiveBytes)} MB zipped)</li>
                 <li>{s.hasIndex ? "index.html at the top: yes" : "index.html at the top: missing"}</li>
                 <li>{s.hasNotFoundPage ? "404.html for missing addresses: yes" : "404.html for missing addresses: none (a plain not-found page is used)"}</li>
+                {s.root ? <li>The site is the folder &quot;{s.root}&quot;{s.rootDetected ? " (found on its own)" : ""}; everything outside it is left out.</li> : null}
                 {s.strippedFolder ? <li>Everything sat inside the folder &quot;{s.strippedFolder}&quot;, which is dropped from the addresses.</li> : null}
               </ul>
               {s.warnings.length ? (
@@ -60,6 +75,21 @@ export default async function UploadJobPage({ params }: { params: Promise<{ site
                   </Alert>
                 </div>
               ) : null}
+              {leftOut.length ? (
+                <details className="mt-3 text-sm">
+                  <summary className="cursor-pointer text-ink-muted">{leftOut.length} left out{leftOut.length === 200 ? " (the first 200 listed)" : ""}</summary>
+                  <table className="mt-2 w-full text-xs">
+                    <tbody>
+                      {leftOut.map((l, i) => (
+                        <tr key={i} className="border-b border-line">
+                          <td className="py-1 pr-2 break-all"><code>{l.path}</code></td>
+                          <td className="py-1 text-ink-muted">{LEFT_OUT_REASONS[l.reason] ?? l.reason}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </details>
+              ) : null}
             </>
           ) : <p className="text-sm text-ink-muted">No inspection was recorded.</p>}
           {job.state === "dry_run" && !errors.length ? (
@@ -67,7 +97,7 @@ export default async function UploadJobPage({ params }: { params: Promise<{ site
               <PublishUploadForm siteId={siteId} jobId={job.id} version={data.nextVersion} />
             </div>
           ) : null}
-          {job.state !== "dry_run" && !errors.length && job.state !== "completed" ? <p className="mt-3 text-sm text-ink-muted"><Badge tone="neutral">{job.state}</Badge></p> : null}
+          {job.state !== "dry_run" && !errors.length && job.state !== "completed" && job.state !== "cancelled" ? <p className="mt-3 text-sm text-ink-muted"><Badge tone="neutral">{job.state}</Badge></p> : null}
         </Card>
         <Card title="Files">
           {s?.listing?.length ? (

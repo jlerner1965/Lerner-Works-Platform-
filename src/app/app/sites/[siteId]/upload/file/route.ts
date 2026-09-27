@@ -1,10 +1,8 @@
-import { createHash } from "node:crypto";
 import { getSessionUser } from "@/server/auth/session";
 import { withUser, describeDbError } from "@/server/data/db";
 import { loadSiteContext } from "@/server/data/access";
-import { getStorage } from "@/server/media/storage";
-import { inspectSiteArchive, MAX_ARCHIVE_BYTES } from "@/server/uploaded/archive";
-import { inspectionSummary } from "@/server/uploaded/publish";
+import { MAX_ARCHIVE_BYTES } from "@/server/uploaded/archive";
+import { assertUploadAllowed, registerUploadedArchive } from "@/server/uploaded/intake";
 
 export const dynamic = "force-dynamic";
 
@@ -13,9 +11,12 @@ function redirectTo(path: string): Response {
 }
 
 /**
- * Uploads a site's ZIP (B7): the archive is inspected without writing anything to the site,
- * the inspection is stored on an upload job, the archive is kept privately until the job is
- * published or dropped, and the browser lands on the job page.
+ * Uploads a site's ZIP in one request (B7): the path a browser without script takes, and the
+ * one for small files. A hosted function accepts at most 4.5 MB this way; the uploader on
+ * the page sends larger files in parts (B8, `upload/begin`, `upload/part`, `upload/complete`).
+ * The archive is inspected without writing anything to the site, the inspection is stored on
+ * an upload job, the archive is kept privately until the job is published or dropped, and the
+ * browser lands on the job page.
  */
 export async function POST(request: Request, { params }: { params: Promise<{ siteId: string }> }) {
   const { siteId } = await params;
@@ -25,23 +26,16 @@ export async function POST(request: Request, { params }: { params: Promise<{ sit
   if (site && site !== "same-origin") return new Response("Forbidden", { status: 403 });
   const form = await request.formData();
   const file = form.get("file");
+  const root = String(form.get("root") ?? "").trim() || null;
   const back = (msg: string) => redirectTo(`/app/sites/${siteId}/upload?error=${encodeURIComponent(msg)}`);
   if (!(file instanceof File) || file.size === 0) return back("Choose the ZIP of the site to upload.");
   if (file.size > MAX_ARCHIVE_BYTES) return back(`The ZIP is larger than ${MAX_ARCHIVE_BYTES / 1024 / 1024} MB.`);
   try {
     const jobId = await withUser(user.id, async (db) => {
       const ctx = await loadSiteContext(db, siteId);
-      if (!ctx?.capabilities.canPublish) throw new Error("Only owners and publishers upload a site.");
-      if (ctx.site.siteType !== "uploaded") throw new Error("This site is built here from a preset; it has no ZIP to upload.");
+      assertUploadAllowed(ctx);
       const bytes = new Uint8Array(await file.arrayBuffer());
-      const inspection = inspectSiteArchive(bytes);
-      const summary = inspectionSummary(inspection, { filename: file.name, archiveBytes: bytes.byteLength });
-      const sha = createHash("sha256").update(bytes).digest("hex");
-      const ok = inspection.errors.length === 0;
-      const [job] = await db<{ id: string }[]>`insert into public.import_jobs (organization_id, site_id, package_type, filename, file_sha256, row_count, dry_run_result, state, result, created_by)
-        values (${ctx.site.organizationId}, ${siteId}, 'uploaded_site', ${file.name.slice(0, 200)}, ${sha}, ${inspection.files.length}, ${db.json(summary as never)}, ${ok ? "dry_run" : "failed"}::public.import_state, ${ok ? null : db.json({ errors: inspection.errors })}, ${user.id}) returning id`;
-      if (ok) await getStorage().putPrivate(`${ctx.site.organizationId}/${siteId}/uploads/${job!.id}.zip`, bytes, "application/zip");
-      return job!.id;
+      return (await registerUploadedArchive(db, ctx, user.id, { filename: file.name, bytes, root })).jobId;
     });
     return redirectTo(`/app/sites/${siteId}/upload/${jobId}`);
   } catch (err) {

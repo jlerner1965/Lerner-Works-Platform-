@@ -24,6 +24,10 @@ const env = {
   APP_HOST: `127.0.0.1:${port}`,
   PORT: port,
   NEXT_DIST_DIR: ".next-e2e",
+  // Browser tests never reach github.com: the uploaded-sites spec runs a stand-in on this port.
+  GITHUB_API_URL: process.env.E2E_GITHUB_API_URL ?? "http://127.0.0.1:3199",
+  // Small parts so the sample site goes up in several requests (B8).
+  UPLOAD_PART_BYTES: process.env.E2E_UPLOAD_PART_BYTES ?? "4096",
 };
 if (!env.DATABASE_URL || env.DATABASE_URL.includes("CHANGE_ME")) {
   console.error("DATABASE_TEST_URL is not configured; run pnpm db:start");

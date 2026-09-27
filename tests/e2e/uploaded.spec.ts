@@ -1,15 +1,19 @@
 import { test, expect, type Page } from "@playwright/test";
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
+import type http from "node:http";
 import { strToU8, unzipSync, zipSync, strFromU8 } from "fflate";
 import { emails, seed, signIn } from "./fixtures";
+import { FAKE_GITHUB_HEADLINES, FAKE_GITHUB_TOKEN, startFakeGithub } from "./fake-github";
 
 /**
- * Uploaded sites in the browser (site-building programme B7, UP-01 to UP-04): the owner
- * creates an uploaded site, uploads the sample ZIP, publishes it, opens it on its preview
- * hostname (clean addresses, the stylesheet applied, the site's own 404 page), sends the
- * contact form and finds the message in the inbox, uploads a second version and restores the
- * first. Screenshots land in docs/evidence/dashboard/.
+ * Uploaded sites in the browser (site-building programme B7, UP-01 to UP-04; B8, UP-05 to
+ * UP-07): the owner creates an uploaded site, uploads the sample ZIP (in parts, B8),
+ * publishes it, opens it on its preview hostname (clean addresses, the stylesheet applied,
+ * the site's own 404 page), sends the contact form and finds the message in the inbox,
+ * uploads a second version and restores the first; a repository download with housekeeping
+ * files is checked with those files left out; the site is fetched from GitHub, public and,
+ * with the organization's token, private. Screenshots land in docs/evidence/dashboard/.
  */
 test.describe.configure({ mode: "serial" });
 test.setTimeout(240_000);
@@ -17,16 +21,25 @@ const shots = "docs/evidence/dashboard";
 const shot = (page: Page, name: string) => page.screenshot({ path: `${shots}/${name}.png`, fullPage: true });
 const PORT = process.env.E2E_PORT ?? "3100";
 
-test.beforeAll(() => {
+let github: http.Server;
+let siteId = "";
+let key = "";
+
+test.beforeAll(async () => {
   fs.mkdirSync(shots, { recursive: true });
   execFileSync("pnpm", ["exec", "tsx", "scripts/seed-demo.ts", "--test"], { stdio: "inherit", env: { ...process.env, SEED_FIXED_PASSWORD: seed().password } });
+  github = await startFakeGithub();
+});
+
+test.afterAll(async () => {
+  await new Promise<void>((resolve) => github?.close(() => resolve()));
 });
 
 test("an uploaded site goes from a ZIP to a preview with a working form, a second version and a restore (UP-01..04)", async ({ page }) => {
   await signIn(page, emails.owner);
 
   // An uploaded site: no preset to choose, no starter pages.
-  const key = `harbor-${Date.now().toString(36)}`;
+  key = `harbor-${Date.now().toString(36)}`;
   await page.goto("/app/sites/new");
   await page.getByRole("radio", { name: /^Uploaded/ }).check();
   await expect(page.getByText("Preset", { exact: true })).toHaveCount(0);
@@ -34,20 +47,25 @@ test("an uploaded site goes from a ZIP to a preview with a working form, a secon
   await page.getByLabel("Internal key").fill(key);
   await page.getByRole("button", { name: "Create site" }).click();
   await expect(page.getByText("Site created. Upload the site's ZIP to publish it")).toBeVisible();
-  const siteId = page.url().split("/app/sites/")[1]!.split("?")[0]!;
+  siteId = page.url().split("/app/sites/")[1]!.split("?")[0]!;
   await expect(page.getByRole("link", { name: "Upload", exact: true })).toBeVisible();
   await expect(page.getByRole("link", { name: "Places", exact: true })).toHaveCount(0);
   expect((await page.request.get(`/app/sites/${siteId}/content`)).status()).toBe(404);
 
-  // The sample ZIP, uploaded as it is, checked, published.
+  // The sample ZIP, uploaded in parts (the test server keeps parts small), checked, published.
   const sample = await page.request.get(`/app/sites/${siteId}/upload/sample`);
   expect(sample.status()).toBe(200);
   const zipBytes = await sample.body();
+  let parts = 0;
+  page.on("request", (r) => {
+    if (r.url().includes("/upload/part?")) parts++;
+  });
   await page.getByRole("link", { name: "Upload the site" }).click();
   await expect(page.getByRole("heading", { name: "Upload", exact: true })).toBeVisible();
   await page.locator('input[type="file"]').setInputFiles({ name: "harbor-lane-studio.zip", mimeType: "application/zip", buffer: zipBytes });
   await page.getByRole("button", { name: "Upload and check" }).click();
   await expect(page.getByRole("heading", { name: "Upload checked" })).toBeVisible();
+  expect(parts).toBeGreaterThan(1);
   await expect(page.getByRole("listitem").filter({ hasText: /^9 files, .* unpacked \(/ })).toBeVisible();
   await expect(page.getByText("index.html at the top: yes")).toBeVisible();
   await shot(page, "b7-upload-checked");
@@ -102,4 +120,77 @@ test("an uploaded site goes from a ZIP to a preview with a working form, a secon
   await shot(page, "b7-releases");
   await page.goto(`${preview}/`);
   await expect(page.getByRole("heading", { level: 1, name: "Furniture made to be handed down." })).toBeVisible();
+});
+
+test("a repository download is checked with its housekeeping left out, and a project that has to be built is told so (UP-06)", async ({ page }) => {
+  await signIn(page, emails.owner);
+  const sample = unzipSync(await (await page.request.get(`/app/sites/${siteId}/upload/sample`)).body());
+  const repo: Record<string, Uint8Array> = {};
+  for (const [name, data] of Object.entries(sample)) repo[`harbor-site-main/${name}`] = data;
+  repo["harbor-site-main/README.md"] = strToU8("# Harbor");
+  repo["harbor-site-main/LICENSE"] = strToU8("MIT");
+  repo["harbor-site-main/.gitignore"] = strToU8("node_modules");
+  repo["harbor-site-main/scripts/deploy.sh"] = strToU8("#!/bin/sh");
+  await page.goto(`/app/sites/${siteId}/upload`);
+  await page.locator('input[type="file"]').setInputFiles({ name: "harbor-site-main.zip", mimeType: "application/zip", buffer: Buffer.from(zipSync(repo)) });
+  await page.getByRole("button", { name: "Upload and check" }).click();
+  await expect(page.getByRole("heading", { name: "Upload checked" })).toBeVisible();
+  await expect(page.getByText("Left out, repository housekeeping: /README.md, /LICENSE.")).toBeVisible();
+  await expect(page.getByText(/Left out as server-side code: \/scripts\/deploy\.sh/)).toBeVisible();
+  await page.getByText("4 left out").click();
+  await expect(page.getByRole("cell", { name: "/.gitignore" })).toBeVisible();
+  await shot(page, "b8-repository-download-checked");
+
+  const project = zipSync({ "package.json": strToU8("{}"), "src/App.tsx": strToU8("export default 1"), "src/index.css": strToU8("") });
+  await page.goto(`/app/sites/${siteId}/upload`);
+  await page.locator('input[type="file"]').setInputFiles({ name: "project.zip", mimeType: "application/zip", buffer: Buffer.from(project) });
+  await page.getByRole("button", { name: "Upload and check" }).click();
+  await expect(page.getByRole("heading", { name: "This upload cannot be published" })).toBeVisible();
+  await expect(page.getByText(/looks like a project that has to be built first/)).toBeVisible();
+});
+
+test("the site is fetched from GitHub, public and then private with the organization's token, and the source is remembered (UP-07)", async ({ page }) => {
+  await signIn(page, emails.owner);
+  const preview = `http://${key}.preview.localhost:${PORT}`;
+
+  await page.goto(`/app/sites/${siteId}/upload`);
+  await page.getByLabel("Repository").fill("https://github.com/harbor/site");
+  await page.getByRole("button", { name: "Fetch and check" }).click();
+  await expect(page.getByRole("heading", { name: "Upload checked" })).toBeVisible();
+  await expect(page.getByText(/From GitHub: harbor\/site, branch main, commit/)).toBeVisible();
+  await shot(page, "b8-github-checked");
+  await page.getByRole("button", { name: /Publish as release v/ }).click();
+  await expect(page.getByText(/Published release v\d+\./)).toBeVisible();
+  await page.goto(`${preview}/`);
+  await expect(page.getByRole("heading", { level: 1, name: FAKE_GITHUB_HEADLINES.public })).toBeVisible();
+  await page.goto(`/app/sites/${siteId}/upload`);
+  await expect(page.getByText("harbor/site @ main", { exact: true })).toBeVisible();
+  await expect(page.getByText(/Live: commit 89abcde/)).toBeVisible();
+  await expect(page.getByRole("button", { name: "Check the latest from GitHub" })).toBeVisible();
+  await shot(page, "b8-github-source");
+
+  // A private repository needs the token; the owner stores it on the organizations page.
+  await page.getByLabel("Repository").fill("harbor/private-site");
+  await page.getByRole("button", { name: "Check the latest from GitHub" }).click();
+  await expect(page.getByText(/private and no token with access/)).toBeVisible();
+  await page.goto("/app");
+  await page.getByLabel("GitHub token for private repositories (optional)").first().fill(FAKE_GITHUB_TOKEN);
+  await page.getByRole("button", { name: "Save token" }).first().click();
+  await expect(page.getByRole("status").first()).toContainText("GitHub accepted the token of harbor-bot");
+  await expect(page.getByText(/A GitHub token ending in/).first()).toBeVisible();
+  await shot(page, "b8-github-token");
+  await page.goto(`/app/sites/${siteId}/upload`);
+  await page.getByLabel("Repository").fill("harbor/private-site");
+  await page.getByRole("button", { name: "Check the latest from GitHub" }).click();
+  await expect(page.getByRole("heading", { name: "Upload checked" })).toBeVisible();
+  await expect(page.getByText(/From GitHub: harbor\/private-site, branch main/)).toBeVisible();
+  await page.getByRole("button", { name: /Publish as release v/ }).click();
+  await expect(page.getByText(/Published release v\d+\./)).toBeVisible();
+  await page.goto(`${preview}/`);
+  await expect(page.getByRole("heading", { level: 1, name: FAKE_GITHUB_HEADLINES.private })).toBeVisible();
+
+  // The token can be removed; the private repository is out of reach again.
+  await page.goto("/app");
+  await page.getByRole("button", { name: "Remove token" }).first().click();
+  await expect(page.getByRole("status").first()).toContainText("The token was removed.");
 });

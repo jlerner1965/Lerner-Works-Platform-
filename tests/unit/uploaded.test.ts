@@ -44,29 +44,102 @@ describe("inspecting a site archive", () => {
     expect(r.errors).toEqual([]);
     expect(r.strippedFolder).toBe("my-site");
     expect(r.files.map((f) => f.path)).toEqual(["/css/a.css", "/index.html"]);
+    expect(r.leftOut).toEqual([{ path: "/.env", reason: "hidden" }]);
     expect(r.warnings).toEqual([
-      'Hidden file "/.env" skipped.',
+      "Left out, hidden: /.env.",
       "No 404.html: visitors who mistype an address get a plain not-found page.",
       "A form in the site does not post to the platform's inquiry endpoint; see the contact form snippet on the site's overview.",
     ]);
   });
 
-  it("refuses server-side files, unknown file types, unsafe names, a missing index and what is not a ZIP", () => {
+  it("leaves out server-side files, unknown file types and unsafe names with a note each, and still refuses a path that leaves the archive, a missing index, case twins, too many files and what is not a ZIP", () => {
     const r = inspectSiteArchive(zip({ "index.html": "<p>hi</p>", "api/send.php": "<?php", "tool.exe": "MZ", "notes.docx": "x", "odd name?.html": "x", "a/../b.html": "x" }));
-    // Errors come in the order the files sit in the archive; an unsafe name is quoted as it was written.
-    expect([...r.errors].sort()).toEqual([
-      '"/api/send.php" is a server-side file; this hosts finished HTML, CSS, JavaScript and media only.',
-      '"/notes.docx" is not a kind of file a website serves (.docx).',
-      '"/odd name?.html" has characters a web address cannot carry; rename it to letters, digits, dots, dashes and underscores.',
-      '"/tool.exe" is a server-side file; this hosts finished HTML, CSS, JavaScript and media only.',
-      '"a/../b.html" cannot be served: a . or .. segment.',
+    expect(r.errors).toEqual(['"a/../b.html" cannot be served: a . or .. segment.']);
+    expect(r.files.map((f) => f.path)).toEqual(["/index.html"]);
+    expect(r.leftOut).toEqual([
+      { path: "/api/send.php", reason: "server-side" },
+      { path: "/tool.exe", reason: "server-side" },
+      { path: "/notes.docx", reason: "not-served" },
+      { path: "/odd name?.html", reason: "unsafe-name" },
+    ]);
+    expect(r.warnings).toEqual([
+      "Left out as server-side code: /api/send.php, /tool.exe. A page or form that depends on it will not work here.",
+      "Left out, not a kind of file a website serves: /notes.docx.",
+      "Left out, names a web address cannot carry: /odd name?.html. Rename them to letters, digits, dots, dashes and underscores.",
+      "No 404.html: visitors who mistype an address get a plain not-found page.",
     ]);
     expect(inspectSiteArchive(zip({ "about.html": "x", "css/a.css": "y" })).errors).toEqual(["No index.html at the top level of the ZIP: the site needs a home page there (a zipped folder is fine; its name is dropped)."]);
     expect(inspectSiteArchive(strToU8("not a zip")).errors[0]).toMatch(/not a ZIP/);
     expect(inspectSiteArchive(zip({ "index.html": "a", "INDEX.html": "b" })).errors).toEqual(['"/INDEX.html" appears twice with different letter cases; web addresses do not tell them apart.']);
     const many: Record<string, string> = { "index.html": "x" };
     for (let i = 0; i < MAX_FILES; i++) many[`p/${i}.txt`] = "x";
-    expect(inspectSiteArchive(zip(many)).errors).toEqual([`The ZIP holds ${MAX_FILES + 1} files; the limit is ${MAX_FILES}.`]);
+    expect(inspectSiteArchive(zip(many)).errors).toEqual([`The site holds ${(MAX_FILES + 1).toLocaleString()} files; the limit is ${MAX_FILES.toLocaleString()}.`]);
+  });
+
+  it("reads a repository download as the site it holds: housekeeping, hidden files, source files and scripts left out, Unicode names kept (B8)", () => {
+    const r = inspectSiteArchive(zip({
+      "lerner-site-main/.gitignore": "node_modules\n",
+      "lerner-site-main/.github/workflows/deploy.yml": "name: deploy",
+      "lerner-site-main/README.md": "# Site",
+      "lerner-site-main/LICENSE": "MIT",
+      "lerner-site-main/CNAME": "www.example.com",
+      "lerner-site-main/vercel.json": "{}",
+      "lerner-site-main/package.json": "{}",
+      "lerner-site-main/index.html": "<!doctype html><title>Site</title>",
+      "lerner-site-main/about.html": "About",
+      "lerner-site-main/css/style.css": "body{}",
+      "lerner-site-main/img/café.jpg": new Uint8Array([0xff, 0xd8, 0xff]),
+      "lerner-site-main/scripts/build.sh": "#!/bin/sh",
+      "lerner-site-main/src/app.tsx": "export default 1",
+      "lerner-site-main/node_modules/x/index.js": "x",
+      "lerner-site-main/node_modules/x/package.json": "{}",
+    }));
+    expect(r.errors).toEqual([]);
+    expect(r.strippedFolder).toBe("lerner-site-main");
+    expect(r.root).toBeNull();
+    expect(r.files.map((f) => f.path)).toEqual(["/about.html", "/css/style.css", "/img/café.jpg", "/index.html"]);
+    expect(r.leftOut.map((l) => `${l.reason}:${l.path}`)).toEqual([
+      "hidden:/.gitignore",
+      "hidden:/.github/workflows/deploy.yml",
+      "housekeeping:/README.md",
+      "housekeeping:/LICENSE",
+      "housekeeping:/CNAME",
+      "housekeeping:/vercel.json",
+      "housekeeping:/package.json",
+      "server-side:/scripts/build.sh",
+      "not-served:/src/app.tsx",
+      "dependencies:2 files under node_modules",
+    ]);
+    expect(r.warnings).toEqual([
+      "Left out as server-side code: /scripts/build.sh. A page or form that depends on it will not work here.",
+      "Left out, not a kind of file a website serves: /src/app.tsx.",
+      "Left out, repository housekeeping: /README.md, /LICENSE, /CNAME, /vercel.json, /package.json.",
+      "Left out, hidden: /.gitignore, /.github/workflows/deploy.yml.",
+      "Left out: 2 files under node_modules.",
+      "No 404.html: visitors who mistype an address get a plain not-found page.",
+    ]);
+  });
+
+  it("takes the site from its build folder, found on its own or named, and says when a project still has to be built (B8)", () => {
+    const built = inspectSiteArchive(zip({ "package.json": "{}", "src/app.tsx": "x", "dist/index.html": "hi", "dist/assets/a.css": "body{}" }));
+    expect(built.errors).toEqual([]);
+    expect(built.root).toBe("dist");
+    expect(built.rootDetected).toBe(true);
+    expect(built.files.map((f) => f.path)).toEqual(["/assets/a.css", "/index.html"]);
+    expect(built.leftOut).toEqual([{ path: '2 files outside "dist"', reason: "outside-root" }]);
+    expect(built.warnings[0]).toBe('The site was taken from the folder "dist" of the ZIP; the 2 files outside it were left out.');
+    const named = inspectSiteArchive(zip({ "index.html": "top", "site/public/index.html": "inner", "site/public/a.css": "" }), { root: "/site/public/" });
+    expect(named.errors).toEqual([]);
+    expect(named.root).toBe("site/public");
+    expect(named.rootDetected).toBe(false);
+    expect(named.files.map((f) => f.path)).toEqual(["/a.css", "/index.html"]);
+    expect(inspectSiteArchive(zip({ "index.html": "x" }), { root: "dist" }).errors).toEqual(['No index.html in the folder "dist" of the ZIP.']);
+    expect(inspectSiteArchive(zip({ "index.html": "x" }), { root: "../x" }).errors).toEqual(["The folder must be a plain path inside the ZIP, such as dist or docs/site."]);
+    expect(inspectSiteArchive(zip({ "dist/index.html": "a", "build/index.html": "b" })).errors).toEqual(["No index.html at the top level, and more than one folder holds one (dist, build): name the folder that is the site."]);
+    const source = inspectSiteArchive(zip({ "package.json": "{}", "src/App.tsx": "x", "src/index.css": "" }));
+    expect(source.errors).toEqual(["No index.html at the top level, and this looks like a project that has to be built first (package.json, source files). Build it, then zip the output folder (often dist, build, out or public), or name that folder when uploading."]);
+    const nothing = inspectSiteArchive(zip({ "README.md": "x", "LICENSE": "y" }));
+    expect(nothing.errors).toEqual(["The ZIP holds no files a website serves; everything in it was left out (see the notes)."]);
   });
 
   it("turns an inspection into the release manifest the serving code recognises, and nothing else does", () => {

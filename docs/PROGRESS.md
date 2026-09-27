@@ -24,7 +24,8 @@ Resume point for the build. Update after every milestone and before any context 
 | B5 Documents, links and the workbook (`docs/SITE-BUILDING-PLAN.md`) | DONE (2026-09-27; on production: pull request #14 merged by the owner as `a601e6c`, deployed READY at 02:00 UTC; migrations `20260927000100_media_documents.sql` and `20260927000200_content_kind_link.sql` applied at 02:02 UTC through the Management API, after the merge; public live checks in `docs/evidence/production/b5-2026-09-27-live-checks.txt`; the dashboard side is the owner's look) | The owner's review of B4 asked for PDFs beside the pictures, pages that are links to other websites and Excel instead of CSV (D-024). Documents in Media (PDF only, 25 MB, `media_assets.kind`; `document:<id>` link targets in text, buttons and section links; attachments on every item; the Downloads page section; served from the release as `<sha256>.pdf` inline with `nosniff`; a withdrawn document blocks the release; the site and onboarding packages carry them). Links as a content kind of both presets (https only, category, picture, summary, button label; cards that open the other site without a referrer; the `/links` index and its navigation entry once a link is published; a page of its own for search). The onboarding workbook (`content.xlsx` template with a sheet per kind, Site, Images, Documents and a Read me; uploaded on its own or inside the package; read by an OOXML subset in code and converted to the CSV files before the dry run; the proof packages carry it). Snapshot schema version 6, the ten earlier frozen releases unchanged, both pilots carrying sample links and documents. SB-10, SB-11 and SB-12 PASS. |
 | B6 Removing a site or an organization (`docs/SITE-BUILDING-PLAN.md`) | DONE (2026-09-27; on production: pull request #15 merged by the owner as `4b0d99d` at 03:33 UTC and deployed at once, migration `20260927000300_removal.sql` applied at 02:52 UTC through the Management API, ahead of the merge this time, so the code found its functions in place; `/healthz` 200 on the deployment; the dashboard-side checks need the owner's session) | Owner-only deletion with a typed confirmation (D-025): Settings → Remove this site (the rows in one transaction with the `site.deleted` audit event, the files after, public copies kept while another site's release carries them, refused while live on a domain, the trail kept and the removed sites listed on the organizations page); Organizations → Remove organization… (sites first, then memberships and invitations, the row kept as a tombstone with its trail, the last organization owned refused). OPS-04 and OPS-05 PASS. |
 | SB-09, the bar | The owner's verdict on 2026-09-27: NOT MET ("not something I would use, way too complicated, not enough easy customization like being able to upload zip"); B7 decided the same day | The platform's machinery (hosting on the client's domain, releases and restore, the inquiry inbox, access, audit) stays; the layer that decides how a site looks is not what an agency builds with. The bar is re-judged on the first real client site hosted the B7 way (`docs/SITE-BUILDING-PLAN.md`). |
-| B7 Uploaded sites (`docs/SITE-BUILDING-PLAN.md`) | DONE (2026-09-27, D-026; on production: pull request #16 merged by the owner as `719fcfe` at 03:58 UTC, deployment `dpl_CC2iXit2pVAYvxp7SbREm8MmSYsa` READY at 03:59:34 UTC; migration `20260927000400_uploaded_sites.sql` applied at 03:38 UTC ahead of the merge; the wildcard `*.preview.lernerworksplatform.dev` and `PREVIEW_DOMAIN` on the project's production target by the owner at 03:47 UTC; live checks `docs/evidence/production/b7-2026-09-27-live-checks.txt`; the dashboard path, and the first real client site, are the owner's) | A site built anywhere is uploaded as a ZIP and hosted as an immutable release: `sites.site_type` (`structured` or `uploaded`, chosen at creation; no preset, no starter pages), the archive checked before anything changes (`src/server/uploaded/archive.ts`: what a static host serves, safe paths, `index.html` at the top or inside one folder, 64 MB / 2,000 files / 25 MB a file, server-side files refused), files stored under their content hash and the release inserted and activated by one idempotent function (`publish_uploaded_release`, snapshot schema series 101), served on a preview hostname of its own (`<key>.<PREVIEW_DOMAIN>`, never the dashboard's origin, `no-store`, `noindex`) and on the live domain (clean addresses, the site's own 404 page, content-hash ETags, a minute at the CDN) by `src/server/uploaded/serve.ts` behind the proxy's rewrite (`/uploaded/<mode>/<target>/files/…`, the form to `…/inquiry`); the site's own contact form posts to `/_lw/inquiry` and lands in the inbox with a redirect back to its thanks page; a dashboard of Upload (check, publish, releases, restore), Inbox, Settings, Team and the activity log; the sample site "Harbor Lane Studio"; removal takes the files. UP-01 to UP-04 in `docs/ACCEPTANCE.md`; the owner's guide `docs/UPLOADED-SITES.md`. |
+| B7 Uploaded sites (`docs/SITE-BUILDING-PLAN.md`) | DONE (2026-09-27, D-026; on production: pull request #16 merged by the owner as `719fcfe` at 03:58 UTC, deployment `dpl_CC2iXit2pVAYvxp7SbREm8MmSYsa` READY at 03:59:34 UTC; migration `20260927000400_uploaded_sites.sql` applied at 03:38 UTC ahead of the merge; the wildcard `*.preview.lernerworksplatform.dev` and `PREVIEW_DOMAIN` on the project's production target by the owner at 03:47 UTC; live checks `docs/evidence/production/b7-2026-09-27-live-checks.txt`; the dashboard path, and the first real client site, are the owner's) |
+| B8 Large uploads and Publish from GitHub (`docs/SITE-BUILDING-PLAN.md`) | DONE in the repository (2026-09-27, D-027; on the branch, gated; migration `20260927000500_large_uploads_github.sql` applied to the production project at 05:27 UTC and the grants hardening `20260927000600_hosted_grants_hardening.sql` (D-028, OPS-06) at 05:32 UTC through the Management API, ahead of the merge, both verified read-only; the pull request and merge are the owner's, then the live checks) | The owner's first real upload failed: the hosting platform refuses request bodies over 4.5 MB (a 6 MB post answers `413 FUNCTION_PAYLOAD_TOO_LARGE` before the code runs) and the check refused a repository download over its README, LICENSE and source files. A ZIP now goes up in 4 MB parts through the platform (`upload_sessions`; `src/server/uploaded/sessions.ts`; the uploader `upload-zip-form.tsx` with a progress bar; the same check through `intake.ts`; abandoned sessions and stale checks purged by the retention job); the check leaves out what a website does not serve with grouped notes, finds the site in its build folder or takes a named one, allows names in any script and tells a source project it has to be built (`archive.ts`); Publish from GitHub (`github.ts`, `sources.ts`: `site_sources`, the archive fetched server-side at the branch head, the commit on the release, "Check the latest from GitHub" with the live commit shown) with an organization's token for private repositories sealed under a key derived from `SESSION_SECRET` and reachable only through SQL functions (`organization_secrets`, `src/server/secrets/crypto.ts`). UP-05 to UP-07 in `docs/ACCEPTANCE.md`; migration `20260927000500_large_uploads_github.sql`. | A site built anywhere is uploaded as a ZIP and hosted as an immutable release: `sites.site_type` (`structured` or `uploaded`, chosen at creation; no preset, no starter pages), the archive checked before anything changes (`src/server/uploaded/archive.ts`: what a static host serves, safe paths, `index.html` at the top or inside one folder, 64 MB / 2,000 files / 25 MB a file, server-side files refused), files stored under their content hash and the release inserted and activated by one idempotent function (`publish_uploaded_release`, snapshot schema series 101), served on a preview hostname of its own (`<key>.<PREVIEW_DOMAIN>`, never the dashboard's origin, `no-store`, `noindex`) and on the live domain (clean addresses, the site's own 404 page, content-hash ETags, a minute at the CDN) by `src/server/uploaded/serve.ts` behind the proxy's rewrite (`/uploaded/<mode>/<target>/files/…`, the form to `…/inquiry`); the site's own contact form posts to `/_lw/inquiry` and lands in the inbox with a redirect back to its thanks page; a dashboard of Upload (check, publish, releases, restore), Inbox, Settings, Team and the activity log; the sample site "Harbor Lane Studio"; removal takes the files. UP-01 to UP-04 in `docs/ACCEPTANCE.md`; the owner's guide `docs/UPLOADED-SITES.md`. |
 
 ## Environment blockers (precise)
 
@@ -37,6 +38,34 @@ Resume point for the build. Update after every milestone and before any context 
 
 ## Last verified results
 
+- 2026-09-27 (site-building phase B8, large uploads and Publish from GitHub) `pnpm verify` on
+  the final code: GATE PASSED in 887 s (setup check 1 s, lint 18 s, typecheck 16 s, unit 6 s,
+  integration 79 s, browser 732 s, production build 35 s): 179 unit tests in 24 files (adds
+  `github.test`: naming a repository, the API through a fetch stand-in, every refusal
+  explained; `secrets.test`: sealing under a derived key; `uploaded.test` extended with a
+  repository download read as its site, the build folder found or named, the "has to be built
+  first" message); 90 integration tests in 23 files (adds `uploads.test`: a ZIP in parts
+  assembled, checked and stored, the refusals, the retention purge; a public repository
+  fetched, remembered, published with its commit; the token stored by an owner only, sealed,
+  unreadable as a column, decrypted only for publishers, used for a private repository,
+  removed); 44 browser tests against a production build (`uploaded.spec` extended: the sample
+  goes up in several parts, a repository download is checked with its housekeeping left out, a
+  project ZIP is told to build first, a site is fetched from a GitHub stand-in, published, the
+  source remembered, a private repository refused until the owner saves the token, then
+  published, the token removed). Found on the dev server before the gate: bigint `byte_size`
+  came back as a string, so an assembled upload never matched its size (fixed by numbering
+  the row), and two ambiguous locators in the spec. After the gate,
+  `20260927000500_large_uploads_github.sql` was applied to the production project at
+  05:27:15 UTC (1 applied, 16 already applied) and verified read-only, which found the hosted
+  default privileges (D-028); the hardening migration `20260927000600_hosted_grants_hardening.sql`
+  was applied at 05:32:35 UTC (1 applied, 17 already applied) and verified: no default
+  privileges of `postgres` in `public`, the ciphertext column unreadable by `authenticated`,
+  the purge functions callable by neither client role, every other grant as the migrations
+  state (`docs/evidence/production/b8-2026-09-27-migrations.txt`). The gate was then run
+  again on the final code with the hardening migration and the guard test: GATE PASSED in
+  845 s (setup check 1 s, lint 19 s, typecheck 17 s, unit 6 s, integration 83 s, browser
+  712 s, production build 7 s): 182 unit tests in 25 files (adds `migration-grants.test`), 90
+  integration tests in 23 files, 44 browser tests.
 - 2026-09-27 (site-building phase B7, uploaded sites) `pnpm verify` on the final code: GATE
   PASSED in 843 s (setup check 1 s, lint 18 s, typecheck 16 s, unit 6 s, integration 77 s,
   browser 702 s, production build 23 s): 170 unit tests in 22 files (adds `uploaded.test`: the
@@ -391,6 +420,36 @@ private to Next.js and never routed, so the form post fell to the file handler (
 handlers now live under `files/` and `inquiry/` and the proxy maps `/_lw/inquiry` to the
 latter.
 
+Phase B8 (large uploads and Publish from GitHub, D-027) is built on the branch on 2026-09-27,
+from the owner's first real upload failing on production:
+`supabase/migrations/20260927000500_large_uploads_github.sql` (`upload_sessions` with its
+purge functions, `site_sources`, `organization_secrets` with `set_organization_secret`,
+`delete_organization_secret` and `get_site_secret`), `src/server/uploaded/sessions.ts` (begin,
+parts, complete, purge), `intake.ts` (one intake for a one-request upload, an assembled one
+and a fetched repository), the routes `upload/begin`, `upload/part`, `upload/complete` beside
+`upload/file`, `src/components/admin/upload-zip-form.tsx` (parts with a progress bar; the plain
+post without script), `archive.ts` (left-out files by reason, housekeeping, `node_modules`,
+Unicode names, the build folder found or named, the "has to be built first" message),
+`github.ts` (the repository, branch head, zipball and `/user` through `GITHUB_API_URL` with an
+injectable fetch), `sources.ts` (the site's source, the check, the token), `secrets/crypto.ts`
+(AES-256-GCM under HKDF of `SESSION_SECRET`), the actions `sources.ts` and `secrets.ts`, the
+Upload page's GitHub card and source status, the job page's left-out list and origin line,
+the organizations page's token card, `purgeUploads` in the retention job, `UPLOAD_PART_BYTES`
+and `GITHUB_API_URL` in the configuration (the browser tests set both; a GitHub stand-in in
+`tests/e2e/fake-github.ts`). Tests: unit `uploaded.test` (extended), `github.test`,
+`secrets.test`; integration `uploads.test`; e2e `uploaded.spec` (extended with UP-05 to
+UP-07); screenshots `docs/evidence/dashboard/b8-*.png`.
+
+Found on production right after the B8 migration (D-028): a Supabase project grants the
+client roles every privilege on new tables and execute on new functions in `public` by
+default, which the local database does not, so `authenticated` could read the sealed token
+column and, since launch, execute the retention purge functions. Migration
+`20260927000600_hosted_grants_hardening.sql` states every client grant explicitly after a
+revoke, re-issues the function grants the migrations made, and revokes the defaults of
+`postgres` in `public`; `tests/unit/migration-grants.test.ts` holds every future migration to
+it; `docs/OPERATIONS.md` carries the hosted verification recipe. Applied to production at
+05:32 UTC and verified (OPS-06).
+
 D2 and B1 reached production on 2026-09-26: the owner merged pull request #9 (D2, `d82bf6c`,
 deployed 18:08 UTC) and pull request #10 (B1, `167c9d1`, deployed 20:31 UTC). The merges
 came before their migrations: the migrations `20260926000300_design_delegation.sql`,
@@ -469,15 +528,21 @@ hostname answered by the B7 handler with a plain `no-store` 404 while no uploade
 hostnames normalised, an unsafe key refused). The session branch was restarted from `main`
 (`719fcfe`).
 
-Next is the owner's, on production, about three minutes: Organizations → Create site →
-*Uploaded* (key `harbor`), Upload → *Download the sample site (ZIP)* → choose it → *Upload and
-check* → *Publish as release v1*, open `https://harbor.preview.lernerworksplatform.dev/`,
-send the sample's contact form and find the message in Inbox, restore v1 from Upload →
-Releases. Then the first real client site hosted this way, with its domain: that is the
-programme's "done" (one real client site live, its form delivering, restore used once) and the
-moment the bar (SB-09) is re-judged. The step after it, a hand-built page pulling in the
-platform's live pieces through markers the publish step expands into plain HTML, is decided
-when a real site asks for it. Nothing is pending on the platform side.
+The owner's first real upload on production, a ZIP downloaded from GitHub, failed (the
+platform's 4.5 MB request limit and the check's refusals), which became phase B8: uploads in
+parts, a check that leaves out instead of refusing, Publish from GitHub with a token for
+private repositories. B8 is on the branch `claude/lucid-darwin-cif2y6`; its migration
+`20260927000500_large_uploads_github.sql` is on the production project since 05:27 UTC and
+the hardening migration `20260927000600_hosted_grants_hardening.sql` (D-028) since 05:32 UTC,
+both verified read-only, so the merge order is right; the pull request and merge are the
+owner's, and the live checks after the deployment are: on the Upload page of an uploaded
+site, *Publish from GitHub* with one of the owner's public site repositories (for example
+`jlerner1965/Lerner-Works`), the check page naming the commit and what was left out, publish,
+the preview hostname; then a ZIP larger than 4.5 MB uploaded in parts. Then the first real
+client site hosted this way, with its domain: that is the programme's "done" (one real client
+site live, its form delivering, restore used once) and the moment the bar (SB-09) is
+re-judged. The step after it, a hand-built page pulling in the platform's live pieces through
+markers the publish step expands into plain HTML, is decided when a real site asks for it.
 
 Site-building programme phase B5 (documents, links and the workbook, `docs/SITE-BUILDING-PLAN.md`
 section 3) is on production: the owner merged pull request #14 (`a601e6c`) on 2026-09-27 and

@@ -2,7 +2,9 @@ import Link from "next/link";
 import { requireUser } from "@/server/auth/session";
 import { listOrganizations, listSites } from "@/server/data/access";
 import { withUser } from "@/server/data/db";
+import { listOrganizationSecrets } from "@/server/uploaded/sources";
 import { Alert, Badge, Card, EmptyState, LinkButton, PageHeader, formatDateTime } from "@/components/admin/ui";
+import { GithubTokenForm } from "@/components/admin/github-forms";
 import { presets } from "@/modules/presets";
 
 export const dynamic = "force-dynamic";
@@ -19,13 +21,17 @@ export default async function OrganizationsPage({ searchParams }: { searchParams
   const user = await requireUser("/app");
   const params = await searchParams;
   const [orgs, sites] = await Promise.all([listOrganizations(user.id), listSites(user.id)]);
-  const canCreate = orgs.some((o) => o.role === "owner");
-  // Sites removed from the organizations the person owns stay on the audit trail (B6).
-  const removed = canCreate
-    ? await withUser(user.id, (db) => db<RemovedSite[]>`
-        select e.organization_id, e.metadata->>'name' as name, e.metadata->>'key' as key, e.created_at, public.user_display(e.actor_id) as actor
-        from public.audit_events e where e.action = 'site.deleted' order by e.created_at desc limit 20`)
-    : [];
+  const ownedIds = orgs.filter((o) => o.role === "owner").map((o) => o.id);
+  const canCreate = ownedIds.length > 0;
+  // Sites removed from the organizations the person owns stay on the audit trail (B6); owners also see whether a GitHub token is stored (B8).
+  const { removed, secrets } = canCreate
+    ? await withUser(user.id, async (db) => ({
+        removed: await db<RemovedSite[]>`
+          select e.organization_id, e.metadata->>'name' as name, e.metadata->>'key' as key, e.created_at, public.user_display(e.actor_id) as actor
+          from public.audit_events e where e.action = 'site.deleted' order by e.created_at desc limit 20`,
+        secrets: await listOrganizationSecrets(db, ownedIds),
+      }))
+    : { removed: [] as RemovedSite[], secrets: [] };
   const notice = typeof params.removed === "string" && typeof params.name === "string" ? { kind: params.removed, name: params.name, leftovers: Number(params.leftovers ?? 0) || 0 } : null;
   return (
     <>
@@ -49,6 +55,7 @@ export default async function OrganizationsPage({ searchParams }: { searchParams
           {orgs.map((org) => {
             const orgSites = sites.filter((s) => s.organizationId === org.id);
             const orgRemoved = removed.filter((r) => r.organizationId === org.id);
+            const token = secrets.find((s) => s.organizationId === org.id && s.kind === "github_token") ?? null;
             return (
               <Card
                 key={org.id}
@@ -69,7 +76,7 @@ export default async function OrganizationsPage({ searchParams }: { searchParams
                             {s.name}
                           </Link>
                           <p className="text-xs text-ink-subtle">
-                            {presets[s.preset].label} · {s.mode === "demo" ? "demonstration" : "live"} · {s.activeReleaseId ? "published" : "not yet published"}
+                            {s.siteType === "uploaded" ? "uploaded site" : presets[s.preset].label} · {s.mode === "demo" ? "demonstration" : "live"} · {s.activeReleaseId ? "published" : "not yet published"}
                           </p>
                         </div>
                         <LinkButton href={`/app/sites/${s.id}`} variant="secondary">
@@ -80,17 +87,21 @@ export default async function OrganizationsPage({ searchParams }: { searchParams
                   </ul>
                 )}
                 {org.role === "owner" ? (
-                  <div className="mt-3 border-t border-line pt-2 text-xs text-ink-subtle">
-                    {orgRemoved.length ? (
-                      <p>
-                        Removed: {orgRemoved.map((r) => `${r.name ?? "site"} (${r.key ?? "?"}, ${formatDateTime(r.createdAt, "UTC")}${r.actor ? `, by ${r.actor}` : ""})`).join("; ")}
+                  <div className="mt-3 border-t border-line pt-3">
+                    <p className="mb-1 text-xs font-medium uppercase tracking-wide text-ink-subtle">GitHub</p>
+                    <GithubTokenForm organizationId={org.id} meta={token ? { last4: token.last4, createdAt: formatDateTime(token.updatedAt, "UTC") } : null} />
+                    <div className="mt-3 border-t border-line pt-2 text-xs text-ink-subtle">
+                      {orgRemoved.length ? (
+                        <p>
+                          Removed: {orgRemoved.map((r) => `${r.name ?? "site"} (${r.key ?? "?"}, ${formatDateTime(r.createdAt, "UTC")}${r.actor ? `, by ${r.actor}` : ""})`).join("; ")}
+                        </p>
+                      ) : null}
+                      <p className={orgRemoved.length ? "mt-1" : ""}>
+                        <Link href={`/app/organizations/${org.id}/remove`} aria-label={`Remove organization ${org.name}`} className="text-danger underline">
+                          Remove organization…
+                        </Link>
                       </p>
-                    ) : null}
-                    <p className={orgRemoved.length ? "mt-1" : ""}>
-                      <Link href={`/app/organizations/${org.id}/remove`} aria-label={`Remove organization ${org.name}`} className="text-danger underline">
-                        Remove organization…
-                      </Link>
-                    </p>
+                    </div>
                   </div>
                 ) : null}
               </Card>

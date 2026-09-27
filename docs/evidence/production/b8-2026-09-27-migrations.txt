@@ -1,0 +1,49 @@
+B8 (large uploads and Publish from GitHub) and the grants hardening (D-028) on the production
+project, 2026-09-27. Project lerner-works-platform-production (fvpooyxkuvltjzjbevxf), applied
+through the Supabase Management API by `pnpm db:migrate --project-ref fvpooyxkuvltjzjbevxf`,
+ahead of the merge (the deployed B7 code keeps working: it touches none of the new objects).
+
+Release gate on the final code before the B8 migration: GATE PASSED in 887 s (setup check
+1 s, lint 18 s, typecheck 16 s, unit 6 s, integration 79 s, browser 732 s, production build
+35 s); 179 unit tests in 24 files, 90 integration tests in 23 files, 44 browser tests.
+
+1. pnpm db:migrate --project-ref fvpooyxkuvltjzjbevxf                 05:27:12Z .. 05:27:15Z
+     applied 20260927000500_large_uploads_github.sql
+   Applied 1 migration(s); 16 already applied.
+
+   Read-only verification afterwards:
+   tables       organization_secrets, site_sources, upload_sessions
+   functions    delete_organization_secret(p_org uuid, p_kind text); get_site_secret(p_site uuid, p_kind text);
+                purge_abandoned_uploads(p_age interval); purge_stale_upload_checks(p_age interval);
+                set_organization_secret(p_org uuid, p_kind text, p_ciphertext text, p_last4 text)
+   policies     organization_secrets 1, site_sources 4, upload_sessions 3
+   recorded     20260927000500_large_uploads_github.sql at 2026-09-27 05:27:15.16933+00
+   FOUND WRONG  has_column_privilege('authenticated', organization_secrets.ciphertext, select) = true
+                has_function_privilege('authenticated', purge_abandoned_uploads(interval), execute) = true
+   Audit of the cause (pg_default_acl): role postgres, schema public, defaults for tables (r),
+   functions (f) and sequences (S) granting anon, authenticated and service_role everything.
+   Blast radius before the fix: anon could select and authenticated could delete on the three
+   new tables (row-level security still limited the rows; organization_secrets has a select
+   policy only); every function in public was executable by anon and authenticated, including
+   purge_old_inquiries(interval) and purge_rate_limit_events(interval) since launch day.
+
+2. pnpm db:migrate --project-ref fvpooyxkuvltjzjbevxf                 05:32:33Z .. 05:32:35Z
+     applied 20260927000600_hosted_grants_hardening.sql
+   Applied 1 migration(s); 17 already applied.
+
+   Read-only verification afterwards:
+   default privs  no entry for role postgres in schema public remains (supabase_admin's own
+                  defaults, for objects it creates itself, stay)
+   table privs    organization_secrets: anon select false, authenticated select (table) false,
+                  delete false; ciphertext not selectable by authenticated, last4 selectable
+                  site_sources: anon select false, authenticated select true, delete true (granted)
+                  upload_sessions: anon select false, authenticated select true, delete false
+                  app_sessions and rate_limit_events: no client access, as before
+   function privs purge_abandoned_uploads, purge_old_inquiries, purge_rate_limit_events,
+                  purge_stale_upload_checks: anon false, authenticated false
+                  get_demo_release, get_host_site_type, get_invitation_preview,
+                  get_live_release, submit_inquiry: anon true, authenticated true (the readers
+                  and the public form, as granted)
+                  every other function: anon false, authenticated true, as granted
+   The whole integration suite (90 tests) passes locally on the hardened grants, and
+   tests/unit/migration-grants.test.ts holds every future migration to the rule.
