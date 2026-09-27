@@ -152,6 +152,23 @@ describe("Supabase storage", () => {
     await expect(s.getPrivate("../etc/passwd")).rejects.toThrow(/unsafe/);
     expect(f.calls).toHaveLength(0);
   });
+
+  it("removes published copies by name in batches of a hundred and refuses a name with a path (B6)", async () => {
+    const names = Array.from({ length: 150 }, (_, i) => `${i.toString(16).padStart(64, "0")}-w480.webp`);
+    const f = fakeFetch([{ status: 200, body: [] }, { status: 200, body: [] }]);
+    const s = new SupabaseStorage("https://proj.supabase.co", "service", buckets, f.impl);
+    await s.deletePublic(names);
+    expect(f.calls).toHaveLength(2);
+    expect(f.calls[0]!.method).toBe("DELETE");
+    expect(f.calls[0]!.url).toBe("https://proj.supabase.co/storage/v1/object/public-assets");
+    expect(JSON.parse(f.calls[0]!.body!).prefixes).toHaveLength(100);
+    expect(JSON.parse(f.calls[1]!.body!).prefixes).toEqual(names.slice(100));
+    await expect(s.deletePublic(["a/b.webp"])).rejects.toThrow(/flat/);
+    expect(f.calls).toHaveLength(2);
+    const g = fakeFetch([{ status: 500, text: "storage down" }]);
+    await expect(new SupabaseStorage("https://proj.supabase.co", "service", buckets, g.impl).deletePublic([names[0]!])).rejects.toThrow(/public object/);
+    await expect(s.deletePublic([])).resolves.toBeUndefined();
+  });
 });
 
 describe("Vercel domain provider", () => {

@@ -123,6 +123,10 @@ Visitor submits the form on a store or guide contact page. The server derives si
 
 Publisher selects a historical release, sees differences against the current release, chooses a reason, and restores it. Restoration creates a new release referencing the historical snapshot. Drafts and inquiries remain unchanged. If a historical release contains a withdrawn asset or incompatible schema, block restoration with an actionable explanation.
 
+### Remove a site or an organization
+
+An organization owner removes a site from its Settings by typing the site key (refused while the site is live on a domain), and an organization from the organizations page by typing its name; the organization's sites go first. Rows go in one transaction with the audit event, files follow, the audit trail stays, and an organization is kept as a tombstone row nobody is a member of. There is no undo: export the site package first (site-building B6, decision D-025).
+
 ## 6 Interface and design direction
 
 ### Administration dashboard

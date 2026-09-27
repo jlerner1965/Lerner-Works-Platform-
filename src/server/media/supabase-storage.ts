@@ -151,6 +151,22 @@ export class SupabaseStorage implements StorageProvider {
     throw new SupabaseStorageError(`public existence check failed for ${name}: status ${res.status}`, res.status);
   }
 
+  async deletePublic(names: string[]): Promise<void> {
+    for (const name of names) {
+      assertSafeKey(name);
+      if (name.includes("/")) throw new Error("public names are flat");
+    }
+    for (let i = 0; i < names.length; i += 100) {
+      const chunk = names.slice(i, i + 100);
+      const res = await this.fetchImpl(this.api(`object/${this.buckets.public}`), {
+        method: "DELETE",
+        headers: this.authHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify({ prefixes: chunk }),
+      });
+      if (!res.ok) throw new SupabaseStorageError(`deleting ${chunk.length} public object(s) failed: ${await errorMessage(res)}`, res.status);
+    }
+  }
+
   publicUrl(name: string): string {
     assertSafeKey(name);
     return this.api(`object/public/${this.buckets.public}/${encodeURIComponent(name)}`);

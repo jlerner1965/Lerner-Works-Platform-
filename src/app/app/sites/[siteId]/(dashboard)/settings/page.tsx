@@ -11,6 +11,7 @@ import type { IndexModuleKey } from "@/modules/site-config";
 import { getConfig } from "@/server/config";
 import { getDomainProvider, type DomainProviderStatus } from "@/server/domains/provider";
 import { DomainRow, SiteModeForm } from "@/components/admin/domain-forms";
+import { RemoveSiteForm } from "@/components/admin/removal-forms";
 
 export const dynamic = "force-dynamic";
 
@@ -22,6 +23,7 @@ const sections = [
   { id: "navigation", label: "Navigation and footer" },
   { id: "domains", label: "Domains" },
   { id: "publishing", label: "Publishing" },
+  { id: "remove", label: "Remove" },
 ] as const;
 
 /** Settings (B1): everything about the site that is not its look. Brand and design live on the Look page. */
@@ -34,7 +36,17 @@ export default async function SettingsPage({ params }: { params: Promise<{ siteI
     const config = await getCurrentSiteConfig(db, siteId);
     const domains = await db<Array<{ id: string; normalizedHost: string; status: "pending" | "verifying" | "active" | "disabled"; isCanonical: boolean; verifiedAt: Date | null; createdAt: Date; verificationInstructions: DomainProviderStatus | null }>>`select id, normalized_host, status::text, is_canonical, verified_at, created_at, verification_instructions from public.domains where site_id = ${siteId} order by created_at`;
     const assets = await db<Array<{ id: string; title: string | null; width: number; height: number }>>`select id, title, width, height from public.media_assets where site_id = ${siteId} and status = 'ready' and kind = 'image' order by created_at desc limit 100`;
-    return { config, domains, assets };
+    // What a removal would take with it (B6); owners only see the card.
+    const counts = ctx.capabilities.isOwner
+      ? (await db<Array<{ items: number; releases: number; media: number; inquiries: number; members: number; domains: number }>>`select
+          (select count(*)::int from public.content_items i where i.site_id = ${siteId}) as items,
+          (select count(*)::int from public.releases r where r.site_id = ${siteId}) as releases,
+          (select count(*)::int from public.media_assets m where m.site_id = ${siteId}) as media,
+          (select count(*)::int from public.inquiries q where q.site_id = ${siteId}) as inquiries,
+          (select count(*)::int from public.site_memberships sm where sm.site_id = ${siteId}) as members,
+          (select count(*)::int from public.domains d where d.site_id = ${siteId}) as domains`)[0] ?? null
+      : null;
+    return { config, domains, assets, counts };
   });
   if (!data.config) notFound();
   const { config } = data.config;
@@ -220,6 +232,19 @@ export default async function SettingsPage({ params }: { params: Promise<{ siteI
             </div>
           </Card>
         </div>
+        {ctx.capabilities.isOwner && data.counts ? (
+          <div id="remove">
+            <Card title="Remove this site">
+              <RemoveSiteForm
+                siteId={siteId}
+                siteKey={site.key}
+                siteName={site.name}
+                counts={data.counts}
+                blockedBy={site.mode === "live" || data.domains.some((d) => d.status === "active") ? "The site is live on a domain. Return it to demonstration mode and disable its domains above before deleting it." : null}
+              />
+            </Card>
+          </div>
+        ) : null}
       </div>
     </>
   );

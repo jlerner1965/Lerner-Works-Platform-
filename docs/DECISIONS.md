@@ -393,3 +393,26 @@ result, with limits on size, rows and columns. A workbook is converted to the pa
 files before the dry run (`src/server/import/workbook.ts`), so the import reads one shape and
 a client may still send CSV files; a sheet given both ways is refused. The template is the
 workbook, and the proof packages carry it.
+
+## D-025 · 2026-09-27 · Removal: rows go, files follow, the trail stays, organizations become tombstones
+
+The owner asked to delete sites and organizations after the proof (phase B6). Decided: (1)
+Removal is an owner-only SQL function with a typed confirmation (the site key, the
+organization name), so the rule sits with the data like every other authority-carrying
+operation (D-004). (2) A site is deleted as rows in one transaction: every site-scoped table
+cascades from `sites`, and the audit event `site.deleted` (key, name, preset, counts) is
+written in the same transaction and survives, because `audit_events.site_id` carries no
+foreign key; the organizations page lists the removed sites from that trail. (3) Files follow
+the rows: the function returns the site's asset folders (private originals and derivatives)
+and the public copies no other site's release carries, since public names are content hashes
+and may be shared; the application removes them after the commit and records any it could not
+remove as `site.storage_cleanup_failed` with the keys, so the operator finishes by hand rather
+than the rows being kept for a storage error. (4) A site that is live on a domain is refused
+until it is returned to demonstration mode and its domains are disabled: a deletion must
+never be the way a live hostname goes dark. (5) An organization is not deleted as a row: its
+sites go first (each as above), then its memberships and invitations, and the row stays as a
+tombstone (`status = 'deleted'`, `deleted_at`, `deleted_by`) that no one is a member of, so
+that the organization's audit trail, including the deletion, remains in the database for the
+operator; the last organization a person owns is refused, because only an existing owner can
+create the next one (the onboarding rule of `create_organization`). (6) There is no undo: the
+dashboard says so and points at the site package export first.
