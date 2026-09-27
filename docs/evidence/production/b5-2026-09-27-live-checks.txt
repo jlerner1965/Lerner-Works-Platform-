@@ -1,0 +1,22 @@
+B5 live checks on production, 2026-09-27T02:08:47Z (main a601e6c: merge of pull request #14 (B5, 95ec65f), merged by the owner; Vercel deployment dpl_LL9hKvVneKCqCYJ7nZSEvME1rcic READY at 2026-09-27T02:00:03Z)
+Migrations 20260927000100_media_documents.sql and 20260927000200_content_kind_link.sql applied to project fvpooyxkuvltjzjbevxf at 2026-09-27T02:02:26Z through the Management API (2 applied, 12 already applied), after the merge: the owner merged first; the migrations followed as soon as the merge was seen, two minutes and twenty-three seconds after the deployment was ready. In that window a dashboard page reading media or the content kinds failed with the error page; the public pages read release snapshots and were unaffected. The owner reported one such error page (reference code 3780686530) right after the merge.
+Schema verified afterwards through the Management API: media_assets.kind media_kind not null default 'image'; width and height nullable; check constraint media_assets_dimensions_by_kind present; content_kind = {page,place,event,article,store,service,link}; PostgreSQL 17.6; 0 documents and 0 links on production yet (5 sites).
+Storage buckets: private (not public) and public-assets (public), neither with a MIME-type or size restriction, so a published PDF is accepted like a WebP derivative.
+Site under test: aragosan (owner's test site, demo mode, version-1 release normalised at read time).
+
+200 text/html; charset=utf-8  GET https://app.lernerworksplatform.dev/demo/aragosan
+404 text/html; charset=utf-8  GET https://app.lernerworksplatform.dev/demo/aragosan/links
+200 text/html; charset=utf-8  GET https://app.lernerworksplatform.dev/demo/aragosan/events
+200 text/html; charset=utf-8  GET https://app.lernerworksplatform.dev/demo/aragosan/search?q=a
+200 image/svg+xml; charset=utf-8  GET https://app.lernerworksplatform.dev/demo/aragosan/favicon.svg
+404 text/html; charset=utf-8  GET https://app.lernerworksplatform.dev/demo/no-such-site
+200 text/html; charset=utf-8  GET https://app.lernerworksplatform.dev/sign-in
+200 application/json  GET https://app.lernerworksplatform.dev/healthz
+307 text/html; charset=utf-8  GET https://app.lernerworksplatform.dev/app
+
+401  GET /api/jobs/deliver (401 = cron target reachable, secret required)
+
+PASS  a version-1 release still renders under the schema-version-6 renderer (200 on the home page above)
+PASS  /links answers 404 on a site with no published link (the index and its navigation entry exist only once a link is published, D-021)
+
+Dashboard checks (Media: a PDF uploaded, attached and served from the published page; Links: a link added from the list, published, at /links; Import & export: the template downloads as content.xlsx and a workbook uploaded on its own dry-runs) need the owner's session and are the owner's look on the live site.

@@ -160,8 +160,11 @@ fail the bar.
   Excel's dates, numbers, booleans and formula results read as text; CSV files still accepted;
   the proof packages carry the workbook. SB-10, SB-11 and SB-12 PASS; migrations
   `20260927000100_media_documents.sql` and `20260927000200_content_kind_link.sql`; snapshot
-  schema version 6 with the ten earlier frozen releases rendering unchanged. On the branch;
-  the migrations go to production before the merge.
+  schema version 6 with the ten earlier frozen releases rendering unchanged. On `main` since
+  pull request #14, merged by the owner on 2026-09-27 (deployed 02:00 UTC); the two
+  migrations followed at 02:02 UTC through the Management API, so the dashboard ran about
+  two minutes without them (public pages read snapshots and were unaffected). Public live
+  checks in `docs/evidence/production/b5-2026-09-27-live-checks.txt`.
 
 ## 4 Acceptance rows
 
