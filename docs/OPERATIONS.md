@@ -398,6 +398,67 @@ and then accepts at `/invite/<token>`; that path is unverified in this environme
   naming the fields to correct.
 - Removal (B6) takes an uploaded site's public files with it unless another site's release
   carries the same bytes.
+- Large uploads (B8, D-027): a hosted function accepts at most 4.5 MB per request, so the
+  uploader on the Upload page sends a ZIP in parts of `UPLOAD_PART_BYTES` (4 MB; only tests
+  lower it) to `upload/part` after `upload/begin`, and `upload/complete` assembles them from
+  private storage (`<org>/<site>/uploads/sessions/<session>/part-NNNNN`), drops them and runs
+  the same check as a one-request upload (`src/server/uploaded/sessions.ts`, `intake.ts`). The
+  plain form post to `upload/file` remains for browsers without script and small files.
+  `upload_sessions` records each upload; the retention job abandons sessions open for a day
+  and cancels checks never published in thirty days, removing their storage
+  (`purgeUploads`, reported in the job's answer as `abandonedSessions`, `staleChecks`,
+  `leftovers`).
+- What the check leaves out (B8): hidden files, server-side code (with its own warning),
+  repository housekeeping at the top level (README, LICENSE, `package.json`, lockfiles,
+  `vercel.json`, config files…), `node_modules`, files of kinds a website does not serve, and
+  names a web address cannot carry; each is listed on the check page by reason. The site may
+  sit in a folder of the archive: the usual build folders (`dist`, `build`, `out`, `public`,
+  `_site`, `docs`, `site`, `www`, `htdocs`, `public_html`) are found when the top level has no
+  `index.html`, and a folder can be named on the form (`root` on the job and on the release's
+  `source`). Refused still: no index page, a path leaving the archive, a file over 25 MB, case
+  twins, more than 2,000 kept files.
+- Publish from GitHub (B8): the Upload page's second card names a repository (`owner/name` or
+  a github.com address, a `/tree/<branch>/<folder>` address filling branch and folder), the
+  server fetches `GET /repos/{owner}/{name}` (default branch), the branch head and the
+  zipball at that commit through `GITHUB_API_URL` (`src/server/uploaded/github.ts`; capped at
+  64 MB; a `User-Agent` and the API version sent), and takes it in like an upload with the
+  commit recorded (`source.github` on the release, `site_sources` on the site: repository,
+  branch, folder, last commit checked, last commit published). Public repositories need no
+  token; GitHub's anonymous rate limit (60 requests an hour per address) is explained when
+  hit. A private repository uses the organization's token.
+- The GitHub token (B8): an owner pastes a fine-grained token (read access to Contents) on the
+  Organizations page; it is verified with `GET /user`, sealed with AES-256-GCM under a key
+  derived from `SESSION_SECRET` (`src/server/secrets/crypto.ts`) and stored in
+  `organization_secrets` through `set_organization_secret`; `get_site_secret` hands the
+  ciphertext to people who may publish a site of the organization, `delete_organization_secret`
+  removes it; the ciphertext column is not granted to the application role, and the dashboard
+  shows only the last four characters. Rotating `SESSION_SECRET` makes stored tokens
+  unreadable ("paste it again"); the audit trail carries `organization.secret_set` and
+  `organization.secret_removed`.
+
+## Client privileges on the hosted project (D-028)
+
+A Supabase project grants `anon`, `authenticated` and `service_role` every privilege on new
+tables and sequences and execute on new functions in `public` by default; the local
+PostgreSQL does not, so the tests cannot see a missing revoke. Since
+`20260927000600_hosted_grants_hardening.sql` the defaults of the `postgres` role in `public`
+are revoked on the production project, and every migration that creates a table or a
+function in `public` states its client grants after `revoke all on table public.<t> from
+public, anon, authenticated` or `revoke all on function public.<f>(…) from public, anon,
+authenticated`; `tests/unit/migration-grants.test.ts` enforces it. After applying a migration
+that adds a table or a function to a hosted project, verify there, read-only, through the
+Management API query endpoint:
+
+```sql
+select has_column_privilege('authenticated', 'public.<table>', '<column>', 'select');
+select has_function_privilege('anon', 'public.<f>(<args>)', 'execute'),
+       has_function_privilege('authenticated', 'public.<f>(<args>)', 'execute');
+select defaclrole::regrole, defaclnamespace::regnamespace, defaclobjtype, defaclacl
+  from pg_default_acl where defaclnamespace = 'public'::regnamespace;
+```
+
+The last must list no entry for role `postgres`. The functions the retention job calls
+(`purge_*`) are callable only by the elevated connection.
 
 ## Backups and restore rehearsal
 

@@ -211,6 +211,28 @@ fail the bar.
   for the owner's go; the programme is done when one real client site is live this way, its
   form delivering, and the owner has restored a release once.
 
+### B8 · Large uploads and Publish from GitHub
+
+- The owner's first try on production, a ZIP downloaded from GitHub, did not upload. Two
+  causes, both confirmed: the hosting platform refuses any request body over 4.5 MB before the
+  code runs (a site with photographs is almost always bigger), and the check refused a
+  repository download over LICENSE, CNAME, source files and a build script. The owner asked
+  whether to fix the upload or to link GitHub; the answer was both, upload first.
+- Status: built and verified in the repository on 2026-09-27 (decision D-027). A ZIP goes up in
+  parts through the platform itself (upload sessions, assembled from private storage, the same
+  check; a bar in the dashboard; abandoned parts after a day and checks never published after
+  thirty days purged by the retention job). The check keeps what a website serves and leaves
+  the rest out with grouped notes instead of refusing, finds the site in its build folder or
+  takes a named one, allows names in any script, and tells a source project it has to be built
+  first. Publish from GitHub: a site names its repository, branch and folder; the archive is
+  fetched server-side at the branch head (no request-size wall), checked and published with
+  the commit on the release; the source is remembered ("Check the latest from GitHub", the
+  live commit shown); an organization's token for private repositories is verified with
+  GitHub, sealed under a key derived from SESSION_SECRET, reachable only through SQL functions.
+  UP-05 to UP-07 PASS in `docs/ACCEPTANCE.md`; migration
+  `20260927000500_large_uploads_github.sql`. What neither path does: build a site (React,
+  Next, Astro, Vite); that stays a separate decision.
+
 ## 4 Acceptance rows
 
 | ID | Scenario | Expected |

@@ -446,3 +446,75 @@ key; the files are copied before it runs, so a storage failure leaves no release
 be served. (8) The dashboard of an uploaded site is Upload (with the releases and restore),
 Inbox, Settings (details, domains, publishing mode), Team and the activity log; the structured
 sections answer 404 for it.
+
+## D-027 · 2026-09-27 · Large uploads in parts, a check that leaves out rather than refuses, GitHub as a source
+
+**Context.** The owner's first real upload on production, a ZIP downloaded from GitHub, failed
+twice over. The hosting platform refuses any request body over 4.5 MB before the application
+runs (confirmed: a 6 MB post answers `413 FUNCTION_PAYLOAD_TOO_LARGE`, a 3 MB one reaches the
+code), and the B7 check treated every file a website does not serve (LICENSE, CNAME, a build
+script, source files) as an error that refused the whole upload. The owner asked whether to
+fix the upload or to link GitHub.
+
+**Decision.** Both, the upload first. (1) A ZIP goes up in parts through the platform itself:
+`upload_sessions` records the file's name, size and part layout; each part is a request under
+the limit, stored privately under the session; completing the session assembles the parts,
+drops them and hands the archive to the same intake as a one-request upload. The parts travel
+through the platform rather than straight to the storage provider so that the path is the same
+on every provider, is exercised end to end by the browser tests, and puts no key in the page.
+The one-request route stays for browsers without script and small files. Sessions left open
+for a day and checks never published in thirty days are purged by the retention job with their
+storage. (2) The check keeps what a website serves and leaves out the rest, listed by reason
+(hidden, server-side, repository housekeeping, not served, a name a web address cannot carry,
+`node_modules`, outside the chosen folder); server-side code gets a warning of its own. Names
+may use letters and digits of any script. When the top level has no `index.html`, exactly one
+of the usual build folders holding one is taken as the site, or the person names the folder;
+a source project without a built page is told it has to be built first. Refusals remain for
+what cannot be served at all: no index page, a path leaving the archive, an oversize file,
+case twins, too many files. (3) A site may name a GitHub repository, branch and folder as its
+source (`site_sources`); the archive is fetched server-side at the branch head through the
+REST API (no request-size wall), checked and published like an upload, with the commit on the
+release's `source.github` and the live commit remembered on the source. An organization may
+store one GitHub token for private repositories (`organization_secrets`): verified with GitHub
+before storing, sealed with AES-256-GCM under a key derived from SESSION_SECRET (no second
+secret to configure; rotating SESSION_SECRET means pasting tokens again), reachable only
+through security-definer functions (owners set and remove; people who may publish a site of
+the organization use it through the application; the ciphertext column is not granted), never
+shown back beyond its last four characters.
+
+**Consequences.** Two optional variables (`UPLOAD_PART_BYTES`, `GITHUB_API_URL`), lowered and
+pointed at a stand-in only by the browser tests. Publishing copies files to the public store
+eight at a time. What neither path does, and what stays a separate decision: building a site
+(React, Next, Astro, Vite) from its source.
+
+## D-028 · 2026-09-27 · Client privileges are stated explicitly; the hosted defaults are off
+
+**Context.** The read-only verification after applying the B8 migration to the production
+project showed the `authenticated` role able to read `organization_secrets.ciphertext` and to
+execute the purge functions, and `anon` able to select the three new tables. A Supabase
+project grants `anon`, `authenticated` and `service_role` every privilege on new tables and
+sequences and execute on new functions in `public` through the default privileges of the
+`postgres` role; the plain PostgreSQL the tests run on has no such defaults, so no test could
+see it. The policies migration of launch day revoked the tables of its day; everything created
+since carried the defaults on production: the B8 tables, and every function in `public`
+including `purge_old_inquiries` and `purge_rate_limit_events` (a signed-in user could have
+called them with a zero interval). Row-level security kept the rows of every table in check
+throughout; the exposure was the ciphertext column, the column-level restrictions of the B8
+tables, and the purge functions.
+
+**Decision.** Migration `20260927000600_hosted_grants_hardening.sql`: the tables created
+after the policies migration get exactly the grants their migrations meant after a revoke
+from `public, anon, authenticated`; execute on every function in `public` is revoked from the
+client roles and the grants the migrations made are re-issued verbatim; the default privileges
+of `postgres` in `public` are revoked for tables, sequences and functions where the migration
+runs as `postgres` or a superuser (the hosted project; a local database skips it with a
+notice). From now on every migration that creates a table or a function in `public` states
+its client grants after an explicit revoke naming `anon` and `authenticated`, and
+`tests/unit/migration-grants.test.ts` holds it to that: every table created after the policies
+migration has such a revoke, the hardening migration re-issues every earlier function grant
+(minus dropped signatures) and nothing more, and every function created after it revokes in
+its own file. Applied to the production project at 05:32 UTC and verified read-only.
+
+**Consequences.** A hosted verification (`has_column_privilege`, `has_function_privilege`,
+`pg_default_acl`) belongs to every migration that adds a table or a function, in
+`docs/OPERATIONS.md`; the local database cannot stand in for it.

@@ -1,0 +1,89 @@
+B7 (uploaded sites) live checks on production, 2026-09-27
+Deployment dpl_CC2iXit2pVAYvxp7SbREm8MmSYsa of 719fcfe (merge of pull request #16), READY at 03:59:34 UTC,
+aliases app.lernerworksplatform.dev and *.preview.lernerworksplatform.dev. PREVIEW_DOMAIN set for production.
+No uploaded site exists on production yet, so every preview hostname answers the handler's plain 404;
+the dashboard path (create an Uploaded site, upload the sample ZIP, publish, the preview page, the form
+into Inbox, restore) needs the owner's session and is theirs to run. Vercel's edge consumes s-maxage and
+forwards public, max-age=0 to the client, which is why the lookup shows that header here.
+
+2026-09-27T03:59:52Z
+== GET https://app.lernerworksplatform.dev/healthz   (expect 200 ok, database reachable)
+   status=200 time=0.802859s
+   HTTP/2 200 
+   cache-control: no-store
+   content-type: application/json
+   x-content-type-options: nosniff
+   x-vercel-id: iad1::iad1::7bqhs-1790481592853-7becba0e4b56
+   body: {"ok":true,"database":"reachable"}
+
+== GET https://app.lernerworksplatform.dev/api/public/site-type?host=app.lernerworksplatform.dev   (expect 200 {"type":null}, s-maxage=60)
+   status=200 time=0.500180s
+   HTTP/2 200 
+   cache-control: public, max-age=0
+   content-type: application/json
+   x-content-type-options: nosniff
+   x-vercel-id: iad1::iad1::fqgpw-1790481593675-5be69fff17a2
+   body: {"type":null}
+
+== GET https://app.lernerworksplatform.dev/api/public/site-type?host=nope.example   (expect 200 {"type":null})
+   status=200 time=0.241032s
+   HTTP/2 200 
+   cache-control: public, max-age=0
+   content-type: application/json
+   x-content-type-options: nosniff
+   x-vercel-id: iad1::iad1::gbhld-1790481593974-975dee68b33f
+   body: {"type":null}
+
+== GET https://app.lernerworksplatform.dev/uploaded/preview/x/files   (expect 404 Not found: the handler is refused by path on the application host)
+   status=404 time=0.356346s
+   HTTP/2 404 
+   cache-control: public, max-age=0, must-revalidate
+   content-type: text/plain;charset=UTF-8
+   x-content-type-options: nosniff
+   x-vercel-id: iad1::jtrhb-1790481594210-5b6febedaf8c
+   body: Not found
+
+== GET https://anything.preview.lernerworksplatform.dev/   (expect 404 text/plain Not found, no-store: the B7 file handler, no site with that key)
+   status=404 time=0.425951s
+   HTTP/2 404 
+   cache-control: no-store
+   content-type: text/plain; charset=utf-8
+   x-content-type-options: nosniff
+   x-vercel-id: iad1::iad1::8k75s-1790481594747-ad5e72643483
+   body: Not found
+
+== HEAD https://anything.preview.lernerworksplatform.dev/   (expect 404 without a body)
+   status=404 time=0.260023s
+   HTTP/2 404 
+   cache-control: no-store
+   content-type: text/plain; charset=utf-8
+   x-content-type-options: nosniff
+   x-vercel-id: iad1::iad1::wrvsn-1790481595056-fa6c99bedfdf
+
+== GET https://anything.preview.lernerworksplatform.dev/robots.txt   (expect 404 Not found (no site with that key yet))
+   status=404 time=0.286632s
+   HTTP/2 404 
+   cache-control: no-store
+   content-type: text/plain; charset=utf-8
+   x-content-type-options: nosniff
+   x-vercel-id: iad1::iad1::p77zq-1790481595341-2f970b1732bb
+   body: Not found
+
+== GET https://Anything.Preview.LernerWorksPlatform.dev/about   (expect 404 Not found: the hostname is normalised)
+   status=404 time=0.279846s
+   HTTP/2 404 
+   cache-control: no-store
+   content-type: text/plain; charset=utf-8
+   x-content-type-options: nosniff
+   x-vercel-id: iad1::iad1::bhr96-1790481595633-b771bb3227a7
+   body: Not found
+
+== GET https://a_b.preview.lernerworksplatform.dev/   (expect 404 Not found: a key outside [a-z0-9-] is refused by the proxy (TLS may refuse the name first))
+   status=404 time=0.253129s
+   HTTP/2 404 
+   cache-control: public, max-age=0, must-revalidate
+   content-type: text/plain;charset=UTF-8
+   x-content-type-options: nosniff
+   x-vercel-id: iad1::fdl2m-1790481595970-74b024f34789
+   body: Not found
+

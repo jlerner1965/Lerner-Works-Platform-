@@ -86,6 +86,10 @@ From `.env.example`; required outside local (the application refuses to start ot
 | `CRON_SECRET` (or `JOB_TRIGGER_SECRET`) | 32+ random characters; Vercel Cron sends it as a bearer token |
 | `VERCEL_API_TOKEN`, `VERCEL_PROJECT_ID`, `VERCEL_TEAM_ID` | for domain registration and verification |
 | `PREVIEW_DOMAIN` (optional) | `preview.<platform domain>`, for example `preview.lernerworksplatform.dev`; an uploaded site's preview answers on `https://<site key>.<PREVIEW_DOMAIN>/` and needs the wildcard hostname `*.<PREVIEW_DOMAIN>` added to the Vercel project (section 7). Unset, uploaded sites have no preview and serve only on their live domain |
+| `UPLOAD_PART_BYTES`, `GITHUB_API_URL` (optional) | Leave unset (4 MB parts under the platform's 4.5 MB request limit; the real GitHub API). Only the browser tests change them |
+
+Stored GitHub tokens (B8) are sealed under a key derived from `SESSION_SECRET`; rotating it
+means owners paste their tokens again.
 
 `vercel.json` schedules `/api/jobs/deliver` every 5 minutes and `/api/jobs/retention`
 daily. Build command `pnpm build`, install `pnpm install --frozen-lockfile`, Node 22.
@@ -182,8 +186,16 @@ Only after all seven pass can the release be labelled **hosted staging verified*
       03:49 UTC). Needs the owner's go, like every change to the platform's own domain.
 - [ ] After the B7 code is deployed: open `https://<site key>.<PREVIEW_DOMAIN>/` of a
       published uploaded site and confirm the page, the `X-Robots-Tag: noindex, nofollow`
-      header and a `robots.txt` that disallows everything. Until then uploaded sites have no
-      preview and serve only on their live domain.
+      header and a `robots.txt` that disallows everything. State on 2026-09-27: the B7 code is
+      deployed (pull request #16, `719fcfe`) and the wildcard hostname reaches its handler
+      (`docs/evidence/production/b7-2026-09-27-live-checks.txt`); the check on a published
+      site waits for the first uploaded site, which the owner creates in the dashboard.
+- [x] Client privileges (D-028): `20260927000600_hosted_grants_hardening.sql` applied to the
+      production project on 2026-09-27 at 05:32 UTC; no default privileges of `postgres` remain
+      in `public`, the purge functions are callable only by the elevated connection, the
+      sealed token column is not readable by the client role. After every later migration
+      that adds a table or a function, run the read-only verification in `docs/OPERATIONS.md`
+      ("Client privileges on the hosted project").
 - [ ] Create the customer organization and site; load **approved real content** (never the
       demonstration seed); publish; add the customer's hostname; complete verification with the
       customer's DNS provider; activate; go live. One pilot at a time.

@@ -51,7 +51,20 @@ own form posts to `/_lw/inquiry`, which the proxy maps to `…/<target>/inquiry`
 starting with `_` is private to Next.js and never routed, so the segment itself cannot be
 `_lw`); the dashboard of an uploaded site is Upload, Inbox, Settings, Team
 and the activity log (`src/server/data/site-nav.ts`, the layout guard); the owner's guide is
-`docs/UPLOADED-SITES.md`.
+`docs/UPLOADED-SITES.md`. B8 is built (D-027): a ZIP goes up in parts under the hosting
+platform's 4.5 MB request limit (`src/server/uploaded/sessions.ts`, the `upload/begin`, `part`
+and `complete` routes, `upload-zip-form.tsx`; abandoned sessions and stale checks purged by the
+retention job); the check leaves out what a website does not serve instead of refusing and
+finds the site in its build folder (`archive.ts`); Publish from GitHub
+(`src/server/uploaded/github.ts`, `sources.ts`: `site_sources`, the archive fetched server-side
+at the branch head, the commit on the release) with an organization's token for private
+repositories sealed by `src/server/secrets/crypto.ts` and reachable only through SQL functions
+(`organization_secrets`). Neither path builds a site. Client privileges (D-028): a Supabase
+project grants the client roles everything on new tables and functions in `public` by
+default and the local database does not, so every migration that creates a table or a
+function states its grants after `revoke … from public, anon, authenticated`
+(`tests/unit/migration-grants.test.ts` enforces it), and after applying such a migration to
+the hosted project the read-only verification in `docs/OPERATIONS.md` is run there.
 Public themes use only the derived brand tokens, design variables and font variables described
 in `docs/DESIGN-TOKENS.md` (a unit test rejects literal colours in `src/themes`). A theme or
 renderer change must keep every frozen release in `tests/fixtures/releases/` rendering as

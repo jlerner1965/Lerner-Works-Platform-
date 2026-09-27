@@ -10,6 +10,10 @@ const schema = z.object({
   APP_HOST: z.string().min(1).default("localhost:3000"),
   /** Hostname under which uploaded sites are previewed as `<site key>.<PREVIEW_DOMAIN>` (B7); locally `preview.localhost`. Unset on a hosted runtime means no previews until it is. */
   PREVIEW_DOMAIN: optionalText,
+  /** Size of one part of a large upload (B8); under the hosting platform's request-body limit of 4.5 MB. Lowered only by tests. */
+  UPLOAD_PART_BYTES: z.coerce.number().int().min(4096).max(4_000_000).default(4_000_000),
+  /** The GitHub API used by Publish from GitHub (B8); a local stand-in in browser tests. */
+  GITHUB_API_URL: z.string().url().default("https://api.github.com"),
   DATABASE_URL: z.string().min(1),
   DATABASE_ADMIN_URL: optionalText,
   AUTH_PROVIDER: z.enum(["local", "supabase"]).default("local"),
